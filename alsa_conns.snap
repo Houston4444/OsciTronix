@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<aj-snapshot>
+<alsa>
+  <client name="System">
+    <port id="0" />
+    <port id="1" />
+  </client>
+  <client name="Midi Through">
+    <port id="0" />
+  </client>
+  <client name="Arduino Leonardo">
+    <port id="0" />
+  </client>
+  <client name="Valvetronix X">
+    <port id="0">
+      <connection client="WINE midi driver" port="0" />
+    </port>
+  </client>
+  <client name="WINE midi driver">
+    <port id="1">
+      <connection client="Valvetronix X" port="0" />
+      <connection client="Mentatronix" port="0" />
+    </port>
+  </client>
+  <client name="Mentatronix">
+    <port id="0">
+      <connection client="Valvetronix X" port="0" />
+    </port>
+  </client>
+  <client name="raysession" />
+  <client name="a2jmidid" />
+</alsa>
+</aj-snapshot>

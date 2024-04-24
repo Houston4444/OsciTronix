@@ -1,0 +1,782 @@
+VOX Valvetronix X MIDI IMPLEMENTATION                  Version 1.0 (31 Jul 2015)
+
+
+
+1.TRANSMITTED DATA
+
+1-1 UNIVERSAL SYSTEM EXCLUSIVE MESSAGE
+
+  DEVICE INQUIRY REPLY
++--------+-----------------------------------------------+
+| Byte |                   Description                      |
+| [hex] |                                                   |
++--------+-----------------------------------------------+
+|    F0   | Exclusive Status                                |
+|    7E   | Non Realtime Message                            |
+|    00   | Device ID (MIDI Channel)                        |
+|    06   | Inquiry Message                                 |
+|    02   | Identity reply                                  |
+|    42   | KORG ID                    ( Manufacturers ID ) |
+|    34   | VOX Valvetronix X ID       ( Family ID   (LSB)) |
+|    01   |                            ( Family ID   (MSB)) |
+|    00   |                            ( Member ID   (LSB)) |
+|    00   |                            ( Member ID   (MSB)) |
+|    vv   | 00~                        ( Minor Ver. (LSB)) |
+|    00   |                            ( Minor Ver. (MSB)) |
+|    vv   | 01~                        ( Major Ver. (LSB)) |
+|    00   |                            ( Major Ver. (MSB)) |
+|    F7   | End of Exclusive                                |
++--------+-----------------------------------------------+
+
+  This message is transmitted whenever a INQUIRY MESSAGE REQUEST is received.
+
+
+1-2 KORG SYSTEM EXCLUSIVE MESSAGE
++--------+----------------------------------+
+| Byte |             Description            |
+| [hex] |                                   |
++--------+----------------------------------+
+|   F0   | Exclusive Status                 |
+|   42   | KORG ID                          |
+|   30   | Format ID                        |
+|   00   | VOX Valvetronix X ID             |
+|   01   |                                  |
+|   34   |                                  |
+|   ff   | Function Code                    |
+| (dd) | Data                               |
+|   F7   | End of Exclusive                 |
++--------+----------------------------------+
+
+  See 3.KORG SYSTEM EXCLUSIVE MESSAGE FORMAT for more info.
+
+
+
+2. RECOGNIZED RECEIVE DATA
+2-1 UNIVERSAL SYSTEM EXCLUSIVE MESSAGE
+
+  DEVICE INQUIRY MESSAGE REQUEST
++--------+----------------------+
+| Byte |        Description      |
+| [hex] |                        |
++--------+----------------------+
+|    F0   | Exclusive Status     |
+|    7E   | Non Realtime Message |
+|    nn   | Device ID            |
+|    06   | Inquiry Message      |
+|    01   | Inquiry Request      |
+|    F7   | End of Exclusive     |
++--------+----------------------+
+
+ nn = 00 :MIDI Channel
+    = 7F :Any Channel
+
+
+2-2 KORG SYSTEM EXCLUSIVE MESSAGE
++--------+----------------------------------+
+| Byte |             Description            |
+| [hex] |                                   |
++--------+----------------------------------+
+|   F0   | Exclusive Status                 |
+|   42   | KORG ID                          |
+|   30   | Format ID                        |
+|   00   | VOX Valvetronix X ID             |
+|   01   |                                  |
+|   34   |                                  |
+|   ff   | Function Code                    |
+| (dd) | Data                               |
+|   F7   | End of Exclusive                 |
++--------+----------------------------------+
+
+  See 3.KORG SYSTEM EXCLUSIVE MESSAGE FORMAT for more info.
+
+
+
+3.KORG SYSTEM EXCLUSIVE MESSAGE FORMAT
+
+  Function Code List (R:Receive, T:Transmit)
++--------+-------------------------------------------+-----+-----------+
+| Func |                 Description                 | R   |     T     |
+| [hex] |                                            |     | (*1) (*2) |
++--------+-------------------------------------------+-----+-----+-----+
+|    12   | MODE REQUEST                             | o   |     |     |
+|         |                                          |     |     |     |
+|    10   | CURRENT PROGRAM DATA DUMP REQUEST        | o   |     |     |
+|    1C   | PROGRAM DATA DUMP REQUEST                | o   |     |     |
+|    31   | CUSTOM AMP/FX DATA DUMP REQUEST          | o   |     |     |
+|    11   | PROGRAM WRITE REQUEST                    | o   |     |     |
+|         |                                          |     |     |     |
+|    42   | MODE DATA                                |     | r   |     |
+|         |                                          |     |     |     |
+|   40   | CURRENT PROGRAM DATA DUMP                 | o   | r   |     |
+|   4C   | PROGRAM DATA DUMP                         | o   | r   |     |
+|   65   | CUSTOM AMP/FX DATA DUMP                   | o   | r   |     |
+|        |                                           |     |     |     |
+|   4E   | MODE CHANGE                               | o   |     | P   |
+|   41   | PARAMETER CHANGE                          | o   |     | C   |
+|        |                                           |     |     |     |
+|   26   | DATA FORMAT ERROR                         |     | E   |     |
+|   23   | DATA LOAD COMPLETED                       |     | E   |     |
+|   24   | DATA LOAD ERROR                           |     | E   |     |
+|   21   | WRITE COMPLETED                           |     | r   | W   |
+|   22   | WRITE ERROR                               |     | r   |     |
++--------+-------------------------------------------+-----+-----+-----+
+
+ *1 : Transmitted when
+      r : Request message is received.
+      E : Exclusive message is received.
+
+ *2 : Transmitted when
+      P : Program is changed by Switch or Knob.
+      C : Parameter is changed by Switch or Knob.
+      W : DATA WRITE by Switch is completed.
+
+
+(1) MODE REQUEST                                                           R
++-------------------+-------------------------------------------------------+
+|       Byte         |                   Description                         |
++-------------------+-------------------------------------------------------+
+| F0,42,30,00,01,34 | Exclusive Header                                       |
+| 12                 | Function Code                                         |
+| F7                 | End of Exclusive                                      |
++-------------------+-------------------------------------------------------+
+  Receives this message, and transmits Func=42 message.
+
+
+(2) CURRENT PROGRAM DATA DUMP REQUEST                                      R
++-------------------+-------------------------------------------------------+
+|       Byte         |                   Description                         |
++-------------------+-------------------------------------------------------+
+| F0,42,30,00,01,34 | Exclusive Header                                       |
+| 10                 | Function Code                                         |
+| F7                 | End of Exclusive                                      |
++-------------------+-------------------------------------------------------+
+  Receives this message, and transmits Func=40 or Func=24 message.
+
+
+(3) PROGRAM DATA DUMP REQUEST                                              R
++-------------------+-------------------------------------------------------+
+|      Byte         |                   Description                          |
++-------------------+-------------------------------------------------------+
+| F0,42,30,00,01,34 | Exclusive Header                                       |
+| 1C                | Function Code                                          |
+| 0000 000m         | 0:User/1:Preset                                        |
+| 00pp pppp         | Program No.                                            |
+| F7                | End of Exclusive                                       |
++-------------------+-------------------------------------------------------+
+ Receives this message, and transmits Func=4C or Func=24 message.
+
+
+(4) CUSTOM AMP/FX DATA DUMP REQUEST                                        R
++-------------------+-------------------------------------------------------+
+|       Byte         |                   Description                         |
++-------------------+-------------------------------------------------------+
+| F0,42,30,00,01,34 | Exclusive Header                                       |
+| 31                 | Function Code                                         |
+| 00                 | (Reserved)                                            |
+| 0000 00pp          | Custom Data No.                                       |
+| F7                 | End of Exclusive                                      |
++-------------------+-------------------------------------------------------+
+  Receives this message, and transmits Func=65 or Func=24 message.
+
+
+(5) PROGRAM WRITE REQUEST                                                   R
++-------------------+-------------------------------------------------------+
+|       Byte         |                   Description                          |
++-------------------+-------------------------------------------------------+
+| F0,42,30,00,01,34 | Exclusive Header                                        |
+| 11                 | Function Code                                          |
+| 00                 | (Reserved)                                             |
+| 0000 0ppp          | User Program No.                                       |
+| F7                 | End of Exclusive                                       |
++-------------------+-------------------------------------------------------+
+  Receives this message, write the data and transmits Func=21 or Func=22 message.
+
+
+(6) MODE DATA                                                              T
++-------------------+-------------------------------------------------------+
+|       Byte         |                   Description                         |
++-------------------+-------------------------------------------------------+
+| F0,42,30,00,01,34 | Exclusive Header                                       |
+| 42                 | Function Code                                         |
+| 0000 00mm          | 0:User/1:Preset/2:Manual                              |
+| 00pp pppp          | Program No.                                           |
+| F7                 | End of Exclusive                                      |
++-------------------+-------------------------------------------------------+
+  Receives Func=12 message, and transmits this message & data.
+
+
+(7) CURRENT PROGRAM DATA DUMP                                           R , T
++-------------------+-------------------------------------------------------+
+|       Byte         |                   Description                          |
++-------------------+-------------------------------------------------------+
+| F0,42,30,00,01,34 | Exclusive Header                                        |
+| 40                 | Function Code                                          |
+| 0ddd dddd          | Data                                       (NOTE 1,4) |
+| :                  | :                                                      |
+| F7                 | End of Exclusive                                       |
++-------------------+-------------------------------------------------------+
+  Receives this message & data, saves them to Current Buffer and transmits
+Func=23 or Func=24 message.
+ Receives Func=10 message, and transmits this message & data.
+
+
+(8) PROGRAM DATA DUMP                                                   R , T
++-------------------+-------------------------------------------------------+
+|       Byte         |                   Description                          |
++-------------------+-------------------------------------------------------+
+| F0,42,30,00,01,34 | Exclusive Header                                        |
+| 4C                 | Function Code                                          |
+| 0000 000m          | 0:User(R,T)/1:Preset(T)                                |
+| 00pp pppp          | Program No.                                            |
+| 0ddd dddd          | Data                                       (NOTE 2,4) |
+| :                  | :                                                      |
+| F7                 | End of Exclusive                                       |
++-------------------+-------------------------------------------------------+
+  Receives this message & data, saves them to Internal Memory and transmits
+Func=23 or Func=24 message.
+  Receives Func=1C message, and transmits this message & data.
+
+
+(9) CUSTOM AMP/FX DATA DUMP                                             R , T
++-------------------+-------------------------------------------------------+
+|       Byte         |                   Description                          |
++-------------------+-------------------------------------------------------+
+| F0,42,30,00,01,34 | Exclusive Header                                        |
+| 65                 | Function Code                                          |
+| 00                 | (Reserved)                                             |
+| 0000 00pp          | Custom Data No.                                        |
+| 0ddd dddd          | Data                                       (NOTE 3,4) |
+| :                  | :                                                      |
+| F7                 | End of Exclusive                                       |
++-------------------+-------------------------------------------------------+
+  Receives this message & data, saves them to Internal Memory and transmits
+Func=23 or Func=24 message.
+  Receives Func=1C message, and transmits this message & data.
+
+
+(10) MODE CHANGE                                                        R , T
++-------------------+-------------------------------------------------------+
+|       Byte         |                   Description                          |
++-------------------+-------------------------------------------------------+
+| F0,42,30,00,01,34 | Exclusive Header                                        |
+| 4E                 | Function Code                                          |
+| 0000 00mm          | 0:User/1:Preset/2:Manual                               |
+| 00pp pppp          | Program No.                                            |
+| F7                 | End of Exclusive                                       |
++-------------------+-------------------------------------------------------+
+  Receives this message & data, changes the Mode and transmits Func=23 or
+Func=24.
+  When the Mode or Program is changed by Switch, transmits this message & data.
+
+
+(11) PARAMETER CHANGE                                                  R , T
++-------------------+-------------------------------------------------------+
+|      Byte         |                   Description                          |
++-------------------+-------------------------------------------------------+
+| F0,42,30,00,01,34 | Exclusive Header                                      |
+| 41                | Function Code                                         |
+| 0ppp ppp          | Parameter ID                                (TABLE 1) |
+| 0sss sss          | Parameter SUB ID                            (TABLE 1) |
+| 0vvv vvv          | Value (LSB bit 6~0)                                   |
+| 0vvv vvv          | Value (MSB bit13~7)                                   |
+| F7                | End of Exclusive                                      |
++-------------------+-------------------------------------------------------+
+ Receives this message & data, changes a Parameter and transmits Func=23 or
+Func=24 message.
+ When the Parameter is changed by Switch & Knob, transmits this message & data.
+
+
+(12) DATA FORMAT ERROR                                                     T
++-------------------+-------------------------------------------------------+
+|       Byte         |                   Description                         |
++-------------------+-------------------------------------------------------+
+| F0,42,30,00,01,34 | Exclusive Header                                       |
+| 26                 | Function Code                                         |
+| F7                 | End of Exclusive                                      |
++-------------------+-------------------------------------------------------+
+  Transmits this message when there is an error in the MIDI IN message.
+
+
+(13) DATA LOAD COMPLETED (ACK)                                             T
++-------------------+-------------------------------------------------------+
+|       Byte         |                   Description                         |
++-------------------+-------------------------------------------------------+
+| F0,42,30,00,01,34 | Exclusive Header                                       |
+| 23                 | Function Code                                         |
+| F7                 | End of Exclusive                                      |
++-------------------+-------------------------------------------------------+
+  Transmits this message when DATA LOAD, PROCESSING have been completed.
+
+
+(14) DATA LOAD ERROR (NAK)                                                   T
++-------------------+-------------------------------------------------------+
+|       Byte         |                   Description                           |
++-------------------+-------------------------------------------------------+
+| F0,42,30,00,01,34 | Exclusive Header                                         |
+| 24                 | Function Code                                           |
+| F7                 | End of Exclusive                                        |
++-------------------+-------------------------------------------------------+
+  Transmits this message when DATA LOAD, PROCESSING have not been completed.
+
+
+(15) WRITE COMPLETED                                                       T
++-------------------+-------------------------------------------------------+
+|      Byte          |                  Description                          |
++-------------------+-------------------------------------------------------+
+| F0,42,30,00,01,34 | Exclusive Header                                       |
+| 21                 | Function Code                                         |
+| 00                 | (Reserved)                                            |
+| 0000 0ppp          | User Program No.                                      |
+| F7                | End of Exclusive                                      |
++-------------------+-------------------------------------------------------+
+ Transmits this message when DATA WRITE has been completed.
+
+
+(16) WRITE ERROR                                                           T
++-------------------+-------------------------------------------------------+
+|       Byte         |                   Description                         |
++-------------------+-------------------------------------------------------+
+| F0,42,30,00,01,34 | Exclusive Header                                       |
+| 22                 | Function Code                                         |
+| 00                 | (Reserved)                                            |
+| 0000 0ppp          | User Program No.                                      |
+| F7                 | End of Exclusive                                      |
++-------------------+-------------------------------------------------------+
+  Transmits this message when DATA WRITE MIDI has not been completed.
+
+
+
+ NOTE 1: CURRENT PROGRAM DATA (in Current Buffer) DUMP FORMAT
+         62 bytes             = 7*8+6    -> 8*8+(1+6)   => 71 bytes
+         (TABLE 1)
+
+ NOTE 2: PROGRAM DATA (in Internal Memory) DUMP FORMAT
+         Same as CURRENT PROGRAM DATA DUMP FORMAT.
+
+ NOTE 3: CUSTOM AMP/FX DATA (in Internal Memory) DUMP FORMAT
+         62 bytes             = 7*8+6    -> 8*8+(1+6)   => 71 bytes
+         (TABLE 2)
+
+ NOTE 4: DUMP DATA CONVERSION
+
+     DATA ( 1set = 8bit   x 7Byte )
+     b7     ~      b0     b7     ~      b0    b7    ~~    b0    b7     ~      b0
+     +-+-+-+-+-+-+-+-+    +-+-+-+-+-+-+-+-+   +-+-+-~~-+-+-+   +-+-+-+-+-+-+-+-+
+     | | | | | | | | |    | | | | | | | | |   | | |    | | |   | | | | | | | | |
+     +-+-+-+-+-+-+-+-+    +-+-+-+-+-+-+-+-+   +-+-+-~~-+-+-+   +-+-+-+-+-+-+-+-+
+           7n+0                 7n+1           7n+2 ~~ 7n+5          7n+6
+
+      MIDI DATA ( 1set = 7bit x 8Byte )
+        b7b7b7b7b7b7b7     b6    ~      b0       b6 ~~    b0      b6    ~     b0
+     +-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+      +-+-+-~~-+-+-+   +-+-+-+-+-+-+-+-+
+     |0| | | | | | | | |0| | | | | | | |      |0| |    | | |   |0| | | | | | | |
+     +-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+      +-+-+-~~-+-+-+   +-+-+-+-+-+-+-+-+
+     7n+6,5,4,3,2,1,0         7n+0             7n+1 ~~ 7n+5          7n+6
+
+
+
+[ TABLE 1 ]   PROGRAM PARAMETERS
+
+ No. : Address in the PROGRAM DATA DUMP.
+ ID : Parameter ID, SUB ID for PARAMETER CHANGE.
++-----------+-----------------------+------------+--------------------------------+---------+
+| No.       | PARAMETER             |   DATA     | VALUE | ID      |
+| [hex]     |                       |   [hex]    |       | [hex]   |
++-----------+-----------------------+------------+--------------------------------+---------+
+| 00        | PROGRAM NAME (1st)    |            |       | 00,00   |
+|   :       |          :            |   20~7E    | ASCII code ' ' ~ '~' |     :   |
+| 0F        | PROGRAM NAME (16th)   |            |       | 00,0F |
++-----------+-----------------------+------------+--------------------------------+---------+
+| 10        | NR SENS               |   00~64    | 0.0~10.0 | 01,00 |
++-----------+-----------------------+------------+--------------------------------+---------+
+| 11        | EFFECT STATUS         |            |         |         |
+|           |    b0    (reserved)   |            |         |         |
+|           |    b1    PEDAL 1      |   00,01    | Off,On  | 02,01 |
+|           |    b2    PEDAL 2      |   00,01    | Off,On  | 02,02 |
+|           |    b3    (reserved)   |            |         |         |
+|           |    b4    REVERB       |   00,01    | Off,On  | 02,04 |
+|           |    b5~7 (reserved)    |            |         |         |
++-----------+-----------------------+------------+--------------------------------+---------+
+| 12        | AMP Model             |   00~13    |                    (TABLE 1-A) | 03,00 |
++-----------+-----------------------+------------+--------------------------------+---------+
+| 13        | GAIN                  |   00~64    | 0.0~10.0| 04,00 |
+| 14        | TREBLE                |   00~64    | 0.0~10.0| 04,01 |
+| 15        | MIDDLE                |   00~64    | 0.0~10.0| 04,02 |
+| 16        | BASS                  |   00~64    | 0.0~10.0| 04,03 |
+| 17        | VOLUME                |   00~64    | 0.0~10.0| 04,04 |
+| 18        | PRESENCE/TONE         |   00~64    | 0.0~10.0           (TABLE 1-A) | 04,05 |
+| 19        | RESONANCE             |   00~64    | 0.0~10.0| 04,06 |
+| 1A        | BRIGHT CAP            |   00,01    | Off,On             (TABLE 1-A) | 04,07 |
+| 1B        | LOW CUT               |   00,01    | Off,On| 04,08 |
+| 1C        | MID BOOST             |   00,01    | Off,On| 04,09 |
+| 1D        | BIAS SHIFT            |   00~02    | Off,COLD,HOT| 04,0A |
+| 1E        | CLASS A/AB            |   00,01    | A,A/B| 04,0B |
++-----------+-----------------------+------------+--------------------------------+---------+
+| 1F        | PEDAL 1 Type/Model    |   00~09    |                    (TABLE 1-1) | 03,01 |
++-----------+-----------------------+------------+--------------------------------+---------+
+| 20        |                       |            |              | 05,00 |
+|    :      | PEDAL 1 Parameters    |   ??~??    |                    (TABLE 1-1) |    :     |
+| 26        |                       |            |              | 05,?? |
++-----------+-----------------------+------------+--------------------------------+----------
+| 27        | PEDAL 2 Type/Model    |   00~06    |                    (TABLE 1-2) | 03,02 |
++-----------+-----------------------+------------+--------------------------------+---------+
+| 28        |                       |            |              | 06,00 |
+|    :      | PEDAL 2 Parameters    |   ??~??    |                    (TABLE 1-2) |    :     |
+| 2E        |                       |            |              | 06,?? |
++-----------+-----------------------+------------+--------------------------------+----------
+| 2F~36     | (reserved)            |            |              |       |
++-----------+-----------------------+------------+--------------------------------+---------+
+| 37        | REVERB Type/Model     |   00~03    |                    (TABLE 1-4) | 03,04 |
++-----------+-----------------------+------------+--------------------------------+---------+
+| 38        |                       |            |              | 08,00 |
+|    :      | REVERB Parameters     |   ??~??    |                    (TABLE 1-4) |    :     |
+| 3D        |                       |            |              | 08,?? |
++-----------+-----------------------+------------+--------------------------------+---------+
+
+
+
+[ TABLE 1-A ]   AMP Model List
++-----------+------------------------------------+------------+---------+
+| DATA      | Model Name                         | PRESENCE | BRIGHT |
+| [hex]     |                                    | / TONE     |      CAP |
++-----------+------------------------------------+------------+---------+
+| 00        | DELUXE CL VIBRATO                  | PRESENCE |      o     |
+| 01        | DELUXE CL NORMAL                   | PRESENCE |            |
+| 02        | TWEED 4x10 BRIGHT                  | PRESENCE |      o     |
+| 03        | TWEED 4x10 NORMAL                  | PRESENCE |            |
+| 04        | BOUTIQUE CL                        | PRESENCE |      o     |
+| 05        | BOUTIQUE OD                        | PRESENCE |      o     |
+| 06        | VOX AC30                           | TONE       |    o     |
+| 07        | VOX AC30TB                         | TONE       |    o     |
+| 08        | BRIT 1959 TREBLE                   | PRESENCE |      o     |
+| 09        | BRIT 1959 NORMAL                   | PRESENCE |            |
+| 0A        | BRIT 800                           | PRESENCE |      o     |
+| 0B        | BRIT VM                            | PRESENCE |      o     |
+| 0C        | SL-OD                              | PRESENCE |      o     |
+| 0D        | DOUBLE REC                         | PRESENCE |      o     |
+| 0E        | CALI ELATION                       | PRESENCE |      o     |
+| 0F        | ERUPT III CH2                      | PRESENCE |            |
+| 10        | ERUPT III CH3                      | PRESENCE |      o     |
+| 11        | BOUTIQUE METAL                     | PRESENCE |            |
+| 12        | BRIT OR MKII                       | PRESENCE |      o     |
+| 13        | ORIGINAL CL                        | PRESENCE |      o     |
++-----------+------------------------------------+------------+---------+
+
+
+
+[ TABLE 1-1 ]   PEDAL 1 Parameters
+
++-----------+-----------------------+------------+--------------------------------+---------+
+|   Offset | PARAMETER              |   DATA     | VALUE | ID      |
+|    [hex] |                        |   [hex]    |       | [hex] |
++-----------+-----------------------+------------+------------------------------
+--+---------+
+|
+|
+| COMP          Type/Model No. = 00
+|
+|
+|
++-----------+-----------------------+------------+--------------------------------+---------+
+| 00~01     | SENS                  |   00~64    | 0.0~10.0 (*4) | 05,00 |
+| 02        | LEVEL                 |   00~64    | 0.0~10.0 | 05,01 |
+| 03        | ATTACK                |   00~64    | 0.0~10.0 | 05,02 |
+| 04        | VOICE                 |   00~02    | 0~2      | 05,03 |
+|           |                       |            |          |         |
++-----------+-----------------------+------------+--------------------------------+---------+
+|
+|
+| CHORUS        Type/Model No. = 01
+|
+|
+|
++-----------+-----------------------+------------+--------------------------------+---------+
+| 00~01     | SPEED                 |   64~2710 | 0.1~10.0 [hz] (*4) | 05,00 |
+| 02        | DEPTH                 |   00~64    | 0.0~10.0          | 05,01 |
+| 03        | MANUAL                |   00~64    | 0.0~10.0          | 05,02 |
+| 04        | MIX                   |   00~64    | 0.0~10.0          | 05,03 |
+| 05        | LOW CUT               |   00,01    | Off,On            | 05,04 |
+| 06        | HIGH CUT              |   00,01    | Off,On            | 05,05 |
+|           |                       |            |                   |       |
++-----------+-----------------------+------------+------------------------------ --+---------+
+|
+|
+| OVERDRIVE     Type/Model No. = 02 : TUBE OD
+|
+|                                  03 : GOLD DRIVE
+|
+|                                  04 : TREBLE BOOST
+|
+|                                  05 : RC TURBO
+|
+|
+|
++-----------+-----------------------+------------+--------------------------------+---------+
+| 00~01     | DRIVE                 |   00~64    | 0.0~10.0 (*4) | 05,00 |
+| 02        | TONE                  |   00~64    | 0.0~10.0      | 05,01 |
+| 03        | LEVEL                 |   00~64    | 0.0~10.0      | 05,02 |
+| 04        | TREBLE                |   00~64    | 0.0~10.0      | 05,03 |
+| 05        | MIDDLE                |   00~64    | 0.0~10.0      | 05,04 |
+| 06        | BASS                  |   00~64    | 0.0~10.0      | 05,05 |
+|           |                       |            |               |       |
++-----------+-----------------------+------------+------------------------------
+--+---------+
+|
+|
+| DISTORTION    Type/Model No. = 06 : ORANGE DIST
+|
+|                                  07 : FAT DIST
+|
+|                                  08 : BRIT LEAD
+|
+|                                  09 : FUZZ
+|
+|
+|
++-----------+-----------------------+------------+--------------------------------+---------+
+| 00~01     | DRIVE                 |   00~64    | 0.0~10.0 (*4) | 05,00 |
+| 02        | TONE                  |   00~64    | 0.0~10.0 | 05,01 |
+| 03        | LEVEL                 |   00~64    | 0.0~10.0 | 05,02 |
+| 04        | TREBLE                |   00~64    | 0.0~10.0 | 05,03 |
+| 05        | MIDDLE                |   00~64    | 0.0~10.0 | 05,04 |
+| 06        | BASS                  |   00~64    | 0.0~10.0 | 05,05 |
+|           |                       |            |          |       |
++-----------+-----------------------+------------+--------------------------------+---------+
+
+
+
+[ TABLE 1-2 ]   PEDAL 2 Parameters
+
++-----------+-----------------------+------------+--------------------------------+---------+
+|   Offset | PARAMETER              |   DATA     | VALUE | ID      |
+|    [hex] |                        |   [hex]    |       | [hex] |
++-----------+-----------------------+------------+------------------------------
+--+---------+
+|
+|
+| FLANGER       Type/Model No. = 00
+|
+|
+|
++-----------+-----------------------+------------+--------------------------------+---------+
+| 00~01     | SPEED                 |   64~1388 | 0.1~5.0 [hz] (*4) | 06,00 |
+| 02        | DEPTH                 |   00~64    | 0.0~10.0         | 06,01 |
+| 03        | MANUAL                |   00~64    | 0.0~10.0         | 06,02 |
+| 04        | LOW CUT               |   00,01    | Off,On           | 06,03 |
+| 05        | HIGH CUT              |   00,01    | Off,On           | 06,04 |
+| 06        | RESONANCE             |   00~64    | 0.0~10.0         | 06,05 |
+|           |                       |            |                  |         |
++-----------+-----------------------+------------+------------------------------ --+---------+
+|
+|
+| PHASER        Type/Model No. = 01 : BLACK
+|
+|                                  02 : ORANGE 1
+|
+|                                  03 : ORANGE 2
+|
+|
+|
++-----------+-----------------------+------------+--------------------------------+---------+
+| 00~01     | SPEED                 |   64~2710 | 0.1~10.0 [hz] (*4) | 06,00 |
+| 02        | RESONANCE             |   00~64    | 0.0~10.0          | 06,01 |
+| 03        | MANUAL                |   00~64    | 0.0~10.0          | 06,02 |
+| 04        | DEPTH                 |   00~64    | 0.0~10.0          | 06,03 |
+|           |                       |            |                   |       |
++-----------+-----------------------+------------+--------------------------------+---------+
+|
+|
+| TREMOLO       Type/Model No. = 04
+|
+|
+|
++-----------+-----------------------+------------+--------------------------------+---------+
+| 00~01     | SPEED                 | 672~2710 | 1.65~10.0 [hz] (*4) | 06,00 |
+| 02        | DEPTH                 |   00~64    | 0.0~10.0          | 06,01 |
+| 03        | DUTY                  |   00~64    | 0.0~10.0          | 06,02 |
+| 04        | SHAPE                 |   00~64    | 0.0~10.0          | 06,03 |
+| 05        | LEVEL                 |   00~64    | 0.0~10.0          | 06,04 |
+|           |                       |            |                   |       |
++-----------+-----------------------+------------+--------------------------------+---------+
+|
+|
+| DELAY         Type/Model No. = 05 : TAPE ECHO
+|
+|                                  06 : ANALOG DELAY
+|
+|
+|
++-----------+-----------------------+------------+--------------------------------+---------+
+| 00~01     | TIME                  |   1E~4B0   | 30~1200 [ms] (*4) | 06,00 |
+| 02        | LEVEL                 |   00~64    | 0.0~10.0          | 06,01 |
+| 03        | FEEDBACK              |   00~64    | 0.0~10.0          | 06,02 |
+| 04        | TONE                  |   00~64    | 0.0~10.0          | 06,03 |
+| 05        | MOD SPEED             |   00~64    | 0.0~10.0          | 06,04 |
+| 06        | MOD DEPTH             |   00~64    | 0.0~10.0          | 06,05 |
+|           |                       |            |                   |       |
++-----------+-----------------------+------------+--------------------------------+---------+
+
+
+
+[ TABLE 1-4 ]   REVERB Parameters
+
++-----------+-----------------------+------------+--------------------------------+---------+
+|   Offset | PARAMETER              |   DATA     | VALUE | ID      |
+|    [hex] |                        |   [hex]    |       | [hex] |
++-----------+-----------------------+------------+--------------------------------+---------+
+|
+|
+| ROOM          Type/Model No. = 00
+|
+| SPRING        Type/Model No. = 01
+|
+| HALL          Type/Model No. = 02
+|
+| PLATE         Type/Model No. = 03
+|
+|
+|
++-----------+-----------------------+------------+--------------------------------+---------+
+| 00        | MIX                   |   00~64    | 0.0~10.0 | 08,00 |
+| 01        | TIME                  |   00~64    | 0.0~10.0 | 08,01 |
+| 02        | PRE DELAY             |   00~46    | 0~70 [ms]| 08,02 |
+| 03        | LOW DAMP              |   00~64    | 0.0~10.0 | 08,03 |
+| 04        | HIGH DAMP             |   00~64    | 0.0~10.0 | 08,04 |
+|           |                       |            |          |       |
++-----------+-----------------------+------------+--------------------------------+---------+
+
+
+
+ *4 : Byte Order = little endian
+
+
+
+[ TABLE 2 ]   CUSTOM AMP/FX PARAMETERS
+
+  No. : Address in the CUSTOM AMP/FX DATA DUMP.
+  CDN : Custom Data No. in func=31 and func=65 message.
++-----------+-----------------------+------------+------------------------------
+--+
+| No.        | PARAMETER             |   DATA     | VALUE
+|
+| [hex]      |                       |   [hex]    |
+|
++-----------+-----------------------+------------+------------------------------
+--+
+| 00~0F      | (reserved)            |            |
+|
++-----------+-----------------------+------------+------------------------------
+--+
+| 10         | NR SENS               |   00~64    | 0.0~10.0
+|
++-----------+-----------------------+------------+------------------------------
+--+
+| 11         | Data enable bits      |            |
+|
+|            |    b0    AMP, NR SENS |   00,01    | Disable/Enable
+|
+|            |    b1    PEDAL 1      |   00,01    | Disable/Enable
+|
+|            |    b2    PEDAL 2      |   00,01    | Disable/Enable
+|
+|           |    b3    (reserved)   |            |
+|
+|           |    b4    REVERB       |   00,01    | Disable/Enable
+|
+|           |    b5~7 (reserved)    |            |
+|
++-----------+-----------------------+------------+------------------------------
+--+
+| 12        | AMP Model             |            |                    (TABLE 1-
+A) |
+|           |                       |   00~13    | CDN = 0 : USER A
+|
+|           |                       |   00~13    |        1 : USER B
+|
+|           |                       |   00~13    |        2 : USER C
+|
++-----------+-----------------------+------------+------------------------------
+--+
+| 13~17     | (reserved)            |            |
+|
+| 18        | PRESENCE/TONE         |   00~64    | 0.0~10.0           (TABLE 1-
+A) |
+| 19        | RESONANCE             |   00~64    | 0.0~10.0
+|
+| 1A        | BRIGHT CAP            |   00,01    | Off,On             (TABLE 1-
+A) |
+| 1B        | LOW CUT               |   00,01    | Off,On
+|
+| 1C        | MID BOOST             |   00,01    | Off,On
+|
+| 1D        | BIAS SHIFT            |   00~02    | Off,COLD,HOT
+|
+| 1E        | CLASS A/AB            |   00,01    | A,A/B
+|
++-----------+-----------------------+------------+------------------------------
+--+
+| 1F        | PEDAL 1 Type/Model    |            |                    (TABLE 1-
+1) |
+|           |                       |   00       | CDN = 0 : COMP
+|
+|           |                       |   01       |        1 : CHORUS
+|
+|           |                       |   02~05    |        2 : OVERDRIVE
+|
+|           |                       |   06~09    |        3 : DISTORTION
+|
++-----------+-----------------------+------------+------------------------------
+--+
+| 20        |                       |            |
+|
+|    :      | PEDAL 1 Parameters    |   ??~??    |                    (TABLE 1-
+1) |
+| 26        |                       |            |
+|
++-----------+-----------------------+------------+------------------------------
+---
+| 27        | PEDAL 2 Type/Model    |            |                    (TABLE 1-
+2) |
+|           |                       |   00       | CDN = 0 : FLANGER
+|
+|           |                       |   01~03    |        1 : PHASER
+|
+|           |                       |   04       |        2 : TREMOLO
+|
+|           |                       |   05~06    |        3 : DELAY
+|
++-----------+-----------------------+------------+------------------------------
+--+
+| 28        |                       |            |
+|
+|    :      | PEDAL 2 Parameters    |   ??~??    |                    (TABLE 1-
+2) |
+| 2E        |                       |            |
+|
++-----------+-----------------------+------------+------------------------------
+---
+| 2F~36     | (reserved)            |            |
+|
++-----------+-----------------------+------------+------------------------------
+--+
+| 37        | REVERB Type/Model     |            |                    (TABLE 1-
+4) |
+|           |                       |   00       | CDN = 0 : ROOM
+|
+|           |                       |   01       |      = 1 : SPRING
+|
+|           |                       |   02       |      = 2 : HALL
+|
+|           |                       |   03       |      = 3 : PLATE
+|
++-----------+-----------------------+------------+------------------------------
+--+
+| 38        |                       |            |
+|
+|    :      | REVERB Parameters     |   ??~??    |                    (TABLE 1-
+4) |
+| 3D        |                       |            |
+|
++-----------+-----------------------+------------+------------------------------
+--+
+

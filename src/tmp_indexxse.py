@@ -1,0 +1,35 @@
+from enum import IntEnum
+
+class ParamIndex(IntEnum):
+    NR_SENS = 26
+    EFFECTS = 27 # (2)
+    GAIN = 29
+    TREBLE = 30
+    MIDDLE = 32
+    BASS = 33
+    VOLUME = 34
+    TONE = 35
+    RESONANCE = 36
+    BRIGHT_CAP = 37
+    LOW_CUT = 38
+    MID_BOOST = 40
+    BIAS_SHIFT = 41
+    CLASS = 42
+    EFFECT2_SOMETHING = 47 #(32 -> 0)
+    EFFECT2_TYPE = 52
+    TREMOLO_SPEED_MINOR = 53
+    TREMOLO_SPEED_MAJOR = 54
+    TREMOLO_DEPTH = 56
+    TREMOLO_DUTY = 57
+    TREMOLO_SHAPE = 58
+    TREMOLO_LEVEL = 59
+    REVERB_TYPE = 70
+    REVERB_MIX = 72
+    REVERB_TIME = 73
+    REVERB_PREDELAY = 74
+    REVERB_LOW_DAMP = 75
+    REVERB_HIGH_DAMP = 76
+    
+    
+# REVERB
+# 70 73 75 76

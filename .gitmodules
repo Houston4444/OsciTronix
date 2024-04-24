@@ -1,0 +1,3 @@
+[submodule "mentat"]
+	path = mentat
+	url = https://github.com/jean-emmanuel/mentat.git
