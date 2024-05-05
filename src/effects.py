@@ -279,6 +279,10 @@ class TremoloParam(EffParam):
             return (1650, 10000, 'Hz')
         return (0, 100, '%')
     
+    def display_name(self) -> str:
+        if self is self.UNUSED_1:
+            return ''
+        return super().display_name()
 
 class DelayParam(EffParam):
     TIME = 0
