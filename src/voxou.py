@@ -272,6 +272,7 @@ class Voxou(Module):
         self.user_presets = [VoxProgram() for i in range(4)]
         
         self.solo = False
+        self.connected = False
         
         self._param_change_cb: Optional[Callable] = None
 
@@ -326,6 +327,8 @@ class Voxou(Module):
         except:
             _logger.error(f'Received Unknown function code {hex(function_code)}')
             return
+        
+        self.connected = True
         
         if function_code is FunctionCode.CURRENT_PROGRAM_DATA_DUMP:
             print('______CURRENT PROGRAM____________')

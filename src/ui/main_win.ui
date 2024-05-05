@@ -6,17 +6,17 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>497</width>
-    <height>675</height>
+    <width>506</width>
+    <height>703</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Tronix Hammer</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_3">
+   <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
        <widget class="QGroupBox" name="groupBox_3">
         <property name="sizePolicy">
@@ -25,11 +25,27 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="styleSheet">
+         <string notr="true">QGroupBox {
+    background-color:#20808080;
+    border: 2px solid gray;
+    border-radius: 5px;
+    margin-top: 1.5ex; /* leave space at the top for the title */
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center; /* position at the top center */
+    padding: 0 3px;
+	border:2px solid gray;
+    border-radius:5px;
+}</string>
+        </property>
         <property name="title">
          <string>Amp</string>
         </property>
         <layout class="QGridLayout" name="gridLayout_4">
-         <item row="0" column="0">
+         <item row="1" column="0">
           <layout class="QGridLayout" name="gridLayout">
            <item row="1" column="1" colspan="5">
             <widget class="ParamProgressBar" name="progressBarGain">
@@ -211,132 +227,237 @@ QProgressBar::chunck {background-color: #888888;}</string>
            </item>
           </layout>
          </item>
+         <item row="0" column="0">
+          <spacer name="verticalSpacer_6">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>10</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
         </layout>
        </widget>
       </item>
       <item>
-       <spacer name="verticalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::Maximum</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QGroupBox" name="groupBoxReverb">
-        <property name="title">
-         <string>Reverb</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_5">
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_20">
-           <property name="text">
-            <string>Time</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0" colspan="2">
-          <widget class="QComboBox" name="comboBoxReverb"/>
-         </item>
-         <item row="6" column="0">
-          <widget class="QLabel" name="label_23">
-           <property name="text">
-            <string>High Damp</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label_21">
-           <property name="text">
-            <string>Pre Delay</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_19">
-           <property name="text">
-            <string>Mix</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="0">
-          <widget class="QLabel" name="label_22">
-           <property name="text">
-            <string>Low Damp</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="ParamProgressBar" name="progressBarReverbMix">
-           <property name="value">
-            <number>24</number>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="ParamProgressBar" name="progressBarReverbTime">
-           <property name="value">
-            <number>24</number>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="ParamProgressBar" name="progressBarReverbPreDelay">
-           <property name="value">
-            <number>24</number>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="1">
-          <widget class="ParamProgressBar" name="progressBarReverbLowDamp">
-           <property name="value">
-            <number>24</number>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="1">
-          <widget class="ParamProgressBar" name="progressBarReverbHighDump">
-           <property name="value">
-            <number>24</number>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <spacer name="verticalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox">
+          <property name="styleSheet">
+           <string notr="true">QGroupBox {
+    background-color:#20808080;
+    border: 2px solid gray;
+    border-radius: 5px;
+    margin-top: 1.5ex; /* leave space at the top for the title */
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center; /* position at the top center */
+    padding: 0 3px;
+	border:2px solid gray;
+    border-radius:5px;
+}</string>
+          </property>
+          <property name="title">
+           <string/>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_3">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_4">
+             <item>
+              <widget class="QLabel" name="label_6">
+               <property name="text">
+                <string>Noise Gate</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="ParamProgressBar" name="progressBarNoiseGate">
+               <property name="value">
+                <number>24</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBoxReverb">
+          <property name="styleSheet">
+           <string notr="true">QGroupBox {
+    background-color:#20808080;
+    border: 2px solid gray;
+    border-radius: 5px;
+    margin-top: 1.5ex; /* leave space at the top for the title */
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center; /* position at the top center */
+    padding: 0 3px;
+	border:2px solid gray;
+    border-radius:5px;
+}</string>
+          </property>
+          <property name="title">
+           <string>Reverb</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_5">
+           <item row="6" column="1">
+            <widget class="ParamProgressBar" name="progressBarReverbLowDamp">
+             <property name="value">
+              <number>24</number>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_20">
+             <property name="text">
+              <string>Time</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="ParamProgressBar" name="progressBarReverbPreDelay">
+             <property name="value">
+              <number>24</number>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="1">
+            <widget class="ParamProgressBar" name="progressBarReverbHighDump">
+             <property name="value">
+              <number>24</number>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_21">
+             <property name="text">
+              <string>Pre Delay</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" colspan="2">
+            <widget class="QComboBox" name="comboBoxReverb"/>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_19">
+             <property name="text">
+              <string>Mix</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="ParamProgressBar" name="progressBarReverbMix">
+             <property name="value">
+              <number>24</number>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="ParamProgressBar" name="progressBarReverbTime">
+             <property name="value">
+              <number>24</number>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0">
+            <widget class="QLabel" name="label_22">
+             <property name="text">
+              <string>Low Damp</string>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="0">
+            <widget class="QLabel" name="label_23">
+             <property name="text">
+              <string>High Damp</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <spacer name="verticalSpacer_5">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>10</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </item>
     <item>
-     <spacer name="horizontalSpacer">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Maximum</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>40</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item>
-     <layout class="QVBoxLayout" name="verticalLayout">
+     <layout class="QHBoxLayout" name="horizontalLayout_5">
       <item>
        <widget class="QGroupBox" name="groupBoxPedal1">
+        <property name="styleSheet">
+         <string notr="true">QGroupBox {
+    background-color:#20808080;
+    border: 2px solid gray;
+    border-radius: 5px;
+    margin-top: 1.5ex; /* leave space at the top for the title */
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center; /* position at the top center */
+    padding: 0 3px;
+	border:2px solid gray;
+    border-radius:5px;
+}</string>
+        </property>
         <property name="title">
          <string>Pedal 1</string>
         </property>
@@ -344,14 +465,66 @@ QProgressBar::chunck {background-color: #888888;}</string>
          <bool>true</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_2">
+         <item row="3" column="2">
+          <widget class="ParamProgressBar" name="progressBarPedal1Param1">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
          <item row="2" column="0">
-          <widget class="QLabel" name="labelPedal1Param1">
+          <widget class="QLabel" name="labelPedal1Param0">
            <property name="text">
-            <string>Param1</string>
+            <string>Param0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="2">
+          <widget class="ParamProgressBar" name="progressBarPedal1Param5">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="2">
+          <widget class="ParamProgressBar" name="progressBarPedal1Param4">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="labelPedal1Param3">
+           <property name="text">
+            <string>Param3</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0" colspan="3">
+          <widget class="QComboBox" name="comboBoxPedal1"/>
+         </item>
+         <item row="5" column="2">
+          <widget class="ParamProgressBar" name="progressBarPedal1Param3">
+           <property name="value">
+            <number>24</number>
            </property>
           </widget>
          </item>
          <item row="6" column="0">
+          <widget class="QLabel" name="labelPedal1Param4">
+           <property name="text">
+            <string>Param4</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="2">
+          <widget class="ParamProgressBar" name="progressBarPedal1Param2">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="0">
           <widget class="QLabel" name="labelPedal1Param5">
            <property name="text">
             <string>Param5</string>
@@ -359,99 +532,63 @@ QProgressBar::chunck {background-color: #888888;}</string>
           </widget>
          </item>
          <item row="4" column="0">
-          <widget class="QLabel" name="labelPedal1Param3">
-           <property name="text">
-            <string>Param3</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0" colspan="3">
-          <widget class="QComboBox" name="comboBoxPedal1"/>
-         </item>
-         <item row="2" column="2">
-          <widget class="ParamProgressBar" name="progressBarPedal1Param1">
-           <property name="value">
-            <number>24</number>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="labelPedal1Param0">
-           <property name="text">
-            <string>Param0</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="ParamProgressBar" name="progressBarPedal1Param0">
-           <property name="value">
-            <number>24</number>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="0">
-          <widget class="QLabel" name="labelPedal1Param4">
-           <property name="text">
-            <string>Param4</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
           <widget class="QLabel" name="labelPedal1Param2">
            <property name="text">
             <string>Param2</string>
            </property>
           </widget>
          </item>
-         <item row="3" column="2">
-          <widget class="ParamProgressBar" name="progressBarPedal1Param2">
+         <item row="3" column="0">
+          <widget class="QLabel" name="labelPedal1Param1">
+           <property name="text">
+            <string>Param1</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="ParamProgressBar" name="progressBarPedal1Param0">
            <property name="value">
             <number>24</number>
            </property>
           </widget>
          </item>
-         <item row="4" column="2">
-          <widget class="ParamProgressBar" name="progressBarPedal1Param3">
-           <property name="value">
-            <number>24</number>
+         <item row="0" column="0">
+          <spacer name="verticalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
            </property>
-          </widget>
-         </item>
-         <item row="5" column="2">
-          <widget class="ParamProgressBar" name="progressBarPedal1Param4">
-           <property name="value">
-            <number>24</number>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
            </property>
-          </widget>
-         </item>
-         <item row="6" column="2">
-          <widget class="ParamProgressBar" name="progressBarPedal1Param5">
-           <property name="value">
-            <number>24</number>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>10</height>
+            </size>
            </property>
-          </widget>
+          </spacer>
          </item>
         </layout>
        </widget>
       </item>
       <item>
-       <spacer name="verticalSpacer">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::Maximum</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
        <widget class="QGroupBox" name="groupBoxPedal2">
+        <property name="styleSheet">
+         <string notr="true">QGroupBox {
+    background-color:#20808080;
+    border: 2px solid gray;
+    border-radius: 5px;
+    margin-top: 1.5ex; /* leave space at the top for the title */
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center; /* position at the top center */
+    padding: 0 3px;
+	border:2px solid gray;
+    border-radius:5px;
+}</string>
+        </property>
         <property name="title">
          <string>Pedal 2</string>
         </property>
@@ -459,92 +596,108 @@ QProgressBar::chunck {background-color: #888888;}</string>
          <bool>true</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_3">
-         <item row="0" column="0" colspan="3">
-          <widget class="QComboBox" name="comboBoxPedal2"/>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="labelPedal2Param0">
-           <property name="text">
-            <string>Param0</string>
-           </property>
-          </widget>
-         </item>
          <item row="3" column="0">
-          <widget class="QLabel" name="labelPedal2Param2">
-           <property name="text">
-            <string>Param2</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="0">
-          <widget class="QLabel" name="labelPedal2Param4">
-           <property name="text">
-            <string>Param4</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
           <widget class="QLabel" name="labelPedal2Param1">
            <property name="text">
             <string>Param1</string>
            </property>
           </widget>
          </item>
-         <item row="6" column="0">
-          <widget class="QLabel" name="labelPedal2Param5">
-           <property name="text">
-            <string>Param5</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="labelPedal2Param3">
-           <property name="text">
-            <string>Param3</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="ParamProgressBar" name="progressBarPedal2Param0">
-           <property name="value">
-            <number>24</number>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="ParamProgressBar" name="progressBarPedal2Param1">
-           <property name="value">
-            <number>24</number>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="ParamProgressBar" name="progressBarPedal2Param2">
-           <property name="value">
-            <number>24</number>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="ParamProgressBar" name="progressBarPedal2Param3">
-           <property name="value">
-            <number>24</number>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="1">
+         <item row="6" column="1">
           <widget class="ParamProgressBar" name="progressBarPedal2Param4">
            <property name="value">
             <number>24</number>
            </property>
           </widget>
          </item>
-         <item row="6" column="1">
+         <item row="7" column="1">
           <widget class="ParamProgressBar" name="progressBarPedal2Param5">
            <property name="value">
             <number>24</number>
            </property>
           </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="labelPedal2Param2">
+           <property name="text">
+            <string>Param2</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="ParamProgressBar" name="progressBarPedal2Param2">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="ParamProgressBar" name="progressBarPedal2Param3">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="0">
+          <widget class="QLabel" name="labelPedal2Param5">
+           <property name="text">
+            <string>Param5</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="labelPedal2Param3">
+           <property name="text">
+            <string>Param3</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="ParamProgressBar" name="progressBarPedal2Param1">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="ParamProgressBar" name="progressBarPedal2Param0">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0" colspan="3">
+          <widget class="QComboBox" name="comboBoxPedal2"/>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="labelPedal2Param0">
+           <property name="text">
+            <string>Param0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="QLabel" name="labelPedal2Param4">
+           <property name="text">
+            <string>Param4</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <spacer name="verticalSpacer_4">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>10</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </widget>
@@ -558,7 +711,7 @@ QProgressBar::chunck {background-color: #888888;}</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>497</width>
+     <width>506</width>
      <height>30</height>
     </rect>
    </property>

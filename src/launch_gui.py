@@ -138,12 +138,16 @@ class MainWindow(QMainWindow):
         self.ui.comboBoxPedal2.currentIndexChanged.connect(
             self.pedal2_effect_changed)
         self.callback_sig.connect(self.apply_callback)
+        
+        self.connection_timer = QTimer()
+        self.connection_timer.setInterval(200)
+        self.connection_timer.timeout.connect(self._ask_connection)
+        self.connection_timer.start()
     
     def engine_callback(self, *args):
         self.callback_sig.emit(*args)
         
     def apply_callback(self, *args):
-        print('cbbbb', *args)
         if args[0] == 'ALL_CURRENT':
             program: 'VoxProgram' = args[1]
             
@@ -342,6 +346,17 @@ class MainWindow(QMainWindow):
         pedal2_type = self.ui.comboBoxPedal2.currentData()
         if pedal2_type is not None:
             self._fill_pedal2(pedal2_type)
+    
+    @pyqtSlot()
+    def _ask_connection(self):
+        voxou: 'Voxou' = voxou_dict.get('voxou')
+        if voxou is not None:
+            if voxou.connected:
+                self.connection_timer.stop()
+                return
+            
+            voxou.ask_connection()
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
