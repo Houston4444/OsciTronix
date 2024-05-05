@@ -524,10 +524,17 @@ class Voxou(Module):
         value_big = 0
         
         if vox_index is VoxIndex.EFFECT_MODEL:
-            amp_model = AmpModel(value)
-            param = DummyParam.DUMMY
-            self.current_program.amp_model = amp_model
-            value = amp_model.value
+            if param is EffectOnOff.AMP:
+                self.current_program.amp_model = AmpModel(value)
+
+            elif param is EffectOnOff.PEDAL1:
+                self.current_program.pedal1_type = Pedal1Type(value)
+            
+            elif param is EffectOnOff.PEDAL2:
+                self.current_program.pedal2_type = Pedal2Type(value)
+            
+            elif param is EffectOnOff.REVERB:
+                self.current_program.reverb_type = ReverbType(value)
         
         elif vox_index is VoxIndex.AMP:
             cvalue = self.current_program.amp_params.get(param)

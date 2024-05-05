@@ -148,7 +148,8 @@ class ParamProgressBar(QProgressBar):
         if event.button() == Qt.LeftButton:
             if self._minimum == 0 and self._maximum == 1:
                 # toggle if it is a toggle switch, whatever the mouse pos
-                self.setValue(int(not bool(self._real_value)))
+                if self.setValue(int(not bool(self._real_value))):
+                    self.valueChanged.emit(int(not bool(self._real_value)))
                 return
 
             self._handle_mouse_event_pos(event.pos())
@@ -164,7 +165,8 @@ class ParamProgressBar(QProgressBar):
                 int(self._real_value),
                 min=int(self._minimum), max=int(self._maximum), step=1)
             if ok:
-                self.setValue(ret)
+                if self.setValue(ret):
+                    self.valueChanged.emit(ret)
             return
 
         QProgressBar.mousePressEvent(self, event)
@@ -220,9 +222,11 @@ class ParamProgressBar(QProgressBar):
             delta = max(1, int(0.05 * (self._maximum - self._minimum)))
         if angle < 0:
             delta *= -1
-            
-        self.setValue(
-            round(min(self._maximum,
+        
+        value = round(min(self._maximum,
                       max(self._minimum,
-                          round(self._real_value + delta)))))
+                          round(self._real_value + delta))))
+        
+        if self.setValue(value):
+            self.valueChanged.emit(value)
 

@@ -6,12 +6,13 @@ from voxou import Voxou
 engine = Engine('Mentatronix', 4675, 'Mentatronix')
 
 
-def start_mentat(callback: Optional[Callable] =None):
+def start_mentat(callback: Optional[Callable] =None, cb_dict: dict ={}):
     print('top départ')
     
     voxou = Voxou('voxou', protocol='midi')
     if callback:
         voxou.set_param_change_cb(callback)
+        cb_dict['voxou'] = voxou
     engine.add_module(voxou)
     
     if False and callback is None:

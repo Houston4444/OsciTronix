@@ -1,7 +1,7 @@
 import signal
 import sys
 from typing import TYPE_CHECKING
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QSpacerItem, QSizePolicy, QCheckBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QSpacerItem, QSizePolicy, QCheckBox, QComboBox
 from PyQt5.QtCore import pyqtSlot, QTimer, pyqtSignal
 import threading
 
@@ -12,7 +12,10 @@ from ui.main_win import Ui_MainWindow
 from ui.progress import ParamProgressBar
 
 if TYPE_CHECKING:
-    from voxou import VoxProgram
+    from voxou import VoxProgram, Voxou
+
+
+voxou_dict = {'voxou': None}
 
 def signal_handler(sig, frame):
     QApplication.quit()
@@ -85,6 +88,26 @@ class MainWindow(QMainWindow):
             self.ui.progressBarReverbHighDump
         )
         
+        for combobox in (self.ui.comboBoxAmpModel,
+                         self.ui.comboBoxPedal1,
+                         self.ui.comboBoxPedal2,
+                         self.ui.comboBoxReverb):
+            combobox.activated.connect(self._effect_model_changed)
+
+        for amp_param, param_wg in self.amp_params_widgets.items():
+            if isinstance(param_wg, ParamProgressBar):
+                param_wg.valueChanged.connect(self._amp_param_moved)
+        for label, param_wg in self._pedal1_widgets:
+            param_wg.valueChanged.connect(self._pedal1_param_moved)
+        for label, param_wg in self._pedal2_widgets:
+            param_wg.valueChanged.connect(self._pedal2_param_moved)
+        for param_wg in self._reverb_sliders:
+            param_wg.valueChanged.connect(self._reverb_param_moved)
+        # for param_wg in ([w[1] for w in self._pedal1_widgets]
+        #                  + [w[1] for w in self._pedal2_widgets]
+        #                  + [w for w in self._reverb_sliders]):
+        #     param_wg.valueChanged.connect(self.slider_value_changed)
+
         self._fill_pedal1(Pedal1Type.COMP)
         self._fill_pedal2(Pedal2Type.FLANGER)
         for rev_param in ReverbParam:
@@ -204,6 +227,55 @@ class MainWindow(QMainWindow):
                     widget.setValue(program.reverb_params[widget.param])
                 return
     
+    @pyqtSlot(int)
+    def _effect_model_changed(self, index: int):
+        print('choupinai')
+        voxou: 'Voxou' = voxou_dict['voxou']
+        if voxou is not None:
+            sender: QComboBox = self.sender()
+            print('choupizef', sender)
+            if sender is self.ui.comboBoxAmpModel:
+                effect_on_off = EffectOnOff.AMP
+            elif sender is self.ui.comboBoxPedal1:
+                effect_on_off = EffectOnOff.PEDAL1
+            elif sender is self.ui.comboBoxPedal2:
+                effect_on_off = EffectOnOff.PEDAL2
+            elif sender is self.ui.comboBoxReverb:
+                effect_on_off = EffectOnOff.REVERB
+            else:
+                return
+            print('choupzessss', effect_on_off)
+            voxou.set_param_value(
+                VoxIndex.EFFECT_MODEL, effect_on_off, index)
+    
+    @pyqtSlot(float)
+    def _amp_param_moved(self, value: float):
+        param_wg: ParamProgressBar = self.sender()
+        voxou: 'Voxou' = voxou_dict['voxou']
+        if voxou is not None:
+            voxou.set_param_value(VoxIndex.AMP, param_wg.param, int(value))
+    
+    @pyqtSlot(float)
+    def _pedal1_param_moved(self, value: float):
+        param_wg: ParamProgressBar = self.sender()
+        voxou: 'Voxou' = voxou_dict['voxou']
+        if voxou is not None:
+            voxou.set_param_value(VoxIndex.PEDAL1, param_wg.param, int(value))
+    
+    @pyqtSlot(float)
+    def _pedal2_param_moved(self, value: float):
+        param_wg: ParamProgressBar = self.sender()
+        voxou: 'Voxou' = voxou_dict['voxou']
+        if voxou is not None:
+            voxou.set_param_value(VoxIndex.PEDAL2, param_wg.param, int(value))
+            
+    @pyqtSlot(float)
+    def _reverb_param_moved(self, value: float):
+        param_wg: ParamProgressBar = self.sender()
+        voxou: 'Voxou' = voxou_dict['voxou']
+        if voxou is not None:
+            voxou.set_param_value(VoxIndex.REVERB, param_wg.param, int(value))
+    
     def _fill_pedal1(self, pedal1_type: Pedal1Type):
         pedal1_param: EffParam
         for pedal1_param in pedal1_type.param_type():
@@ -255,7 +327,7 @@ if __name__ == '__main__':
     timer.timeout.connect(lambda: None)
     
     mentat_thread = threading.Thread(
-        target=start_mentat, args=(main_win.engine_callback,))
+        target=start_mentat, args=(main_win.engine_callback, voxou_dict))
     mentat_thread.start()
     
     main_win.show()
