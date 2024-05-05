@@ -1,7 +1,9 @@
 import signal
 import sys
 from typing import TYPE_CHECKING
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QSpacerItem, QSizePolicy, QCheckBox, QComboBox
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QLabel, QSpacerItem, QSizePolicy,
+    QCheckBox, QComboBox, QGroupBox)
 from PyQt5.QtCore import pyqtSlot, QTimer, pyqtSignal
 import threading
 
@@ -94,6 +96,11 @@ class MainWindow(QMainWindow):
                          self.ui.comboBoxReverb):
             combobox.activated.connect(self._effect_model_changed)
 
+        for group_box in (self.ui.groupBoxPedal1,
+                          self.ui.groupBoxPedal2,
+                          self.ui.groupBoxReverb):
+            group_box.clicked.connect(self._effect_checked)
+
         for amp_param, param_wg in self.amp_params_widgets.items():
             if isinstance(param_wg, ParamProgressBar):
                 param_wg.valueChanged.connect(self._amp_param_moved)
@@ -157,20 +164,25 @@ class MainWindow(QMainWindow):
             self.ui.groupBoxReverb.setChecked(
                 bool(program.active_effects[EffectOnOff.REVERB]))
             
+            eff_param: EffParam
+
             self.ui.comboBoxPedal1.setCurrentIndex(
                 self.ui.comboBoxPedal1.findData(program.pedal1_type))
-            for eff_param, value in program.pedal1_params.items():
-                self._pedal1_widgets[eff_param.value][1].setValue(value)
+            for eff_param in program.pedal1_type.param_type():
+                self._pedal1_widgets[eff_param.value][1].setValue(
+                    program.pedal1_values[eff_param.value])
                             
             self.ui.comboBoxPedal2.setCurrentIndex(
                 self.ui.comboBoxPedal2.findData(program.pedal2_type))
-            for eff_param, value in program.pedal2_params.items():
-                self._pedal2_widgets[eff_param.value][1].setValue(value)
+            for eff_param in program.pedal2_type.param_type():
+                self._pedal2_widgets[eff_param.value][1].setValue(
+                    program.pedal2_values[eff_param.value])
                             
             self.ui.comboBoxReverb.setCurrentIndex(
                 self.ui.comboBoxReverb.findData(program.reverb_type))
-            for eff_param, value in program.reverb_params.items():
-                self._reverb_sliders[eff_param.value].setValue(value)
+            for rev_param in ReverbType:
+                self._reverb_sliders[rev_param.value].setValue(
+                    program.reverb_values[rev_param.value])
 
             return
         
@@ -214,26 +226,24 @@ class MainWindow(QMainWindow):
             
             if vox_index is VoxIndex.PEDAL1:
                 for label, widget in self._pedal1_widgets:
-                    widget.setValue(program.pedal1_params[widget.param])
+                    widget.setValue(program.pedal1_values[widget.param.value])
                 return
             
             if vox_index is VoxIndex.PEDAL2:
                 for label, widget in self._pedal2_widgets:
-                    widget.setValue(program.pedal2_params[widget.param])
+                    widget.setValue(program.pedal2_values[widget.param.value])
                 return
             
             if vox_index is VoxIndex.REVERB:
                 for widget in self._reverb_sliders:
-                    widget.setValue(program.reverb_params[widget.param])
+                    widget.setValue(program.reverb_values[widget.param.value])
                 return
     
     @pyqtSlot(int)
     def _effect_model_changed(self, index: int):
-        print('choupinai')
         voxou: 'Voxou' = voxou_dict['voxou']
         if voxou is not None:
             sender: QComboBox = self.sender()
-            print('choupizef', sender)
             if sender is self.ui.comboBoxAmpModel:
                 effect_on_off = EffectOnOff.AMP
             elif sender is self.ui.comboBoxPedal1:
@@ -244,9 +254,27 @@ class MainWindow(QMainWindow):
                 effect_on_off = EffectOnOff.REVERB
             else:
                 return
-            print('choupzessss', effect_on_off)
+            
+            model: EffParam = sender.itemData(index)
+            
             voxou.set_param_value(
-                VoxIndex.EFFECT_MODEL, effect_on_off, index)
+                VoxIndex.EFFECT_MODEL, effect_on_off, model.value)
+    
+    @pyqtSlot(bool)
+    def _effect_checked(self, yesno: bool):
+        voxou: 'Voxou' = voxou_dict['voxou']
+        if voxou is not None:
+            sender: QGroupBox = self.sender()
+            if sender is self.ui.groupBoxPedal1:
+                param = EffectOnOff.PEDAL1
+            elif sender is self.ui.groupBoxPedal2:
+                param = EffectOnOff.PEDAL2
+            elif sender is self.ui.groupBoxReverb:
+                param = EffectOnOff.REVERB
+            else:
+                return
+
+            voxou.set_param_value(VoxIndex.EFFECT_STATUS, param, int(yesno))
     
     @pyqtSlot(float)
     def _amp_param_moved(self, value: float):
