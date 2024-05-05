@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>504</width>
-    <height>578</height>
+    <width>497</width>
+    <height>675</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -239,8 +239,78 @@ QProgressBar::chunck {background-color: #888888;}</string>
          <bool>true</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_5">
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_20">
+           <property name="text">
+            <string>Time</string>
+           </property>
+          </widget>
+         </item>
          <item row="0" column="0" colspan="2">
           <widget class="QComboBox" name="comboBoxReverb"/>
+         </item>
+         <item row="6" column="0">
+          <widget class="QLabel" name="label_23">
+           <property name="text">
+            <string>High Damp</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_21">
+           <property name="text">
+            <string>Pre Delay</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_19">
+           <property name="text">
+            <string>Mix</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="label_22">
+           <property name="text">
+            <string>Low Damp</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="ParamProgressBar" name="progressBarReverbMix">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="ParamProgressBar" name="progressBarReverbTime">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="ParamProgressBar" name="progressBarReverbPreDelay">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="ParamProgressBar" name="progressBarReverbLowDamp">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="1">
+          <widget class="ParamProgressBar" name="progressBarReverbHighDump">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>
@@ -274,8 +344,92 @@ QProgressBar::chunck {background-color: #888888;}</string>
          <bool>true</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_2">
-         <item row="0" column="0" colspan="2">
+         <item row="2" column="0">
+          <widget class="QLabel" name="labelPedal1Param1">
+           <property name="text">
+            <string>Param1</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="QLabel" name="labelPedal1Param5">
+           <property name="text">
+            <string>Param5</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="labelPedal1Param3">
+           <property name="text">
+            <string>Param3</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" colspan="3">
           <widget class="QComboBox" name="comboBoxPedal1"/>
+         </item>
+         <item row="2" column="2">
+          <widget class="ParamProgressBar" name="progressBarPedal1Param1">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="labelPedal1Param0">
+           <property name="text">
+            <string>Param0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="ParamProgressBar" name="progressBarPedal1Param0">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="labelPedal1Param4">
+           <property name="text">
+            <string>Param4</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="labelPedal1Param2">
+           <property name="text">
+            <string>Param2</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="2">
+          <widget class="ParamProgressBar" name="progressBarPedal1Param2">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="2">
+          <widget class="ParamProgressBar" name="progressBarPedal1Param3">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="2">
+          <widget class="ParamProgressBar" name="progressBarPedal1Param4">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="2">
+          <widget class="ParamProgressBar" name="progressBarPedal1Param5">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>
@@ -305,8 +459,92 @@ QProgressBar::chunck {background-color: #888888;}</string>
          <bool>true</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_3">
-         <item row="0" column="0" colspan="2">
+         <item row="0" column="0" colspan="3">
           <widget class="QComboBox" name="comboBoxPedal2"/>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="labelPedal2Param0">
+           <property name="text">
+            <string>Param0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="labelPedal2Param2">
+           <property name="text">
+            <string>Param2</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="labelPedal2Param4">
+           <property name="text">
+            <string>Param4</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="labelPedal2Param1">
+           <property name="text">
+            <string>Param1</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="QLabel" name="labelPedal2Param5">
+           <property name="text">
+            <string>Param5</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="labelPedal2Param3">
+           <property name="text">
+            <string>Param3</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="ParamProgressBar" name="progressBarPedal2Param0">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="ParamProgressBar" name="progressBarPedal2Param1">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="ParamProgressBar" name="progressBarPedal2Param2">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="ParamProgressBar" name="progressBarPedal2Param3">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="ParamProgressBar" name="progressBarPedal2Param4">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="1">
+          <widget class="ParamProgressBar" name="progressBarPedal2Param5">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>
@@ -320,7 +558,7 @@ QProgressBar::chunck {background-color: #888888;}</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>504</width>
+     <width>497</width>
      <height>30</height>
     </rect>
    </property>

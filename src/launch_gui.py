@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QSpacerI
 from PyQt5.QtCore import pyqtSlot, QTimer, pyqtSignal
 import threading
 
-from effects import AmpModel, AmpParam, EffParam, EffectOnOff, Pedal1Type, Pedal2Type, ReverbType, VoxIndex
+from effects import AmpModel, AmpParam, EffParam, EffectOnOff, Pedal1Type, Pedal2Type, ReverbParam, ReverbType, VoxIndex
 from mentatronix import start_mentat, stop_mentat
 
 from ui.main_win import Ui_MainWindow
@@ -49,10 +49,8 @@ class MainWindow(QMainWindow):
             self.ui.comboBoxAmpModel.addItem(
                 amp_model.name.replace('_', ' '), amp_model)
 
-        self._pedal1_widgets = set[QWidget]()
-        self._pedal1_spacer = QSpacerItem(
-            0, 0, hPolicy=QSizePolicy.Maximum,
-            vPolicy=QSizePolicy.MinimumExpanding)
+        # self._pedal1_widgets = dict[int, tuple[QLabel, ParamProgressBar]]()
+        
 
         for pedal1_type in Pedal1Type:
             self.ui.comboBoxPedal1.addItem(
@@ -61,12 +59,36 @@ class MainWindow(QMainWindow):
         for i in (6, 2, 1):
             self.ui.comboBoxPedal1.insertSeparator(i)
         
+        self._pedal1_widgets = (
+            (self.ui.labelPedal1Param0, self.ui.progressBarPedal1Param0),
+            (self.ui.labelPedal1Param1, self.ui.progressBarPedal1Param1),
+            (self.ui.labelPedal1Param2, self.ui.progressBarPedal1Param2),
+            (self.ui.labelPedal1Param3, self.ui.progressBarPedal1Param3),
+            (self.ui.labelPedal1Param4, self.ui.progressBarPedal1Param4),
+            (self.ui.labelPedal1Param5, self.ui.progressBarPedal1Param5),
+        )
+        
+        self._pedal2_widgets = (
+            (self.ui.labelPedal2Param0, self.ui.progressBarPedal2Param0),
+            (self.ui.labelPedal2Param1, self.ui.progressBarPedal2Param1),
+            (self.ui.labelPedal2Param2, self.ui.progressBarPedal2Param2),
+            (self.ui.labelPedal2Param3, self.ui.progressBarPedal2Param3),
+            (self.ui.labelPedal2Param4, self.ui.progressBarPedal2Param4),
+            (self.ui.labelPedal2Param5, self.ui.progressBarPedal2Param5),
+        )
+        
+        self._reverb_sliders = (
+            self.ui.progressBarReverbMix,
+            self.ui.progressBarReverbTime,
+            self.ui.progressBarReverbPreDelay,
+            self.ui.progressBarReverbLowDamp,
+            self.ui.progressBarReverbHighDump
+        )
+        
         self._fill_pedal1(Pedal1Type.COMP)
-
-        self._pedal2_widgets = set[QWidget]()
-        self._pedal2_spacer = QSpacerItem(
-            0, 0, hPolicy=QSizePolicy.Maximum,
-            vPolicy=QSizePolicy.MinimumExpanding)
+        self._fill_pedal2(Pedal2Type.FLANGER)
+        for rev_param in ReverbParam:
+            self._reverb_sliders[rev_param.value].set_param(rev_param)
         
         for pedal2_type in Pedal2Type:
             self.ui.comboBoxPedal2.addItem(
@@ -75,14 +97,9 @@ class MainWindow(QMainWindow):
         for i in (5, 4, 1):
             self.ui.comboBoxPedal2.insertSeparator(i)
             
-        self._fill_pedal2(Pedal2Type.FLANGER)
-        
-        self._reverb_widgets = set[QWidget]()
         for reverb_type in ReverbType:
             self.ui.comboBoxReverb.addItem(
                 reverb_type.name.replace('_', ' ').capitalize(), reverb_type)
-        
-        self._fill_reverb(ReverbType.ROOM)
         
         self.ui.comboBoxAmpModel.currentIndexChanged.connect(
             self.amp_model_changed)
@@ -119,27 +136,19 @@ class MainWindow(QMainWindow):
             
             self.ui.comboBoxPedal1.setCurrentIndex(
                 self.ui.comboBoxPedal1.findData(program.pedal1_type))
-            for amp_param, value in program.pedal1_params.items():
-                for widget in self._pedal1_widgets:
-                    if isinstance(widget, ParamProgressBar):
-                        if widget.param is amp_param:
-                            widget.setValue(value)
+            for eff_param, value in program.pedal1_params.items():
+                self._pedal1_widgets[eff_param.value][1].setValue(value)
                             
             self.ui.comboBoxPedal2.setCurrentIndex(
                 self.ui.comboBoxPedal2.findData(program.pedal2_type))
-            for amp_param, value in program.pedal2_params.items():
-                for widget in self._pedal2_widgets:
-                    if isinstance(widget, ParamProgressBar):
-                        if widget.param is amp_param:
-                            widget.setValue(value)
+            for eff_param, value in program.pedal2_params.items():
+                self._pedal2_widgets[eff_param.value][1].setValue(value)
                             
             self.ui.comboBoxReverb.setCurrentIndex(
                 self.ui.comboBoxReverb.findData(program.reverb_type))
-            for amp_param, value in program.reverb_params.items():
-                for widget in self._reverb_widgets:
-                    if isinstance(widget, ParamProgressBar):
-                        if widget.param is amp_param:
-                            widget.setValue(value)
+            for eff_param, value in program.reverb_params.items():
+                self._reverb_sliders[eff_param.value].setValue(value)
+
             return
         
         if args[0] == 'PARAM_CHANGED':
@@ -181,93 +190,37 @@ class MainWindow(QMainWindow):
                 return
             
             if vox_index is VoxIndex.PEDAL1:
-                for widget in self._pedal1_widgets:
-                    if isinstance(widget, ParamProgressBar):
-                        widget.setValue(program.pedal1_params[widget.param])
+                for label, widget in self._pedal1_widgets:
+                    widget.setValue(program.pedal1_params[widget.param])
                 return
             
             if vox_index is VoxIndex.PEDAL2:
-                for widget in self._pedal2_widgets:
-                    if isinstance(widget, ParamProgressBar):
-                        widget.setValue(program.pedal2_params[widget.param])
+                for label, widget in self._pedal2_widgets:
+                    widget.setValue(program.pedal2_params[widget.param])
                 return
             
             if vox_index is VoxIndex.REVERB:
-                for widget in self._reverb_widgets:
-                    if isinstance(widget, ParamProgressBar):
-                        widget.setValue(program.reverb_params[widget.param])
+                for widget in self._reverb_sliders:
+                    widget.setValue(program.reverb_params[widget.param])
                 return
     
     def _fill_pedal1(self, pedal1_type: Pedal1Type):
-        print('fill peddal1', pedal1_type)
-        
-        for widget in self._pedal1_widgets:
-            self.ui.gridLayout_2.removeWidget(widget)
-        self.ui.gridLayout_2.removeItem(self._pedal1_spacer)
-        
-        self._pedal1_widgets.clear()
-        
         pedal1_param: EffParam
-        i = 1
         for pedal1_param in pedal1_type.param_type():
-            label = QLabel(self.ui.groupBoxPedal1)
+            label, param_wg = self._pedal1_widgets[pedal1_param.value]            
             label.setText(pedal1_param.display_name())
-            self.ui.gridLayout_2.addWidget(label, i, 0, 1, 1)
-            self._pedal1_widgets.add(label)
             
-            param_wg = ParamProgressBar(self.ui.groupBoxPedal1)
             param_wg.set_param(pedal1_param)
-            if not pedal1_param.display_name():
-                param_wg.setVisible(False)
-            self.ui.gridLayout_2.addWidget(param_wg, i, 1, 1, 1)
-            self._pedal1_widgets.add(param_wg)
-            
-            i += 1
-
-        self.ui.gridLayout_2.addItem(self._pedal1_spacer, i, 0, 1, 1)
+            param_wg.setVisible(bool(pedal1_param.display_name()))
         
     def _fill_pedal2(self, pedal2_type: Pedal2Type):
-        for widget in self._pedal2_widgets:
-            self.ui.gridLayout_3.removeWidget(widget)
-        self.ui.gridLayout_3.removeItem(self._pedal2_spacer)
-        
-        self._pedal2_widgets.clear()
-        
-        pedal2_param: EffParam
-        i = 1
-        for pedal2_param in pedal2_type.param_type():
-            label = QLabel(self.ui.groupBoxPedal2)
-            label.setText(pedal2_param.display_name())
-            self.ui.gridLayout_3.addWidget(label, i, 0, 1, 1)
-            self._pedal2_widgets.add(label)
+        pedal1_param: EffParam
+        for pedal1_param in pedal2_type.param_type():
+            label, param_wg = self._pedal2_widgets[pedal1_param.value]            
+            label.setText(pedal1_param.display_name())
             
-            param_wg = ParamProgressBar(self.ui.groupBoxPedal2)
-            param_wg.set_param(pedal2_param)
-            self.ui.gridLayout_3.addWidget(param_wg, i, 1, 1, 1)
-            self._pedal2_widgets.add(param_wg)
-            
-            i += 1
-            
-        self.ui.gridLayout_2.addItem(self._pedal2_spacer, i, 0, 1, 1)
-    
-    def _fill_reverb(self, reverb_type: ReverbType):
-        for widget in self._reverb_widgets:
-            self.ui.gridLayout_5.removeWidget(widget)
-        
-        reverb_param: EffParam
-        i = 1
-        for reverb_param in reverb_type.param_type():
-            label = QLabel(self.ui.groupBoxReverb)
-            label.setText(reverb_param.display_name())
-            self.ui.gridLayout_5.addWidget(label, i, 0, 1, 1)
-            self._reverb_widgets.add(label)
-            
-            param_wg = ParamProgressBar(self.ui.groupBoxReverb)
-            param_wg.set_param(reverb_param)
-            self.ui.gridLayout_5.addWidget(param_wg, i, 1, 1, 1)
-            self._reverb_widgets.add(param_wg)
-            
-            i += 1
+            param_wg.set_param(pedal1_param)
+            param_wg.setVisible(bool(pedal1_param.display_name()))
             
     @pyqtSlot(int)
     def amp_model_changed(self, index: int):

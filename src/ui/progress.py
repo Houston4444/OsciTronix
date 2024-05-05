@@ -5,10 +5,11 @@ from PyQt5.QtCore import pyqtSignal, Qt, QPoint
 from PyQt5.QtWidgets import QProgressBar, QInputDialog
 from PyQt5.QtGui import QWheelEvent, QPalette, QColor, QMouseEvent
 
-# if TYPE_CHECKING:
 from effects import EffParam, DummyParam
 
+
 _logger = logging.getLogger(__name__)
+
 
 class ParamProgressBar(QProgressBar):
     # signals
