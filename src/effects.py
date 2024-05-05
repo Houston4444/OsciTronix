@@ -11,6 +11,9 @@ class EffParam(Enum):
     def range_unit(self) -> tuple[int, int, str]:
         return (0, 100, '%')
 
+    def display_name(self) -> str:
+        return ' '.join([s.capitalize() for s in self.name.split('_')])
+
 
 class DummyParam(EffParam):
     DUMMY = 0
@@ -21,7 +24,7 @@ class VoxIndex(Enum):
     PROGRAM = 0
     NR_SENS = 1
     EFFECT_STATUS = 2
-    AMP_MODEL = 3
+    EFFECT_MODEL = 3
     AMP = 4
     PEDAL1 = 5
     PEDAL2 = 6
@@ -41,6 +44,7 @@ class EffectStatus(Flag):
 
 
 class EffectOnOff(EffParam):
+    AMP = 0
     PEDAL1 = 1
     PEDAL2 = 2
     REVERB = 4
@@ -147,12 +151,19 @@ class CompParam(EffParam):
     LEVEL = 1
     ATTACK = 2
     VOICE = 3
+    UNUSED_1 = 4
+    UNUSED_2 = 5
     
     def range_unit(self) -> tuple[int, int, str]:
         if self is CompParam.VOICE:
             return (0, 2, '')
         return (0, 100, '%')
-        
+    
+    def display_name(self) -> str:
+        if self in (CompParam.UNUSED_1, CompParam.UNUSED_2):
+            return ''
+        return super().display_name()
+
 
 class ChorusParam(EffParam):
     SPEED = 0
@@ -241,11 +252,18 @@ class PhaserParam(EffParam):
     RESONANCE = 1
     MANUAL = 2
     DEPTH = 3
+    UNUSED_1 = 4
+    UNUSED_2 = 5
       
     def range_unit(self) -> tuple[int, int, str]:
         if self is PhaserParam.SPEED:
             return (100, 10000, 'Hz')
         return (0, 100, '%')
+    
+    def display_name(self) -> str:
+        if self in (self.UNUSED_1, self.UNUSED_2):
+            return ''
+        return super().display_name()
     
 
 class TremoloParam(EffParam):
@@ -254,6 +272,7 @@ class TremoloParam(EffParam):
     DUTY = 2
     SHAPE = 3
     LEVEL = 4
+    UNUSED_1 = 5
     
     def range_unit(self) -> tuple[int, int, str]:
         if self is TremoloParam.SPEED:

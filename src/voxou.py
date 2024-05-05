@@ -1,6 +1,6 @@
 from enum import IntEnum
 import logging
-from typing import Optional
+from typing import Callable, Optional
 from mentat import Module
 
 from effects import DummyParam, EffParam, EffectOnOff, EffectStatus, Pedal1Type, AmpModel, AmpParam, Pedal2Type, ReverbParam, ReverbType, VoxIndex
@@ -33,7 +33,7 @@ class VoxProgram:
     def __init__(self):
         self.program_name = ''
         self.nr_sens = 0
-        self.effect_status = EffectStatus.ALL_OFF
+        self.active_effects = dict[EffectOnOff, int]()
         self.amp_model = AmpModel.DELUXE_CL_VIBRATO
         self.amp_params = dict[AmpParam, int]()
         self.pedal1_type = Pedal1Type.COMP
@@ -51,7 +51,24 @@ class VoxProgram:
         shargs = shargs[3:]
         
         self.nr_sens = shargs.pop(0)
-        self.effects_status = EffectStatus(shargs.pop(0))
+        effects_status = EffectStatus(shargs.pop(0))
+        self.active_effects.clear()
+
+        if effects_status & EffectStatus.PEDAL1_ON:
+            self.active_effects[EffectOnOff.PEDAL1] = 1
+        else:
+            self.active_effects[EffectOnOff.PEDAL1] = 0
+            
+        if effects_status & EffectStatus.PEDAL2_ON:
+            self.active_effects[EffectOnOff.PEDAL2] = 1
+        else:
+            self.active_effects[EffectOnOff.PEDAL2] = 0
+        
+        if effects_status & EffectStatus.REVERB_ON:
+            self.active_effects[EffectOnOff.REVERB] = 1
+        else:
+            self.active_effects[EffectOnOff.REVERB] = 0
+        
         self.amp_model = AmpModel(shargs.pop(0))
 
         amp_params = self.amp_params
@@ -123,8 +140,88 @@ class VoxProgram:
 
         for reverb_param in ReverbParam:
             self.reverb_params[reverb_param] = reverb_values[reverb_param.value]
+        # self.print_program()
+
+    def read_data_preset(self, shargs: list[int]):
+        # 16 samples reserved + 3 undocumented
+        shargs = shargs[19:]
+        print('odo', shargs)
+        # shargs.pop(0)
+        
+        self.nr_sens = shargs.pop(0)
+        
+        tralala = shargs.pop(0)
+        print(tralala, EffectStatus(tralala))
+        data_bits = EffectStatus(tralala)
+        if data_bits & EffectStatus.PEDAL1_ON:
+            self.active_effects[EffectOnOff.PEDAL1] = 1
+        else:
+            self.active_effects[EffectOnOff.PEDAL1] = 0
     
+        if data_bits & EffectStatus.PEDAL2_ON:
+            self.active_effects[EffectOnOff.PEDAL2] = 1
+        else:
+            self.active_effects[EffectOnOff.PEDAL2] = 0
+            
+        if data_bits & EffectStatus.REVERB_ON:
+            self.active_effects[EffectOnOff.REVERB] = 1
+        else:
+            self.active_effects[EffectOnOff.REVERB] = 0
+        
+        self.amp_model = AmpModel(shargs.pop(0))
+        
+        # 5 documented reserved
+        shargs = shargs[6:]
+        
+        self.amp_params[AmpParam.TONE] = shargs.pop(0)
+        self.amp_params[AmpParam.RESONANCE] = shargs.pop(0)
+        self.amp_params[AmpParam.BRIGHT_CAP] = shargs.pop(0)
+        self.amp_params[AmpParam.LOW_CUT] = shargs.pop(0)
+        self.amp_params[AmpParam.MID_BOOST] = shargs.pop(0)
+        self.amp_params[AmpParam.BIAS_SHIFT] = shargs.pop(0)
+        
+        unused = shargs.pop(0)
+        
+        self.amp_params[AmpParam.CLASS] = shargs.pop(0)
+        
+        self.pedal1_type = Pedal1Type(shargs.pop(0))
+        pedal1_values, shargs = shargs[:7], shargs[7:]
+        
+        eff_param: EffParam
+        for eff_param in self.pedal1_type.param_type():
+            if eff_param.value == 0:
+                value = pedal1_values[0] + pedal1_values[1] * 256
+            else:
+                value = pedal1_values[eff_param.value + 1]
+        
+            self.pedal1_params[eff_param] = value
+        
+        # self.pedal2_type = Pedal2Type(shargs.pop(0))
+        # pedal2_values, shargs = shargs[:7], shargs[7:]
+
+        # self.pedal2_params.clear()
+        
+        # for eff_param in self.pedal2_type.param_type():
+        #     if eff_param.value == 0:
+        #         value = pedal2_values[0] + pedal2_values[1] * 256
+        #     else:
+        #         value = pedal2_values[eff_param.value + 1]
+        
+        #     self.pedal2_params[eff_param] = value
+        
+        # # 7 reserved documented
+        # shargs = shargs[7:]
+        
+        # self.reverb_type = ReverbType(shargs.pop(0))
+        # reverb_values, shargs = shargs[:6], shargs[6:]
+        
+        # for reverb_param in ReverbParam:
+        #     self.reverb_params[reverb_param] = reverb_values[reverb_param.value]
+        
+        
+    def print_program(self):
         print('prog name :', self.program_name)
+        print('nr sens', self.nr_sens)
         print('AMP :', self.amp_model.name)
         amp_param: AmpParam
         for amp_param, value in self.amp_params.items():
@@ -135,7 +232,7 @@ class VoxProgram:
                 _logger.warning(f'{amp_param.name} : value {value} is > to max {maxi}')
             print('  ', amp_param.name, ':', value, unit)
     
-        print('PEDAL1 :', self.pedal1_type.name, bool(self.effect_status & EffectStatus.PEDAL1_ON))
+        print('PEDAL1 :', self.pedal1_type.name, self.active_effects[EffectOnOff.PEDAL1])
         for eff_param, value in self.pedal1_params.items():
             mini, maxi, unit = eff_param.range_unit()
             if value < mini:
@@ -144,7 +241,7 @@ class VoxProgram:
                 _logger.warning(f'{eff_param.name} : value {value} is > to max {maxi}')
             print('  ', eff_param.name, ':', value, unit)
         
-        print('PEDAL2 :', self.pedal2_type.name, bool(self.effect_status & EffectStatus.PEDAL2_ON))
+        print('PEDAL2 :', self.pedal2_type.name, self.active_effects[EffectOnOff.PEDAL2])
         for eff_param, value in self.pedal2_params.items():
             mini, maxi, unit = eff_param.range_unit()
             if value < mini:
@@ -153,7 +250,7 @@ class VoxProgram:
                 _logger.warning(f'{eff_param.name} : value {value} is > to max {maxi}')
             print('  ', eff_param.name, ':', value, unit)
             
-        print('REVERB :', self.reverb_type.name, bool(self.effect_status & EffectStatus.REVERB_ON))
+        print('REVERB :', self.reverb_type.name, self.active_effects[EffectOnOff.REVERB])
         for eff_param, value in self.reverb_params.items():
             mini, maxi, unit = eff_param.range_unit()
             if value < mini:
@@ -163,6 +260,27 @@ class VoxProgram:
             
             print('  ', eff_param.name, ':', value, unit)
 
+    def change_pedal1_type(self, pedal1_type: Pedal1Type):
+        self.pedal1_type = pedal1_type
+        tmp_pedal1_params = self.pedal1_params.copy()
+        self.pedal1_params.clear()
+        eff_param: EffParam
+        for eff_param in pedal1_type.param_type():
+            for tmp_eff_param, value in tmp_pedal1_params.items():
+                if tmp_eff_param.value == eff_param.value:
+                    self.pedal1_params[eff_param] = value
+                    break
+                
+    def change_pedal2_type(self, pedal2_type: Pedal2Type):
+        self.pedal2_type = pedal2_type
+        tmp_pedal2_params = self.pedal2_params.copy()
+        self.pedal2_params.clear()
+        eff_param: EffParam
+        for eff_param in pedal2_type.param_type():
+            for tmp_eff_param, value in tmp_pedal2_params.items():
+                if tmp_eff_param.value == eff_param.value:
+                    self.pedal2_params[eff_param] = value
+                    break
 
 class Voxou(Module):
     def __init__(self, name: str,
@@ -170,37 +288,34 @@ class Voxou(Module):
                  port: int|str|None = None,
                  parent=None):
         super().__init__(name, protocol=protocol, port=port, parent=parent)
-        self.rems_banks = dict[int, list[int]]()
-        self.rems_user_presets = dict[int, list[int]]()
-        self.rems_states = list[int]()
 
         self.current_program = VoxProgram()
         self.programs = [VoxProgram() for i in range(8)]
-
-        self.program_name = ''
-        self.nr_sens = 0
-        self.effect_status = 0
-        self.amp_model = 0
-        self.amp_faders = dict[AmpParam, int]()
-        self.reverb_type = ReverbType.ROOM
-        
-        self.reverb_params = dict[ReverbParam, int]()
+        self.user_presets = [VoxProgram() for i in range(4)]
         
         self.solo = False
+        
+        self._param_change_cb: Optional[Callable] = None
+
+    def set_param_change_cb(self, cb: Callable):
+        self._param_change_cb = cb
     
     def _send_vox(self, *args):
         self.send('/sysex', *(SYSEX_BEGIN + list(args) + [247]))
     
     def ask_connection(self):
         for bank_n in range(8):
-            self._send_vox(28, 0, bank_n)
+            self._send_vox(
+                FunctionCode.PROGRAM_DATA_DUMP_REQUEST, 0, bank_n)
 
-        self._send_vox(16)
+        self._send_vox(FunctionCode.CURRENT_PROGRAM_DATA_DUMP_REQUEST)
         
-        for user_preset_n in range(4):
-            self._send_vox(49, 0, user_preset_n)
+        for user_preset_n in range(3):
+            self._send_vox(
+                FunctionCode.CUSTOM_AMPFX_DATA_DUMP_REQUEST, 0, user_preset_n)
 
     def route(self, address, args: list):
+        print('routptutt', address, args)
         if address == '/note_on':
             chn, note, velo = args
             if note == 36:
@@ -237,42 +352,41 @@ class Voxou(Module):
         if function_code is FunctionCode.CURRENT_PROGRAM_DATA_DUMP:
             print('______CURRENT PROGRAM____________')
             self.current_program.read_data(shargs)
+            # self.current_program.print_program()
+            if self._param_change_cb:
+                self._param_change_cb('ALL_CURRENT', self.current_program)
             
         elif function_code is FunctionCode.PROGRAM_DATA_DUMP:
             unused = shargs.pop(0)
             prog_num = shargs.pop(0)
             print(f'______PROGRAM N°{prog_num} _________')
             self.programs[prog_num].read_data(shargs)
+            # self.programs[prog_num].print_program()
         
         elif function_code is FunctionCode.PARAMETER_CHANGE:
             vox_index = VoxIndex(shargs.pop(0))
             param_index = shargs.pop(0)
             value = shargs.pop(0)
+            big_value = shargs.pop(0)
             
             if vox_index is VoxIndex.NR_SENS:
                 if param_index == 0:
                     self.current_program.nr_sens = value
             
             elif vox_index is VoxIndex.EFFECT_STATUS:
-                if param_index == 1:
-                    if value:
-                        self.current_program.effect_status |= EffectStatus.PEDAL1_ON
-                    else:
-                        self.current_program.effect_status &= ~EffectStatus.PEDAL1_ON
-                elif param_index == 2:
-                    if value:
-                        self.current_program.effect_status |= EffectStatus.PEDAL2_ON
-                    else:
-                        self.current_program.effect_status &= ~EffectStatus.PEDAL2_ON
-                elif param_index == 4:
-                    if value:
-                        self.current_program.effect_status |= EffectStatus.REVERB_ON
-                    else:
-                        self.current_program.effect_status &= ~EffectStatus.REVERB_ON
+                effect_on_off = EffectOnOff(param_index)
+                self.current_program.active_effects[effect_on_off] = value
                         
-            elif vox_index is VoxIndex.AMP_MODEL:
-                if param_index == 0:
+            elif vox_index is VoxIndex.EFFECT_MODEL:
+                effect = EffectOnOff(param_index)
+                if effect is EffectOnOff.AMP:
                     self.current_program.amp_model = AmpModel(value)
+                elif effect is EffectOnOff.PEDAL1:
+                    self.current_program.change_pedal1_type(Pedal1Type(value))
+                elif effect is EffectOnOff.PEDAL2:
+                    self.current_program.change_pedal2_type(Pedal2Type(value))
+                elif effect is EffectOnOff.REVERB:
+                    self.current_program.reverb_type = ReverbType(value)
             
             elif vox_index is VoxIndex.AMP:
                 amp_param = AmpParam(param_index)
@@ -282,22 +396,32 @@ class Voxou(Module):
                 
             elif vox_index is VoxIndex.PEDAL1:
                 eff_param = self.current_program.pedal1_type.param_type()(param_index)
-                self.current_program.pedal1_params[eff_param] = value
-                for key, value in self.current_program.pedal1_params.items():
-                    print('', key.name, ':', value)
+                self.current_program.pedal1_params[eff_param] = value + big_value * 128
             
             elif vox_index is VoxIndex.PEDAL2:
                 eff_param = self.current_program.pedal2_type.param_type()(param_index)
-                self.current_program.pedal1_params[eff_param] = value
-                for key, value in self.current_program.pedal2_params.items():
-                    print('', key.name, ':', value)
-            
+                self.current_program.pedal2_params[eff_param] = value + big_value * 128
+
             elif vox_index is VoxIndex.REVERB:
                 rev_param = self.current_program.reverb_type.param_type()(param_index)
-                self.current_program.pedal1_params[rev_param] = value
-                for key, value in self.current_program.reverb_params.items():
-                    print('', key.name, ':', value)
+                self.current_program.reverb_params[rev_param] = value
+                    
+            if self._param_change_cb:
+                self._param_change_cb(
+                    'PARAM_CHANGED', (self.current_program, vox_index, param_index))
 
+        elif function_code is FunctionCode.CUSTOM_AMPFX_DATA_DUMP:
+            unused = shargs.pop(0)
+            preset_n = shargs.pop(0)
+            
+            preset = self.user_presets[preset_n]
+            print(f'____USER PRESET {preset_n} ________________')
+            preset.read_data_preset(shargs)
+            # if preset_n == 0:
+            #     preset.print_program()
+            
+            
+            
         
         # if args[:8] == [240, 66, 48, 0, 1, 52, 76, 0]:
         #     # probablement BANKS
@@ -312,16 +436,17 @@ class Voxou(Module):
             
         if args[:8] == [240, 66, 48, 0, 1, 52, 101, 0]:
             # probablement USER PRESET
-            num = args[8]
-            print('ok ko voisss', num)
-            rem_list = self.rems_user_presets.get(num)
-            if rem_list is not None:
-                print('sso', rem_list == args)
-                if rem_list != args:
-                    print('ah une diff', num)
-                    print('nannni', rem_list)
-                    print('nakkou', args)
-            self.rems_user_presets[num] = args.copy()
+            pass
+            # num = args[8]
+            # print('ok ko voisss', num)
+            # rem_list = self.rems_user_presets.get(num)
+            # if rem_list is not None:
+            #     print('sso', rem_list == args)
+            #     if rem_list != args:
+            #         print('ah une diff', num)
+            #         print('nannni', rem_list)
+            #         print('nakkou', args)
+            # self.rems_user_presets[num] = args.copy()
         
         # elif args[:8] == [240, 66, 48, 0, 1, 52, 64, 0]:
         #     rem_list = self.rems_states
@@ -356,8 +481,8 @@ class Voxou(Module):
         #             print('amp fader non géré', args[8], args[9])
 
         #         self.amp_faders[amp_fader] = args[9]
-        else:
-            print('schil', address, args)
+        # else:
+        #     print('schil', address, args)
     
     def set_amp_model(self, amp_model: int):
         if amp_model == self.amp_model or not 0 <= amp_model <= 13:
@@ -398,7 +523,7 @@ class Voxou(Module):
         
         value_big = 0
         
-        if vox_index is VoxIndex.AMP_MODEL:
+        if vox_index is VoxIndex.EFFECT_MODEL:
             amp_model = AmpModel(value)
             param = DummyParam.DUMMY
             self.current_program.amp_model = amp_model
@@ -414,25 +539,8 @@ class Voxou(Module):
             self.current_program.amp_params[param] = value
             
         elif vox_index is VoxIndex.EFFECT_STATUS:
-            value = self._rail_value(param, value)
-            
-            if param is EffectOnOff.PEDAL1:
-                if value:
-                    self.current_program.effect_status |= EffectStatus.PEDAL1_ON
-                else:
-                    self.current_program.effect_status &= ~EffectStatus.PEDAL1_ON
-            
-            elif param is EffectOnOff.PEDAL2:
-                if value:
-                    self.current_program.effect_status |= EffectStatus.PEDAL2_ON
-                else:
-                    self.current_program.effect_status &= ~EffectStatus.PEDAL2_ON
-            
-            elif param is EffectOnOff.REVERB:
-                if value:
-                    self.current_program.effect_status |= EffectStatus.REVERB_ON
-                else:
-                    self.current_program.effect_status &= ~EffectStatus.REVERB_ON
+            value = self._rail_value(param, value)            
+            self.current_program.active_effects[param] = value
         
         elif vox_index is VoxIndex.PEDAL1:
             cvalue = self.current_program.pedal1_params.get(param)
@@ -444,7 +552,7 @@ class Voxou(Module):
             self.current_program.pedal1_params[param] = value
             
             if param.value == 0:
-                big_value, value = divmod(value, 256)
+                value_big, value = divmod(value, 256)
             
         elif vox_index is VoxIndex.PEDAL2:
             cvalue = self.current_program.pedal2_params.get(param)
@@ -456,7 +564,7 @@ class Voxou(Module):
             self.current_program.pedal2_params[param] = value
             
             if param.value == 0:
-                big_value, value = divmod(value, 256)
+                value_big, value = divmod(value, 256)
             
         elif vox_index is VoxIndex.REVERB:
             cvalue = self.current_program.reverb_params.get(param)
@@ -471,7 +579,7 @@ class Voxou(Module):
                        vox_index.value, param.value, value, value_big)
     
     def set_normal(self):
-        self.set_param_value(VoxIndex.AMP_MODEL, DummyParam.DUMMY, AmpModel.VOX_AC30TB)
+        self.set_param_value(VoxIndex.EFFECT_MODEL, DummyParam.DUMMY, AmpModel.VOX_AC30TB)
         self.set_param_value(VoxIndex.AMP, AmpParam.GAIN, 58)
         self.set_param_value(VoxIndex.AMP, AmpParam.VOLUME, 80)
         self.set_param_value(VoxIndex.REVERB, ReverbParam.TIME, 16)
@@ -487,7 +595,7 @@ class Voxou(Module):
         # self.set_reverb_param(ReverbParam.MIX, 20)
     
     def set_solo(self):
-        self.set_param_value(VoxIndex.AMP_MODEL, DummyParam.DUMMY, AmpModel.BRIT_OR_MKII)
+        self.set_param_value(VoxIndex.EFFECT_MODEL, DummyParam.DUMMY, AmpModel.BRIT_OR_MKII)
         self.set_param_value(VoxIndex.AMP, AmpParam.GAIN, 98)
         self.set_param_value(VoxIndex.AMP, AmpParam.VOLUME, 45)
         self.set_param_value(VoxIndex.REVERB, ReverbParam.TIME, 98)
