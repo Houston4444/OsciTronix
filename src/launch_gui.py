@@ -16,8 +16,10 @@ from ui.main_win import Ui_MainWindow
 from ui.progress import ParamProgressBar
 
 
-if TYPE_CHECKING:
-    from voxou import VoxProgram, Voxou
+# if TYPE_CHECKING:
+from voxou import VoxProgram, Voxou, ConnectState
+
+_translate = QApplication.translate
 
 
 voxou_dict = {'voxou': None}
@@ -107,6 +109,8 @@ class MainWindow(QMainWindow):
         for amp_param, param_wg in self.amp_params_widgets.items():
             if isinstance(param_wg, ParamProgressBar):
                 param_wg.valueChanged.connect(self._amp_param_moved)
+            elif isinstance(param_wg, QCheckBox):
+                param_wg.clicked.connect(self._amp_param_bool_changed)
         for label, param_wg in self._pedal1_widgets:
             param_wg.valueChanged.connect(self._pedal1_param_moved)
         for label, param_wg in self._pedal2_widgets:
@@ -138,17 +142,36 @@ class MainWindow(QMainWindow):
             self.pedal2_effect_changed)
         self.callback_sig.connect(self.apply_callback)
         
-        self.ui.toolButtonRefresh.clicked.connect(self._ask_connection)
+        self.ui.toolButtonRefresh.clicked.connect(self._refresh_all)
         
         self.connection_timer = QTimer()
         self.connection_timer.setInterval(200)
         self.connection_timer.timeout.connect(self._ask_connection)
         self.connection_timer.start()
     
+        self.connect_state_timer = QTimer()
+        self.connect_state_timer.setInterval(100)
+        self.connect_state_timer.timeout.connect(
+            self._set_delayed_connect_state)
+        
     def engine_callback(self, *args):
         self.callback_sig.emit(*args)
         
     def apply_callback(self, *args):
+        if args[0] == 'CONNECT_STATE':
+            self.connect_state_timer.start()
+            # connected = bool(args[1])
+            # if connected:
+            #     self.ui.labelConnected.setText(
+            #         _translate('main_win', 'Connected'))
+            #     self.ui.labelConnected.setStyleSheet(
+            #         'QLabel{color: green}')
+            # else:
+            #     self.ui.labelConnected.setText(
+            #         _translate('main_win', 'Not Connected'))
+            #     self.ui.labelConnected.setStyleSheet(
+            #         'QLabel{color: red}')
+        
         if args[0] == 'ALL_CURRENT':
             program: 'VoxProgram' = args[1]
             
@@ -193,7 +216,7 @@ class MainWindow(QMainWindow):
 
             return
         
-        if args[0] == 'PARAM_CHANGED':
+        elif args[0] == 'PARAM_CHANGED':
             program, vox_index, param_index = args[1]
 
             if vox_index is VoxIndex.NR_SENS:
@@ -293,12 +316,23 @@ class MainWindow(QMainWindow):
 
             voxou.set_param_value(VoxIndex.EFFECT_STATUS, param, int(yesno))
     
+    @Slot(bool)
+    def _amp_param_bool_changed(self, state: bool):
+        checkbox: QCheckBox = self.sender()
+        voxou: 'Voxou' = voxou_dict['voxou']
+        if voxou is not None:
+            for param, cbox in self.amp_params_widgets.items():
+                if cbox is checkbox:
+                    voxou.set_param_value(VoxIndex.AMP, param, int(state))
+                    break
+    
     @Slot(float)
     def _amp_param_moved(self, value: float):
         param_wg: ParamProgressBar = self.sender()
         voxou: 'Voxou' = voxou_dict['voxou']
         if voxou is not None:
             voxou.set_param_value(VoxIndex.AMP, param_wg.param, int(value))
+            print('fpfp', param_wg.param, value)
     
     @Slot(float)
     def _pedal1_param_moved(self, value: float):
@@ -364,11 +398,39 @@ class MainWindow(QMainWindow):
     def _ask_connection(self):
         voxou: 'Voxou' = voxou_dict.get('voxou')
         if voxou is not None:
-            if voxou.connected:
+            if voxou.connected is ConnectState.CONNECTED:
                 self.connection_timer.stop()
                 return
             
             voxou.ask_connection()
+            
+    @Slot()
+    def _refresh_all(self):
+        voxou: 'Voxou' = voxou_dict.get('voxou')
+        if voxou is not None:
+            voxou.ask_connection()
+
+    @Slot()
+    def _set_delayed_connect_state(self):
+        voxou: 'Voxou' = voxou_dict.get('voxou')
+        if voxou is None:
+            connected = False
+        else:
+            connected = voxou.connected is ConnectState.CONNECTED
+
+        if connected:
+            self.ui.labelConnected.setText(
+                _translate('main_win', 'Connected'))
+            self.ui.labelConnected.setStyleSheet(
+                'QLabel{color: green}')
+        else:
+            self.ui.labelConnected.setText(
+                _translate('main_win', 'Not Connected'))
+            self.ui.labelConnected.setStyleSheet(
+                'QLabel{color: red}')
+            
+            if not self.connection_timer.isActive():
+                self.connection_timer.start()
 
 
 if __name__ == '__main__':

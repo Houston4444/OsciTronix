@@ -1,4 +1,4 @@
-from enum import IntEnum
+from enum import IntEnum, Enum
 import logging
 from typing import Callable, Optional
 from mentat import Module
@@ -28,6 +28,12 @@ class FunctionCode(IntEnum):
 
 SYSEX_BEGIN = [240, 66, 48, 0, 1, 52]
 
+
+class ConnectState(Enum):
+    DISCONNECTED = 0
+    CHECKING = 1
+    CONNECTED = 2
+    
 
 class VoxProgram:
     def __init__(self):
@@ -272,7 +278,7 @@ class Voxou(Module):
         self.user_presets = [VoxProgram() for i in range(4)]
         
         self.solo = False
-        self.connected = False
+        self.connected = ConnectState.DISCONNECTED
         
         self._param_change_cb: Optional[Callable] = None
 
@@ -281,6 +287,9 @@ class Voxou(Module):
     
     def _send_vox(self, *args):
         self.send('/sysex', *(SYSEX_BEGIN + list(args) + [247]))
+        self.connected = ConnectState.CHECKING
+        if self._param_change_cb:
+            self._param_change_cb('CONNECT_STATE', False)
     
     def ask_connection(self):
         for bank_n in range(8):
@@ -320,6 +329,7 @@ class Voxou(Module):
                 f' with header ({header_str})')
             return
         
+        
         function_code = shargs.pop(0)
 
         try:
@@ -328,7 +338,10 @@ class Voxou(Module):
             _logger.error(f'Received Unknown function code {hex(function_code)}')
             return
         
-        self.connected = True
+        self.connected = ConnectState.CONNECTED
+        # send connect state OK to gui
+        if self._param_change_cb:
+            self._param_change_cb('CONNECT_STATE', True)
         
         if function_code is FunctionCode.CURRENT_PROGRAM_DATA_DUMP:
             print('______CURRENT PROGRAM____________')

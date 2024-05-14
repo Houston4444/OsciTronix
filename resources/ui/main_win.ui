@@ -86,13 +86,6 @@ QGroupBox::title {
              </property>
             </widget>
            </item>
-           <item row="13" column="1">
-            <widget class="Line" name="line">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-            </widget>
-           </item>
            <item row="8" column="0">
             <widget class="QLabel" name="labelPresenceTone">
              <property name="text">
@@ -268,15 +261,22 @@ QProgressBar::chunck {background-color: #888888;}</string>
              </item>
             </layout>
            </item>
-           <item row="10" column="2">
+           <item row="2" column="3">
+            <widget class="Line" name="line_3">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="3">
             <widget class="Line" name="line_2">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
             </widget>
            </item>
-           <item row="2" column="3">
-            <widget class="Line" name="line_3">
+           <item row="13" column="3">
+            <widget class="Line" name="line">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
@@ -309,8 +309,11 @@ QProgressBar::chunck {background-color: #888888;}</string>
          <layout class="QHBoxLayout" name="horizontalLayout_6">
           <item>
            <widget class="QLabel" name="labelConnected">
+            <property name="styleSheet">
+             <string notr="true">QLabel{color:red}</string>
+            </property>
             <property name="text">
-             <string>Connected</string>
+             <string>Not Connected</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>

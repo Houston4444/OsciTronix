@@ -95,9 +95,11 @@ class ParamProgressBar(QProgressBar):
 
         if self._special is SpecialParam.CLASS_AAB:
             if value == 0:
-                self.setStyleSheet('QProgressBar{background-color: #dd6060}')
-            else:
-                self.setStyleSheet('QProgressBar{background-color: #60dd60}')
+                self.setStyleSheet(
+                    'QProgressBar{background-color: #60dd60;color: #224422}')
+            elif value == 1:
+                self.setStyleSheet(
+                    'QProgressBar{background-color: #ee7070;color: #442222}')
 
         if self._special is SpecialParam.BIAS_SHIFT:
             if value == 1:
@@ -179,7 +181,7 @@ class ParamProgressBar(QProgressBar):
             if self._minimum == 0 and self._maximum == 1:
                 # toggle if it is a toggle switch, whatever the mouse pos
                 if self.setValue(int(not bool(self._real_value))):
-                    self.valueChanged.emit(int(not bool(self._real_value)))
+                    self.valueChanged.emit(int(bool(self._real_value)))
                 return
 
             self._handle_mouse_event_pos(event.pos())
