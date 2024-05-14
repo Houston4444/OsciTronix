@@ -1,0 +1,5 @@
+ <RCC version="1.0">
+    <qresource prefix="/">
+        <file>vox512d.jpg</file>
+    </qresource>
+</RCC>

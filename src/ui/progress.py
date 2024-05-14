@@ -1,9 +1,9 @@
 import logging
 from math import isnan
-from typing import TYPE_CHECKING, Callable
-from PyQt5.QtCore import pyqtSignal, Qt, QPoint
-from PyQt5.QtWidgets import QProgressBar, QInputDialog
-from PyQt5.QtGui import QWheelEvent, QPalette, QColor, QMouseEvent
+from typing import Callable
+from qtpy.QtCore import Signal, Qt, QPoint
+from qtpy.QtWidgets import QProgressBar, QInputDialog
+from qtpy.QtGui import QWheelEvent, QPalette, QColor, QMouseEvent
 
 from effects import EffParam, DummyParam
 
@@ -13,11 +13,11 @@ _logger = logging.getLogger(__name__)
 
 class ParamProgressBar(QProgressBar):
     # signals
-    dragStateChanged = pyqtSignal(bool)
-    valueChanged = pyqtSignal(float)
+    dragStateChanged = Signal(bool)
+    valueChanged = Signal(float)
 
     def __init__(self, parent):
-        QProgressBar.__init__(self, parent)
+        QProgressBar.__init__(self, parent=parent)
 
         self.param = DummyParam.DUMMY
 

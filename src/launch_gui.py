@@ -1,17 +1,21 @@
 import signal
 import sys
 from typing import TYPE_CHECKING
-from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QLabel, QSpacerItem, QSizePolicy,
+from qtpy.QtWidgets import (
+    QApplication, QMainWindow,
     QCheckBox, QComboBox, QGroupBox)
-from PyQt5.QtCore import pyqtSlot, QTimer, pyqtSignal
+from qtpy.QtCore import QTimer, Slot, Signal
 import threading
 
-from effects import AmpModel, AmpParam, EffParam, EffectOnOff, Pedal1Type, Pedal2Type, ReverbParam, ReverbType, VoxIndex
+from effects import (
+    AmpModel, AmpParam, EffParam, EffectOnOff, Pedal1Type, Pedal2Type,
+    ReverbParam, ReverbType, VoxIndex)
 from mentatronix import start_mentat, stop_mentat
 
 from ui.main_win import Ui_MainWindow
 from ui.progress import ParamProgressBar
+
+import resources_rc
 
 if TYPE_CHECKING:
     from voxou import VoxProgram, Voxou
@@ -24,9 +28,9 @@ def signal_handler(sig, frame):
 
 
 class MainWindow(QMainWindow):
-    callback_sig = pyqtSignal(str, object)
+    callback_sig = Signal(str, object)
     
-    def __init__(self) -> None:
+    def __init__(self):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -52,10 +56,7 @@ class MainWindow(QMainWindow):
         
         for amp_model in AmpModel:
             self.ui.comboBoxAmpModel.addItem(
-                amp_model.name.replace('_', ' '), amp_model)
-
-        # self._pedal1_widgets = dict[int, tuple[QLabel, ParamProgressBar]]()
-        
+                amp_model.name.replace('_', ' '), amp_model)        
 
         for pedal1_type in Pedal1Type:
             self.ui.comboBoxPedal1.addItem(
@@ -110,10 +111,6 @@ class MainWindow(QMainWindow):
             param_wg.valueChanged.connect(self._pedal2_param_moved)
         for param_wg in self._reverb_sliders:
             param_wg.valueChanged.connect(self._reverb_param_moved)
-        # for param_wg in ([w[1] for w in self._pedal1_widgets]
-        #                  + [w[1] for w in self._pedal2_widgets]
-        #                  + [w for w in self._reverb_sliders]):
-        #     param_wg.valueChanged.connect(self.slider_value_changed)
 
         self._fill_pedal1(Pedal1Type.COMP)
         self._fill_pedal2(Pedal2Type.FLANGER)
@@ -143,6 +140,9 @@ class MainWindow(QMainWindow):
         self.connection_timer.setInterval(200)
         self.connection_timer.timeout.connect(self._ask_connection)
         self.connection_timer.start()
+        
+        # self.setStyleSheet(
+        #     "QMainWindow{background-image: url(:/vox512d.jpg)}")
     
     def engine_callback(self, *args):
         self.callback_sig.emit(*args)
@@ -243,7 +243,7 @@ class MainWindow(QMainWindow):
                     widget.setValue(program.reverb_values[widget.param.value])
                 return
     
-    @pyqtSlot(int)
+    @Slot(int)
     def _effect_model_changed(self, index: int):
         voxou: 'Voxou' = voxou_dict['voxou']
         if voxou is not None:
@@ -264,7 +264,7 @@ class MainWindow(QMainWindow):
             voxou.set_param_value(
                 VoxIndex.EFFECT_MODEL, effect_on_off, model.value)
     
-    @pyqtSlot(bool)
+    @Slot(bool)
     def _effect_checked(self, yesno: bool):
         voxou: 'Voxou' = voxou_dict['voxou']
         if voxou is not None:
@@ -280,28 +280,28 @@ class MainWindow(QMainWindow):
 
             voxou.set_param_value(VoxIndex.EFFECT_STATUS, param, int(yesno))
     
-    @pyqtSlot(float)
+    @Slot(float)
     def _amp_param_moved(self, value: float):
         param_wg: ParamProgressBar = self.sender()
         voxou: 'Voxou' = voxou_dict['voxou']
         if voxou is not None:
             voxou.set_param_value(VoxIndex.AMP, param_wg.param, int(value))
     
-    @pyqtSlot(float)
+    @Slot(float)
     def _pedal1_param_moved(self, value: float):
         param_wg: ParamProgressBar = self.sender()
         voxou: 'Voxou' = voxou_dict['voxou']
         if voxou is not None:
             voxou.set_param_value(VoxIndex.PEDAL1, param_wg.param, int(value))
     
-    @pyqtSlot(float)
+    @Slot(float)
     def _pedal2_param_moved(self, value: float):
         param_wg: ParamProgressBar = self.sender()
         voxou: 'Voxou' = voxou_dict['voxou']
         if voxou is not None:
             voxou.set_param_value(VoxIndex.PEDAL2, param_wg.param, int(value))
             
-    @pyqtSlot(float)
+    @Slot(float)
     def _reverb_param_moved(self, value: float):
         param_wg: ParamProgressBar = self.sender()
         voxou: 'Voxou' = voxou_dict['voxou']
@@ -326,7 +326,7 @@ class MainWindow(QMainWindow):
             param_wg.set_param(pedal1_param)
             param_wg.setVisible(bool(pedal1_param.display_name()))
             
-    @pyqtSlot(int)
+    @Slot(int)
     def amp_model_changed(self, index: int):
         amp_model: AmpModel = self.ui.comboBoxAmpModel.currentData()
         self.ui.checkBoxBrightCap.setVisible(amp_model.has_bright_cap())
@@ -335,19 +335,19 @@ class MainWindow(QMainWindow):
         else:
             self.ui.labelPresenceTone.setText('Presence')
     
-    @pyqtSlot(int)
+    @Slot(int)
     def pedal1_effect_changed(self, index: int):
         pedal1_type = self.ui.comboBoxPedal1.currentData()
         if pedal1_type is not None:
             self._fill_pedal1(pedal1_type)
         
-    @pyqtSlot(int)
+    @Slot(int)
     def pedal2_effect_changed(self, index: int):
         pedal2_type = self.ui.comboBoxPedal2.currentData()
         if pedal2_type is not None:
             self._fill_pedal2(pedal2_type)
     
-    @pyqtSlot()
+    @Slot()
     def _ask_connection(self):
         voxou: 'Voxou' = voxou_dict.get('voxou')
         if voxou is not None:

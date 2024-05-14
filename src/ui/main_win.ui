@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string>Tronix Hammer</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
@@ -725,6 +728,8 @@ QGroupBox::title {
    <header location="global">ui/progress</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../../resources/resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

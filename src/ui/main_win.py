@@ -15,6 +15,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(506, 703)
+        MainWindow.setStyleSheet("")
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
@@ -423,3 +424,4 @@ class Ui_MainWindow(object):
         self.labelPedal2Param0.setText(_translate("MainWindow", "Param0"))
         self.labelPedal2Param4.setText(_translate("MainWindow", "Param4"))
 from ui.progress import ParamProgressBar
+import resources_rc
