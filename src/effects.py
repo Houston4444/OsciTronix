@@ -19,9 +19,15 @@ class DummyParam(EffParam):
     DUMMY = 0
 
 
+class VoxMode(Enum):
+    USER = 0
+    PRESET = 1
+    MANUAL = 2
+
+
 class VoxIndex(Enum):
     ERROR = -1
-    PROGRAM = 0
+    PROGRAM_NAME = 0
     NR_SENS = 1
     EFFECT_STATUS = 2
     EFFECT_MODEL = 3

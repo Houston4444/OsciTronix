@@ -160,21 +160,11 @@ class MainWindow(QMainWindow):
     def apply_callback(self, *args):
         if args[0] == 'CONNECT_STATE':
             self.connect_state_timer.start()
-            # connected = bool(args[1])
-            # if connected:
-            #     self.ui.labelConnected.setText(
-            #         _translate('main_win', 'Connected'))
-            #     self.ui.labelConnected.setStyleSheet(
-            #         'QLabel{color: green}')
-            # else:
-            #     self.ui.labelConnected.setText(
-            #         _translate('main_win', 'Not Connected'))
-            #     self.ui.labelConnected.setStyleSheet(
-            #         'QLabel{color: red}')
         
         if args[0] == 'ALL_CURRENT':
             program: 'VoxProgram' = args[1]
             
+            self.ui.lineEditProgramName.setText(program.program_name)
             self.ui.progressBarNoiseGate.setValue(program.nr_sens)
             
             self.ui.comboBoxAmpModel.setCurrentIndex(
@@ -332,7 +322,6 @@ class MainWindow(QMainWindow):
         voxou: 'Voxou' = voxou_dict['voxou']
         if voxou is not None:
             voxou.set_param_value(VoxIndex.AMP, param_wg.param, int(value))
-            print('fpfp', param_wg.param, value)
     
     @Slot(float)
     def _pedal1_param_moved(self, value: float):
