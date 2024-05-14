@@ -451,7 +451,11 @@ class Voxou(Module):
         
         value_big = 0
         
-        if vox_index is VoxIndex.EFFECT_MODEL:
+        if vox_index is VoxIndex.NR_SENS:
+            if param is DummyParam.DUMMY:
+                self.current_program.nr_sens = value
+            
+        elif vox_index is VoxIndex.EFFECT_MODEL:
             if param is EffectOnOff.AMP:
                 self.current_program.amp_model = AmpModel(value)
 
@@ -467,7 +471,8 @@ class Voxou(Module):
         elif vox_index is VoxIndex.AMP:
             cvalue = self.current_program.amp_params.get(param)
             if cvalue is None:
-                _logger.error(f'attempting to change a not known amp parameter {param}')
+                _logger.error(
+                    f'attempting to change a not known amp parameter {param}')
                 return
             
             value = self._rail_value(param, value)

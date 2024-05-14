@@ -1,6 +1,8 @@
 import logging
 from math import isnan
 from typing import Callable
+from enum import Enum
+
 from qtpy.QtCore import Signal, Qt, QPoint
 from qtpy.QtWidgets import QProgressBar, QInputDialog
 from qtpy.QtGui import QWheelEvent, QPalette, QColor, QMouseEvent
@@ -9,6 +11,12 @@ from effects import EffParam, DummyParam
 
 
 _logger = logging.getLogger(__name__)
+
+
+class SpecialParam(Enum):
+    NORMAL = 0
+    CLASS_AAB = 1
+    BIAS_SHIFT = 2
 
 
 class ParamProgressBar(QProgressBar):
@@ -39,6 +47,8 @@ class ParamProgressBar(QProgressBar):
         self._text_call = None
         self._value_call = None
 
+        self._special = SpecialParam.NORMAL
+
         self.setFormat("(none)")
 
         # Fake internal value, 10'000 precision
@@ -57,6 +67,12 @@ class ParamProgressBar(QProgressBar):
         mini, maxi, unit = param.range_unit()
         self.setMinimum(mini)
         self.setMaximum(maxi)
+
+        if (mini, maxi, unit) == (0, 2, 'Off,COLD,HOT'):
+            self._special = SpecialParam.BIAS_SHIFT
+        elif (mini, maxi, unit) == (0, 1, 'A,AB'):
+            self._special = SpecialParam.CLASS_AAB
+
         if unit == '%':
             self._label_suffix = ''
         else:
@@ -76,6 +92,20 @@ class ParamProgressBar(QProgressBar):
         self._initiated = True
         self._real_value = value
         div = float(self._maximum - self._minimum)
+
+        if self._special is SpecialParam.CLASS_AAB:
+            if value == 0:
+                self.setStyleSheet('QProgressBar{background-color: #dd6060}')
+            else:
+                self.setStyleSheet('QProgressBar{background-color: #60dd60}')
+
+        if self._special is SpecialParam.BIAS_SHIFT:
+            if value == 1:
+                self.setStyleSheet('QProgressBar{background-color: #60dd60}')
+            elif value == 2:
+                self.setStyleSheet('QProgressBar{background-color: #dd6060}')
+            else:
+                self.setStyleSheet('')
 
         if div == 0.0:
             _logger.warning(
@@ -197,10 +227,21 @@ class ParamProgressBar(QProgressBar):
                 f'{self._label_prefix}{self._current_painted_text}{self._label_suffix}')
 
         elif self._is_integer:
-            if self._minimum == 0 and self._maximum == 1:
+            if self._special is SpecialParam.CLASS_AAB:
+                self.setFormat('AB' if int(self._real_value) else 'A')
+
+            elif self._special is SpecialParam.BIAS_SHIFT:
+                if self._real_value < 0.5:
+                    self.setFormat('Off')
+                elif self._real_value < 1.5:
+                    self.setFormat('COLD')
+                else:
+                    self.setFormat('HOT')
+
+            elif self._minimum == 0 and self._maximum == 1:
                 self.setFormat('On' if int(self._real_value) else 'Off')
+
             elif self._label_suffix == ' Hz':
-                # freq_str = "%.3f" % 
                 self.setFormat(
                     f'{self._label_prefix}%.3f{self._label_suffix}' % (self._real_value * 0.001))
             else:
@@ -218,7 +259,7 @@ class ParamProgressBar(QProgressBar):
         angle = event.angleDelta().y()
 
         delta = 1
-        if not event.modifiers() & Qt.Modifier.CTRL:
+        if not event.modifiers() & Qt.KeyboardModifier.ControlModifier:
             delta = max(1, int(0.05 * (self._maximum - self._minimum)))
         if angle < 0:
             delta *= -1

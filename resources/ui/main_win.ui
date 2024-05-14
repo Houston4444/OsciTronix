@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>506</width>
-    <height>703</height>
+    <width>520</width>
+    <height>735</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -50,13 +50,13 @@ QGroupBox::title {
         <layout class="QGridLayout" name="gridLayout_4">
          <item row="1" column="0">
           <layout class="QGridLayout" name="gridLayout">
-           <item row="1" column="1" colspan="5">
-            <widget class="ParamProgressBar" name="progressBarGain">
-             <property name="value">
-              <number>24</number>
+           <item row="6" column="0">
+            <widget class="QLabel" name="label_4">
+             <property name="text">
+              <string>Bass</string>
              </property>
-             <property name="textDirection">
-              <enum>QProgressBar::TopToBottom</enum>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
              </property>
             </widget>
            </item>
@@ -73,6 +73,67 @@ QGroupBox::title {
              </property>
              <property name="alignment">
               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>Gain</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="13" column="1">
+            <widget class="Line" name="line">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="0">
+            <widget class="QLabel" name="labelPresenceTone">
+             <property name="text">
+              <string>Tone</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1" colspan="6">
+            <widget class="ParamProgressBar" name="progressBarGain">
+             <property name="value">
+              <number>24</number>
+             </property>
+             <property name="textDirection">
+              <enum>QProgressBar::TopToBottom</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0" colspan="7">
+            <widget class="QComboBox" name="comboBoxAmpModel"/>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>Treble</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1" colspan="6">
+            <widget class="ParamProgressBar" name="progressBarTreble">
+             <property name="styleSheet">
+              <string notr="true">
+QProgressBar::chunck {background-color: #888888;}</string>
+             </property>
+             <property name="value">
+              <number>24</number>
              </property>
             </widget>
            </item>
@@ -96,31 +157,14 @@ QGroupBox::title {
              </property>
             </widget>
            </item>
-           <item row="6" column="1" colspan="5">
-            <widget class="ParamProgressBar" name="progressBarBass">
+           <item row="5" column="1" colspan="6">
+            <widget class="ParamProgressBar" name="progressBarMiddle">
              <property name="value">
               <number>24</number>
              </property>
             </widget>
            </item>
-           <item row="8" column="0">
-            <widget class="QLabel" name="labelPresenceTone">
-             <property name="text">
-              <string>Tone</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="1" colspan="5">
-            <widget class="ParamProgressBar" name="progressBarResonance">
-             <property name="value">
-              <number>24</number>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0" colspan="6">
+           <item row="3" column="0" colspan="7">
             <layout class="QHBoxLayout" name="horizontalLayout">
              <item>
               <widget class="QCheckBox" name="checkBoxLowCut">
@@ -145,88 +189,98 @@ QGroupBox::title {
              </item>
             </layout>
            </item>
-           <item row="6" column="0">
-            <widget class="QLabel" name="label_4">
-             <property name="text">
-              <string>Bass</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="1" colspan="5">
-            <widget class="ParamProgressBar" name="progressBarTreble">
-             <property name="styleSheet">
-              <string notr="true">
-QProgressBar::chunck {background-color: #888888;}</string>
-             </property>
+           <item row="6" column="1" colspan="6">
+            <widget class="ParamProgressBar" name="progressBarBass">
              <property name="value">
               <number>24</number>
              </property>
             </widget>
            </item>
-           <item row="5" column="1" colspan="5">
-            <widget class="ParamProgressBar" name="progressBarMiddle">
+           <item row="9" column="1" colspan="6">
+            <widget class="ParamProgressBar" name="progressBarResonance">
              <property name="value">
               <number>24</number>
              </property>
             </widget>
            </item>
-           <item row="12" column="1" colspan="5">
-            <widget class="ParamProgressBar" name="progressBarVolume">
-             <property name="value">
-              <number>24</number>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0">
-            <widget class="QLabel" name="label_2">
-             <property name="text">
-              <string>Treble</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="label">
-             <property name="text">
-              <string>Gain</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="8" column="1" colspan="5">
+           <item row="8" column="1" colspan="6">
             <widget class="ParamProgressBar" name="progressBarTone">
              <property name="value">
               <number>24</number>
              </property>
             </widget>
            </item>
-           <item row="0" column="0" colspan="6">
-            <widget class="QComboBox" name="comboBoxAmpModel"/>
+           <item row="12" column="1" colspan="6">
+            <widget class="ParamProgressBar" name="progressBarVolume">
+             <property name="value">
+              <number>24</number>
+             </property>
+            </widget>
            </item>
-           <item row="13" column="1">
+           <item row="14" column="0" colspan="7">
             <layout class="QHBoxLayout" name="horizontalLayout_2">
              <item>
-              <widget class="QCheckBox" name="checkBoxClassAAB">
+              <widget class="QLabel" name="label_9">
                <property name="text">
-                <string>Class A/AB</string>
+                <string>Class</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="checkBoxBiasShift">
+              <widget class="ParamProgressBar" name="progressBarClassAAB">
+               <property name="value">
+                <number>24</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_8">
                <property name="text">
                 <string>Bias Shift</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="ParamProgressBar" name="progressBarBiasShift">
+               <property name="value">
+                <number>24</number>
                </property>
               </widget>
              </item>
             </layout>
+           </item>
+           <item row="10" column="2">
+            <widget class="Line" name="line_2">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="3">
+            <widget class="Line" name="line_3">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
            </item>
           </layout>
          </item>
@@ -251,6 +305,31 @@ QProgressBar::chunck {background-color: #888888;}</string>
       </item>
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <item>
+           <widget class="QLabel" name="labelConnected">
+            <property name="text">
+             <string>Connected</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="toolButtonRefresh">
+            <property name="text">
+             <string>...</string>
+            </property>
+            <property name="icon">
+             <iconset theme="view-refresh">
+              <normaloff>.</normaloff>.</iconset>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
         <item>
          <spacer name="verticalSpacer_2">
           <property name="orientation">
@@ -357,6 +436,9 @@ QGroupBox::title {
              <property name="text">
               <string>Time</string>
              </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
             </widget>
            </item>
            <item row="5" column="1">
@@ -378,6 +460,9 @@ QGroupBox::title {
              <property name="text">
               <string>Pre Delay</string>
              </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
             </widget>
            </item>
            <item row="1" column="0" colspan="2">
@@ -387,6 +472,9 @@ QGroupBox::title {
             <widget class="QLabel" name="label_19">
              <property name="text">
               <string>Mix</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
              </property>
             </widget>
            </item>
@@ -409,12 +497,18 @@ QGroupBox::title {
              <property name="text">
               <string>Low Damp</string>
              </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
             </widget>
            </item>
            <item row="8" column="0">
             <widget class="QLabel" name="label_23">
              <property name="text">
               <string>High Damp</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
              </property>
             </widget>
            </item>
@@ -480,6 +574,9 @@ QGroupBox::title {
            <property name="text">
             <string>Param0</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
           </widget>
          </item>
          <item row="7" column="2">
@@ -501,6 +598,9 @@ QGroupBox::title {
            <property name="text">
             <string>Param3</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
           </widget>
          </item>
          <item row="1" column="0" colspan="3">
@@ -518,6 +618,9 @@ QGroupBox::title {
            <property name="text">
             <string>Param4</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
           </widget>
          </item>
          <item row="4" column="2">
@@ -532,6 +635,9 @@ QGroupBox::title {
            <property name="text">
             <string>Param5</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
           </widget>
          </item>
          <item row="4" column="0">
@@ -539,12 +645,18 @@ QGroupBox::title {
            <property name="text">
             <string>Param2</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
           </widget>
          </item>
          <item row="3" column="0">
           <widget class="QLabel" name="labelPedal1Param1">
            <property name="text">
             <string>Param1</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -604,6 +716,9 @@ QGroupBox::title {
            <property name="text">
             <string>Param1</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
           </widget>
          </item>
          <item row="6" column="1">
@@ -624,6 +739,9 @@ QGroupBox::title {
           <widget class="QLabel" name="labelPedal2Param2">
            <property name="text">
             <string>Param2</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -646,12 +764,18 @@ QGroupBox::title {
            <property name="text">
             <string>Param5</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
           </widget>
          </item>
          <item row="5" column="0">
           <widget class="QLabel" name="labelPedal2Param3">
            <property name="text">
             <string>Param3</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -677,12 +801,18 @@ QGroupBox::title {
            <property name="text">
             <string>Param0</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
           </widget>
          </item>
          <item row="6" column="0">
           <widget class="QLabel" name="labelPedal2Param4">
            <property name="text">
             <string>Param4</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -714,7 +844,7 @@ QGroupBox::title {
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>506</width>
+     <width>520</width>
      <height>30</height>
     </rect>
    </property>
@@ -729,7 +859,7 @@ QGroupBox::title {
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../../resources/resources.qrc"/>
+  <include location="../resources.qrc"/>
  </resources>
  <connections/>
 </ui>

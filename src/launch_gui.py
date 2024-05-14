@@ -8,14 +8,13 @@ from qtpy.QtCore import QTimer, Slot, Signal
 import threading
 
 from effects import (
-    AmpModel, AmpParam, EffParam, EffectOnOff, Pedal1Type, Pedal2Type,
+    AmpModel, AmpParam, DummyParam, EffParam, EffectOnOff, Pedal1Type, Pedal2Type,
     ReverbParam, ReverbType, VoxIndex)
 from mentatronix import start_mentat, stop_mentat
 
 from ui.main_win import Ui_MainWindow
 from ui.progress import ParamProgressBar
 
-import resources_rc
 
 if TYPE_CHECKING:
     from voxou import VoxProgram, Voxou
@@ -46,8 +45,8 @@ class MainWindow(QMainWindow):
             AmpParam.BRIGHT_CAP: self.ui.checkBoxBrightCap,
             AmpParam.LOW_CUT: self.ui.checkBoxLowCut,
             AmpParam.MID_BOOST: self.ui.checkBoxMidBoost,
-            AmpParam.BIAS_SHIFT: self.ui.checkBoxBiasShift,
-            AmpParam.CLASS: self.ui.checkBoxClassAAB
+            AmpParam.BIAS_SHIFT: self.ui.progressBarBiasShift,
+            AmpParam.CLASS: self.ui.progressBarClassAAB
         }
         
         for param, widget in self.amp_params_widgets.items():
@@ -90,6 +89,9 @@ class MainWindow(QMainWindow):
             self.ui.progressBarReverbLowDamp,
             self.ui.progressBarReverbHighDump
         )
+
+        self.ui.progressBarNoiseGate.valueChanged.connect(
+            self._noise_gate_changed)
         
         for combobox in (self.ui.comboBoxAmpModel,
                          self.ui.comboBoxPedal1,
@@ -136,13 +138,12 @@ class MainWindow(QMainWindow):
             self.pedal2_effect_changed)
         self.callback_sig.connect(self.apply_callback)
         
+        self.ui.toolButtonRefresh.clicked.connect(self._ask_connection)
+        
         self.connection_timer = QTimer()
         self.connection_timer.setInterval(200)
         self.connection_timer.timeout.connect(self._ask_connection)
         self.connection_timer.start()
-        
-        # self.setStyleSheet(
-        #     "QMainWindow{background-image: url(:/vox512d.jpg)}")
     
     def engine_callback(self, *args):
         self.callback_sig.emit(*args)
@@ -150,6 +151,8 @@ class MainWindow(QMainWindow):
     def apply_callback(self, *args):
         if args[0] == 'ALL_CURRENT':
             program: 'VoxProgram' = args[1]
+            
+            self.ui.progressBarNoiseGate.setValue(program.nr_sens)
             
             self.ui.comboBoxAmpModel.setCurrentIndex(
                 self.ui.comboBoxAmpModel.findData(program.amp_model))
@@ -192,6 +195,9 @@ class MainWindow(QMainWindow):
         
         if args[0] == 'PARAM_CHANGED':
             program, vox_index, param_index = args[1]
+
+            if vox_index is VoxIndex.NR_SENS:
+                self.ui.progressBarNoiseGate.setValue(program.nr_sens)
 
             if vox_index is VoxIndex.AMP:
                 amp_param = AmpParam(param_index)
@@ -243,6 +249,13 @@ class MainWindow(QMainWindow):
                     widget.setValue(program.reverb_values[widget.param.value])
                 return
     
+    @Slot(float)
+    def _noise_gate_changed(self, value: float):
+        voxou : 'Voxou' = voxou_dict['voxou']
+        if voxou is not None:
+            voxou.set_param_value(
+                VoxIndex.NR_SENS, DummyParam.DUMMY, int(value))
+
     @Slot(int)
     def _effect_model_changed(self, index: int):
         voxou: 'Voxou' = voxou_dict['voxou']

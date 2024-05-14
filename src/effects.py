@@ -106,8 +106,10 @@ class AmpParam(EffParam):
     def range_unit(self) -> tuple[int, int, str]:
         if self is AmpParam.BIAS_SHIFT:
             return (0, 2, 'Off,COLD,HOT')
+        if self is AmpParam.CLASS:
+            return (0, 1, 'A,AB')
         if self in (AmpParam.BRIGHT_CAP, AmpParam.LOW_CUT,
-                    AmpParam.MID_BOOST, AmpParam.CLASS):
+                    AmpParam.MID_BOOST):
             return (0, 1, '')
         return (0, 100, '%')
 
