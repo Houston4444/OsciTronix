@@ -150,6 +150,12 @@ class Voxou(Module):
             vox_mode = VoxMode(voxmode_int)
             print(f'______PROGRAM N°{prog_num} _________', vox_mode)
             
+            # if True:
+            #     vox_program = VoxProgram()
+            #     vox_program.read_data(shargs.copy())
+                
+            #     print(vox_program.to_json_dict())
+            
             if vox_mode is VoxMode.USER:
                 self.programs[prog_num].read_data(shargs)
             elif vox_mode is VoxMode.PRESET:

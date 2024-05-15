@@ -12,8 +12,12 @@ class VoxProgram:
         self.program_name = ''
         self.nr_sens = 0
         self.active_effects = dict[EffectOnOff, int]()
+        for effect_on_off in EffectOnOff:
+            self.active_effects[effect_on_off] = 0
         self.amp_model = AmpModel.DELUXE_CL_VIBRATO
         self.amp_params = dict[AmpParam, int]()
+        for amp_param in AmpParam:
+            self.amp_params[amp_param] = 0
         self.pedal1_type = Pedal1Type.COMP
         self.pedal2_type = Pedal2Type.FLANGER
         self.reverb_type = ReverbType.ROOM
@@ -148,7 +152,7 @@ class VoxProgram:
         amp_params[AmpParam.LOW_CUT] = shargs.pop(0)
         
         # undocumented number
-        unused = shargs.pop(0)
+        pedal1_exceed_i = shargs.pop(0)
         
         amp_params[AmpParam.MID_BOOST] = shargs.pop(0)
         amp_params[AmpParam.BIAS_SHIFT] = shargs.pop(0)
@@ -158,11 +162,14 @@ class VoxProgram:
         pedal1_values, shargs = shargs[:8], shargs[8:]
         
         # delete one unused number
-        pedal1_values.__delitem__(3)
+        pedal2_exceed_i = pedal1_values.pop(3)
 
         self.pedal1_type = Pedal1Type(pedal1_type_int)
 
         self.pedal1_values[0] = pedal1_values[0] + pedal1_values[1] * 256
+        if pedal1_exceed_i & 0x10:
+            self.pedal1_values[0] += 128
+
         for i in range(1, 6):
             self.pedal1_values[i] = pedal1_values[i + 1]
         
@@ -175,6 +182,9 @@ class VoxProgram:
         self.pedal2_type = Pedal2Type(pedal2_type_int)
         
         self.pedal2_values[0] = pedal2_values[0] + pedal2_values[1] * 256
+        if pedal2_exceed_i & 0x20:
+            self.pedal2_values[0] += 128
+
         for i in range(1, 6):
             self.pedal2_values[i] = pedal2_values[i + 1]
         
@@ -190,6 +200,94 @@ class VoxProgram:
         for reverb_param in ReverbParam:
             self.reverb_values[reverb_param.value] = \
                 reverb_values[reverb_param.value]
+
+    def data_write(self) -> list[int]:
+        out = list[int]()
+        
+        # 1 unused
+        out.append(0)
+        
+        # program name
+        name_ints = [ord(c) for c in self.program_name]
+        name_ints.insert(7, 0)
+        name_ints.insert(15, 0)
+        out += name_ints
+        
+        print(len(out), 'aft_name')
+        
+        # noise gate
+        out.append(self.nr_sens)
+
+        effect_status = EffectStatus.ALL_OFF
+        if self.active_effects[EffectOnOff.PEDAL1]:
+            effect_status |= EffectStatus.PEDAL1_ON
+        if self.active_effects[EffectOnOff.PEDAL2]:
+            effect_status |= EffectStatus.PEDAL2_ON
+        if self.active_effects[EffectOnOff.REVERB]:
+            effect_status |= EffectStatus.REVERB_ON
+        out.append(effect_status.value)
+        
+        print(len(out), 'aft eff status')
+        
+        out.append(self.amp_model.value)
+        
+        # amp params
+        out.append(self.amp_params[AmpParam.GAIN])
+        out.append(self.amp_params[AmpParam.TREBLE])
+        out.append(0)
+        out.append(self.amp_params[AmpParam.MIDDLE])
+        out.append(self.amp_params[AmpParam.BASS])
+        out.append(self.amp_params[AmpParam.VOLUME])
+        out.append(self.amp_params[AmpParam.TONE])
+        out.append(self.amp_params[AmpParam.RESONANCE])
+        out.append(self.amp_params[AmpParam.BRIGHT_CAP])
+        out.append(self.amp_params[AmpParam.LOW_CUT])
+        
+        # Amp needs to know if chorus first value exceed 127
+        out.append(16 if self.pedal1_values[0] % 256 > 127 else 0)
+
+        out.append(self.amp_params[AmpParam.MID_BOOST])
+        out.append(self.amp_params[AmpParam.BIAS_SHIFT])
+        out.append(self.amp_params[AmpParam.CLASS])
+        
+        print(len(out), 'aft amp params')
+        
+        out.append(self.pedal1_type.value)
+            
+        big, small = divmod(self.pedal1_values[0], 256)
+        out.append(small % 128)
+        out.append(big)
+        out.append(self.pedal1_values[1])        
+        
+        # Amp needs to know if effect2 first value exceed 127
+        out.append(32 if self.pedal2_values[0] % 256 > 127 else 0)
+
+        out += self.pedal1_values[2:]
+        
+        print(len(out), 'aft pedal1 params')
+        
+        out.append(self.pedal2_type.value)
+        big, small = divmod(self.pedal2_values[0], 256)
+        out.append(small % 128)
+        out.append(big)
+        out.append(0)
+        out += self.pedal2_values[1:]
+        
+        print(len(out), 'aft pedal2 params')
+        
+        for i in range(9):
+            out.append(0)
+        
+        print(len(out), 'before reverb')
+        
+        out.append(self.reverb_type.value)
+        out.append(0)
+        out += self.reverb_values
+        
+        out.append(0)
+        out.append(247)
+        
+        return out
 
     def read_data_preset(self, shargs: list[int]):
         # 16 samples reserved + 3 undocumented
