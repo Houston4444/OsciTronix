@@ -197,13 +197,13 @@ class Voxou(Module):
                 eff_param: EffParam = \
                     self.current_program.pedal1_type.param_type()(param_index)
                 self.current_program.pedal1_values[eff_param.value] = \
-                    value + big_value * 128
+                    value + big_value * 256
             
             elif vox_index is VoxIndex.PEDAL2:
                 eff_param: EffParam = \
                     self.current_program.pedal2_type.param_type()(param_index)
                 self.current_program.pedal2_values[eff_param.value] = \
-                    value + big_value * 128
+                    value + big_value * 256
 
             elif vox_index is VoxIndex.REVERB:
                 self.current_program.reverb_values[param_index] = value
@@ -337,7 +337,7 @@ class Voxou(Module):
             self.current_program.pedal1_values[param.value] = value
             
             if param.value == 0:
-                value_big, value = divmod(value, 256)
+                value_big, value = divmod(value, 128)
             
         elif vox_index is VoxIndex.PEDAL2:
             cvalue = self.current_program.pedal1_values[param.value]
@@ -351,7 +351,7 @@ class Voxou(Module):
             self.current_program.pedal2_values[param.value] = value
             
             if param.value == 0:
-                value_big, value = divmod(value, 256)
+                value_big, value = divmod(value, 128)
             
         elif vox_index is VoxIndex.REVERB:
             cvalue = self.current_program.reverb_values[param.value]
@@ -419,6 +419,15 @@ class Voxou(Module):
         except BaseException as e:
             _logger.error(f"Failed to save json file {filepath}"
                           f"{str(e)}")            
+
+    def upload_current_to_user_program(self):
+        prog_num = 0
+        
+        self._send_vox(
+            FunctionCode.PROGRAM_DATA_DUMP.value,
+            VoxMode.USER.value,
+            prog_num,
+            *self.current_program.data_write())
 
     def set_normal(self):
         self.set_param_value(VoxIndex.EFFECT_MODEL, DummyParam.DUMMY, AmpModel.VOX_AC30TB)

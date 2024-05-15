@@ -102,6 +102,7 @@ class MainWindow(QMainWindow):
         self.ui.toolButtonUndo.clicked.connect(
             self._undo_program_changes)
         self.ui.toolButton.clicked.connect(self._save_user_programs)
+        self.ui.toolButtonUndo.clicked.connect(self._upload_to_user_program)
         
         self.ui.progressBarNoiseGate.valueChanged.connect(
             self._noise_gate_changed)
@@ -170,7 +171,8 @@ class MainWindow(QMainWindow):
         
     def apply_callback(self, *args):
         if args[0] == 'CONNECT_STATE':
-            self.connect_state_timer.start()
+            if args[1] is False:
+                self.connect_state_timer.start()
         
         elif args[0] == 'MODE_CHANGED':
             vox_mode: VoxMode = args[1]
@@ -482,7 +484,12 @@ class MainWindow(QMainWindow):
         
         if filepath:
             voxou.save_user_programs(filepath)
-        
+    
+    @Slot()
+    def _upload_to_user_program(self):
+        voxou: 'Voxou' = voxou_dict.get('voxou')
+        if voxou is not None:
+            voxou.upload_current_to_user_program()
         # filename = QInputDialog.getText(
         #     self, _translate('main_win', 'File name'),
         #     _translate('main_win', 'Please type a name for the file write'))

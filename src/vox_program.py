@@ -285,7 +285,6 @@ class VoxProgram:
         out += self.reverb_values
         
         out.append(0)
-        out.append(247)
         
         return out
 
