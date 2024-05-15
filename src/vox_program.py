@@ -6,6 +6,7 @@ from effects import (
 
 _logger = logging.getLogger(__name__)
 
+
 class VoxProgram:
     def __init__(self):
         self.program_name = ''
@@ -14,40 +15,101 @@ class VoxProgram:
         self.amp_model = AmpModel.DELUXE_CL_VIBRATO
         self.amp_params = dict[AmpParam, int]()
         self.pedal1_type = Pedal1Type.COMP
-        self.pedal1_values = [0, 0, 0, 0, 0, 0]
         self.pedal2_type = Pedal2Type.FLANGER
-        self.pedal2_values = [0, 0, 0, 0, 0, 0]
         self.reverb_type = ReverbType.ROOM
+        self.pedal1_values = [0, 0, 0, 0, 0, 0]
+        self.pedal2_values = [0, 0, 0, 0, 0, 0]
         self.reverb_values = [0, 0, 0, 0, 0]
 
     def copy(self) -> 'VoxProgram':
         p = VoxProgram()
         p.program_name = self.program_name
         p.nr_sens = self.nr_sens
+
         for effonoff, value in self.active_effects.items():
             p.active_effects[effonoff] = value
+
         p.amp_model = self.amp_model
         for amp_param, value in self.amp_params.items():
             p.amp_params[amp_param] = value
+
         p.pedal1_type = self.pedal1_type
+        p.pedal2_type = self.pedal2_type
+        p.reverb_type = self.reverb_type
+
         for i in range(6):
             p.pedal1_values[i] = self.pedal1_values[i]
-        p.pedal2_type = self.pedal2_type
-        for i in range(6):
             p.pedal2_values[i] = self.pedal2_values[i]
-        p.reverb_type = self.reverb_type
-        for i in range(5):
-            p.reverb_values[i] = self.reverb_values[i]
+            if i < 5:
+                p.reverb_values[i] = self.reverb_values[i]
         
         return p
 
-    def read_data(self, shargs: list[int]):
-        pname_int, shargs = shargs[:17], shargs[17:]
-        pname_int = pname_int[:8] + pname_int[9:]
-        self.program_name = ''.join([chr(p) for p in pname_int])
+    def to_json_dict(self) -> dict:
+        d = {}
+        d['program_name'] = self.program_name
+        d['nr_sens'] = self.nr_sens
+        
+        dae = {}
+        for eff_onff, value in self.active_effects.items():
+            dae[eff_onff.name] = value
+        d['active_effects'] = dae
+        
+        d['amp_model'] = self.amp_model.name
+        
+        dam = {}
+        for amp_param, value in self.amp_params.items():
+            dam[amp_param.name] = value
+        d['amp_params'] = dam
+        
+        d['pedal1_type'] = self.pedal1_type.name
+        d['pedal1_values'] = self.pedal1_values.copy()
+        d['pedal2_type'] = self.pedal2_type.name
+        d['pedal2_values'] = self.pedal2_values.copy()
+        d['reverb_type'] = self.reverb_type.name
+        d['reverb_values'] = self.reverb_values.copy()
+        
+        return d
+    
+    @staticmethod
+    def from_json_dict(d: dict) -> 'VoxProgram':
+        p = VoxProgram()
 
-        # 2 not documented numbers
-        shargs = shargs[2:]
+        try:
+            p.program_name = str(d['program_name'])
+            p.nr_sens = int(d['nr_sens'])
+
+            for effect_on_off in EffectOnOff:
+                p.active_effects[effect_on_off] = \
+                    int(d['active_effects'][effect_on_off.name])
+
+            p.amp_model = AmpModel[d['amp_model']]
+
+            for amp_param in AmpParam:
+                p.amp_params[amp_param] = int(d['amp_params'][amp_param.name])
+
+            p.pedal1_type = Pedal1Type[d['pedal1_type']]
+            p.pedal2_type = Pedal2Type(d['pedal2_type'])
+            p.reverb_type = ReverbType(d['reverb_type'])
+            
+            for i in range(6):
+                p.pedal1_values[i] = int(d['pedal1_values'][i])
+                p.pedal2_values[i] = int(d['pedal2_values'][i])
+                if i < 5:
+                    p.reverb_values[i] = int(d['reverb_values'][i])
+
+        except BaseException as e:
+            _logger.error(
+                "Failed to read input dict vox program !"
+                f"Program may have some default values. \n{str(e)}")
+
+        return p
+        
+    def read_data(self, shargs: list[int]):
+        unused = shargs.pop(0)
+        pname_intor, shargs = shargs[:18], shargs[18:]
+        pname_int = pname_intor[:7] + pname_intor[8:15] + pname_intor[16:18]
+        self.program_name = ''.join([chr(p) for p in pname_int])
         
         self.nr_sens = shargs.pop(0)
         effects_status = EffectStatus(shargs.pop(0))
@@ -253,8 +315,3 @@ class VoxProgram:
             
             print('  ', reverb_param.name, ':', value, unit)
 
-    def change_pedal1_type(self, pedal1_type: Pedal1Type):
-        self.pedal1_type = pedal1_type
-                
-    def change_pedal2_type(self, pedal2_type: Pedal2Type):
-        self.pedal2_type = pedal2_type

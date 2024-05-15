@@ -2,14 +2,15 @@ import signal
 import sys
 from typing import TYPE_CHECKING
 from qtpy.QtWidgets import (
-    QApplication, QMainWindow,
+    QApplication, QMainWindow, QFileDialog,
     QCheckBox, QComboBox, QGroupBox)
 from qtpy.QtCore import QTimer, Slot, Signal
 import threading
 
+import xdg
 from effects import (
     AmpModel, AmpParam, DummyParam, EffParam, EffectOnOff, Pedal1Type, Pedal2Type,
-    ReverbParam, ReverbType, VoxIndex)
+    ReverbParam, ReverbType, VoxIndex, VoxMode)
 from mentatronix import start_mentat, stop_mentat
 
 from ui.main_win import Ui_MainWindow
@@ -92,6 +93,16 @@ class MainWindow(QMainWindow):
             self.ui.progressBarReverbHighDump
         )
 
+        for vox_mode in VoxMode:
+            self.ui.comboBoxMode.addItem(vox_mode.name.capitalize(), vox_mode)
+
+        self.ui.comboBoxMode.activated.connect(self._change_mode)
+        self.ui.lineEditProgramName.textEdited.connect(
+            self._set_program_name)
+        self.ui.toolButtonUndo.clicked.connect(
+            self._undo_program_changes)
+        self.ui.toolButton.clicked.connect(self._save_user_programs)
+        
         self.ui.progressBarNoiseGate.valueChanged.connect(
             self._noise_gate_changed)
         
@@ -161,10 +172,14 @@ class MainWindow(QMainWindow):
         if args[0] == 'CONNECT_STATE':
             self.connect_state_timer.start()
         
-        if args[0] == 'ALL_CURRENT':
+        elif args[0] == 'MODE_CHANGED':
+            vox_mode: VoxMode = args[1]
+            self.ui.comboBoxMode.setCurrentIndex(vox_mode.value)
+        
+        elif args[0] == 'ALL_CURRENT':
             program: 'VoxProgram' = args[1]
             
-            self.ui.lineEditProgramName.setText(program.program_name)
+            self.ui.lineEditProgramName.setText(program.program_name.strip())
             self.ui.progressBarNoiseGate.setValue(program.nr_sens)
             
             self.ui.comboBoxAmpModel.setCurrentIndex(
@@ -421,6 +436,56 @@ class MainWindow(QMainWindow):
             if not self.connection_timer.isActive():
                 self.connection_timer.start()
 
+    @Slot()
+    def _undo_program_changes(self):
+        voxou: 'Voxou' = voxou_dict.get('voxou')
+        if voxou is not None:
+            voxou.set_program_name('Rantanplan')
+            
+    @Slot(str)
+    def _set_program_name(self, text: str):
+        normed_text = ''.join([chr(ord(c) % 128) for c in text])
+        self.ui.lineEditProgramName.setText(normed_text)
+        
+        voxou: 'Voxou' = voxou_dict.get('voxou')
+        if voxou is not None:
+            voxou.set_program_name(normed_text)
+            
+    @Slot(int)
+    def _change_mode(self, index: int):
+        new_mode: VoxMode = self.ui.comboBoxMode.currentData()
+        voxou: 'Voxou' = voxou_dict.get('voxou')
+        if voxou is not None:
+            voxou.set_mode(new_mode)
+            
+    @Slot()
+    def _save_user_programs(self):
+        voxou: 'Voxou' = voxou_dict.get('voxou')
+        if voxou is None:
+            return
+        
+        default_path = xdg.xdg_data_home() / 'OsciTronix'
+        default_path.mkdir(parents=True, exist_ok=True)
+        
+        base = 'vox_program'
+        default_file_path = default_path / f'{base}.json'
+        if default_file_path.exists():
+            num = 2
+            while default_file_path.exists():
+                default_file_path = default_path / f"{base}{num}.json"
+                num += 1
+
+        filepath, filter = QFileDialog.getSaveFileName(
+            self, _translate('main_win', 'user_programs destination'),
+            str(default_file_path),
+            _translate('main_win', 'JSON files (*.json)'))
+        
+        if filepath:
+            voxou.save_user_programs(filepath)
+        
+        # filename = QInputDialog.getText(
+        #     self, _translate('main_win', 'File name'),
+        #     _translate('main_win', 'Please type a name for the file write'))
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

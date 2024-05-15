@@ -4,7 +4,7 @@ DESTDIR =
 
 LINK = ln -s
 PYUIC ?= pyuic6
-PYRCC ?= pyrcc6
+PYRCC ?= pyrcc5
 PYLUPDATE ?= pylupdate5
 LRELEASE ?= lrelease
 

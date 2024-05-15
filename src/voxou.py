@@ -1,8 +1,12 @@
 from enum import IntEnum, Enum
+from lib2to3.pytree import Base
 import logging
+from pathlib import Path
 from typing import Callable, Optional
-from mentat import Module
+import json
 
+import xdg
+from mentat import Module
 from effects import (
     DummyParam, EffParam, EffectOnOff, Pedal1Type,
     AmpModel, AmpParam, Pedal2Type, ReverbParam, ReverbType,
@@ -70,7 +74,13 @@ class Voxou(Module):
         if self._param_change_cb:
             self._param_change_cb('CONNECT_STATE', False)
     
+    def _send_cb(self, *args):
+        if self._param_change_cb:
+            self._param_change_cb(*args)
+    
     def ask_connection(self):
+        self._send_vox(FunctionCode.MODE_REQUEST)
+        
         for bank_n in range(8):
             self._send_vox(
                 FunctionCode.PROGRAM_DATA_DUMP_REQUEST,
@@ -126,15 +136,12 @@ class Voxou(Module):
         
         self.connected = ConnectState.CONNECTED
         # send connect state OK to gui
-        if self._param_change_cb:
-            self._param_change_cb('CONNECT_STATE', True)
+        self._send_cb('CONNECT_STATE', True)
         
         if function_code is FunctionCode.CURRENT_PROGRAM_DATA_DUMP:
             print('______CURRENT PROGRAM____________')
             self.current_program.read_data(shargs)
-            # self.current_program.print_program()
-            if self._param_change_cb:
-                self._param_change_cb('ALL_CURRENT', self.current_program)
+            self._send_cb('ALL_CURRENT', self.current_program)
             
         elif function_code is FunctionCode.PROGRAM_DATA_DUMP:
             voxmode_int = shargs.pop(0)
@@ -168,9 +175,9 @@ class Voxou(Module):
                 if effect is EffectOnOff.AMP:
                     self.current_program.amp_model = AmpModel(value)
                 elif effect is EffectOnOff.PEDAL1:
-                    self.current_program.change_pedal1_type(Pedal1Type(value))
+                    self.current_program.pedal1_type = Pedal1Type(value)
                 elif effect is EffectOnOff.PEDAL2:
-                    self.current_program.change_pedal2_type(Pedal2Type(value))
+                    self.current_program.pedal2_type = Pedal2Type(value)
                 elif effect is EffectOnOff.REVERB:
                     self.current_program.reverb_type = ReverbType(value)
             
@@ -195,10 +202,14 @@ class Voxou(Module):
             elif vox_index is VoxIndex.REVERB:
                 self.current_program.reverb_values[param_index] = value
                     
-            if self._param_change_cb:
-                self._param_change_cb(
-                    'PARAM_CHANGED',
-                    (self.current_program, vox_index, param_index))
+            self._send_cb(
+                'PARAM_CHANGED',
+                (self.current_program, vox_index, param_index))
+
+        elif function_code is FunctionCode.MODE_DATA:
+            voxmode_int = shargs.pop(0)
+            self.voxmode = VoxMode(voxmode_int)
+            self._send_cb('MODE_CHANGED', self.voxmode)
 
         elif function_code is FunctionCode.MODE_CHANGE:
             voxmode_int = shargs.pop(0)
@@ -207,18 +218,18 @@ class Voxou(Module):
             
             if self.voxmode is VoxMode.USER:
                 self.current_program = self.programs[self.prog_num].copy()
-                if self._param_change_cb:
-                    self._param_change_cb('ALL_CURRENT', self.current_program)
+                self._send_cb('ALL_CURRENT', self.current_program)
             
             elif self.voxmode is VoxMode.PRESET:
                 self.current_program = \
                     self.factory_programs[self.prog_num].copy()
-                if self._param_change_cb:
-                    self._param_change_cb('ALL_CURRENT', self.current_program)
+                self._send_cb('ALL_CURRENT', self.current_program)
 
             elif self.voxmode is VoxMode.MANUAL:
                 # reask the VOX for all current values
                 self._send_vox(FunctionCode.CURRENT_PROGRAM_DATA_DUMP_REQUEST)
+                
+            self._send_cb('MODE_CHANGED', self.voxmode)
 
         elif function_code is FunctionCode.CUSTOM_AMPFX_DATA_DUMP:
             unused = shargs.pop(0)
@@ -349,6 +360,60 @@ class Voxou(Module):
         self._send_vox(FunctionCode.PARAMETER_CHANGE.value,
                        vox_index.value, param.value, value, value_big)
     
+    def set_program_name(self, new_name: str):
+        if len(new_name) > 16:
+            new_name = new_name[:16]
+        
+        str_as_ints = [ord(c) % 128 for c in new_name]
+        while len(str_as_ints) < 16:
+            str_as_ints.append(ord(' '))
+
+        for i in range(len(str_as_ints)):
+            self._send_vox(
+                FunctionCode.PARAMETER_CHANGE.value,
+                VoxIndex.PROGRAM_NAME.value,
+                i, str_as_ints[i], 0)
+        
+    def set_mode(self, vox_mode: VoxMode):
+        if vox_mode is VoxMode.MANUAL:
+            self._send_vox(FunctionCode.MODE_CHANGE, vox_mode.value, 0)
+            self._send_vox(FunctionCode.CURRENT_PROGRAM_DATA_DUMP_REQUEST)
+
+        elif vox_mode is VoxMode.PRESET:
+            for i in range(len(self.factory_programs)):
+                if (self.factory_programs[i].amp_model
+                        is self.current_program.amp_model):
+                    break
+            else:
+                i = 0
+
+            self._send_vox(FunctionCode.MODE_CHANGE, vox_mode.value, i)
+            self.current_program = self.factory_programs[i].copy()
+            self._send_cb('ALL_CURRENT', self.current_program)
+
+        elif vox_mode is VoxMode.USER:
+            for i in range(len(self.programs)):
+                if (self.programs[i].amp_model
+                        is self.current_program.amp_model):
+                    break
+            else:
+                i = 0
+            
+            self._send_vox(FunctionCode.MODE_CHANGE, vox_mode.value, i)
+            self.current_program = self.programs[i].copy()
+            self._send_cb('ALL_CURRENT', self.current_program)
+
+    # file managing
+    def save_user_programs(self, filepath: Path):
+        try:
+            with open(filepath, 'w') as f:
+                json.dump([p.to_json_dict() for p in self.programs], f,
+                          indent=2)
+
+        except BaseException as e:
+            _logger.error(f"Failed to save json file {filepath}"
+                          f"{str(e)}")            
+
     def set_normal(self):
         self.set_param_value(VoxIndex.EFFECT_MODEL, DummyParam.DUMMY, AmpModel.VOX_AC30TB)
         self.set_param_value(VoxIndex.AMP, AmpParam.GAIN, 58)
