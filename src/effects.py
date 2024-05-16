@@ -25,6 +25,17 @@ class VoxMode(Enum):
     MANUAL = 2
 
 
+class BankName(Enum):
+    A1 = 0
+    A2 = 1
+    A3 = 2
+    A4 = 3
+    B1 = 4
+    B2 = 5
+    B3 = 6
+    B4 = 7
+
+
 class VoxIndex(Enum):
     ERROR = -1
     PROGRAM_NAME = 0

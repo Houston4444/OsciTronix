@@ -108,7 +108,25 @@ class VoxProgram:
                 f"Program may have some default values. \n{str(e)}")
 
         return p
-        
+    
+    def get_effect_status(self) -> EffectStatus:
+        effect_status = EffectStatus.ALL_OFF
+        if self.active_effects[EffectOnOff.PEDAL1]:
+            effect_status |= EffectStatus.PEDAL1_ON
+        if self.active_effects[EffectOnOff.PEDAL2]:
+            effect_status |= EffectStatus.PEDAL2_ON
+        if self.active_effects[EffectOnOff.REVERB]:
+            effect_status |= EffectStatus.REVERB_ON
+        return effect_status
+    
+    def set_effect_status(self, effect_status: EffectStatus):
+        self.active_effects[EffectOnOff.PEDAL1] = int(bool(
+            effect_status & EffectStatus.PEDAL1_ON))
+        self.active_effects[EffectOnOff.PEDAL2] = int(bool(
+            effect_status & EffectStatus.PEDAL2_ON))
+        self.active_effects[EffectOnOff.REVERB] = int(bool(
+            effect_status & EffectStatus.REVERB_ON))
+    
     def read_data(self, shargs: list[int]):
         unused = shargs.pop(0)
         pname_intor, shargs = shargs[:18], shargs[18:]
@@ -116,23 +134,24 @@ class VoxProgram:
         self.program_name = ''.join([chr(p) for p in pname_int])
         
         self.nr_sens = shargs.pop(0)
-        effects_status = EffectStatus(shargs.pop(0))
-        self.active_effects.clear()
+        # effects_status = EffectStatus(shargs.pop(0))
+        self.set_effect_status(EffectStatus(shargs.pop(0)))
+        # self.active_effects.clear()
 
-        if effects_status & EffectStatus.PEDAL1_ON:
-            self.active_effects[EffectOnOff.PEDAL1] = 1
-        else:
-            self.active_effects[EffectOnOff.PEDAL1] = 0
+        # if effects_status & EffectStatus.PEDAL1_ON:
+        #     self.active_effects[EffectOnOff.PEDAL1] = 1
+        # else:
+        #     self.active_effects[EffectOnOff.PEDAL1] = 0
             
-        if effects_status & EffectStatus.PEDAL2_ON:
-            self.active_effects[EffectOnOff.PEDAL2] = 1
-        else:
-            self.active_effects[EffectOnOff.PEDAL2] = 0
+        # if effects_status & EffectStatus.PEDAL2_ON:
+        #     self.active_effects[EffectOnOff.PEDAL2] = 1
+        # else:
+        #     self.active_effects[EffectOnOff.PEDAL2] = 0
         
-        if effects_status & EffectStatus.REVERB_ON:
-            self.active_effects[EffectOnOff.REVERB] = 1
-        else:
-            self.active_effects[EffectOnOff.REVERB] = 0
+        # if effects_status & EffectStatus.REVERB_ON:
+        #     self.active_effects[EffectOnOff.REVERB] = 1
+        # else:
+        #     self.active_effects[EffectOnOff.REVERB] = 0
         
         self.amp_model = AmpModel(shargs.pop(0))
 
@@ -276,7 +295,7 @@ class VoxProgram:
         
         return out
 
-    def read_data_preset(self, shargs: list[int]):
+    def ampfx_data_read(self, shargs: list[int]):
         # 16 samples reserved + 3 undocumented
         shargs = shargs[19:]
         self.nr_sens = shargs.pop(0)
@@ -335,17 +354,17 @@ class VoxProgram:
         reverb_values, shargs = shargs[:5], shargs[5:]
         self.reverb_values = reverb_values.copy()
 
-    def preset_data_write(self) -> list[int]:
+    def ampfx_data_write(self) -> list[int]:
         out = [0 for i in range(19)]
         out.append(self.nr_sens)
         
         effect_status = EffectStatus.ALL_OFF
         if self.active_effects[EffectOnOff.PEDAL1]:
-            effect_status |= EffectOnOff.PEDAL1
+            effect_status |= EffectStatus.PEDAL1_ON
         if self.active_effects[EffectOnOff.PEDAL2]:
-            effect_status |= EffectOnOff.PEDAL2
+            effect_status |= EffectStatus.PEDAL2_ON
         if self.active_effects[EffectOnOff.REVERB]:
-            effect_status |= EffectOnOff.REVERB
+            effect_status |= EffectStatus.REVERB_ON
         out.append(effect_status.value)
         
         out.append(self.amp_model.value)

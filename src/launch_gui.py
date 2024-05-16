@@ -1,24 +1,24 @@
 import signal
 import sys
-from typing import TYPE_CHECKING
+from enum import Enum
+from typing import Any
+
 from qtpy.QtWidgets import (
     QApplication, QMainWindow, QFileDialog,
-    QCheckBox, QComboBox, QGroupBox)
+    QCheckBox, QComboBox, QGroupBox, QMenu)
 from qtpy.QtCore import QTimer, Slot, Signal
 import threading
 
 import xdg
 from effects import (
-    AmpModel, AmpParam, DummyParam, EffParam, EffectOnOff, Pedal1Type, Pedal2Type,
+    AmpModel, AmpParam, BankName, DummyParam, EffParam, EffectOnOff, Pedal1Type, Pedal2Type,
     ReverbParam, ReverbType, VoxIndex, VoxMode)
 from mentatronix import start_mentat, stop_mentat
 
 from ui.main_win import Ui_MainWindow
 from ui.progress import ParamProgressBar
 
-
-# if TYPE_CHECKING:
-from voxou import VoxProgram, Voxou, ConnectState
+from voxou import GuiCallback, VoxProgram, Voxou, ConnectState
 
 _translate = QApplication.translate
 
@@ -30,7 +30,7 @@ def signal_handler(sig, frame):
 
 
 class MainWindow(QMainWindow):
-    callback_sig = Signal(str, object)
+    callback_sig = Signal(Enum, object)
     
     def __init__(self):
         super().__init__()
@@ -94,16 +94,54 @@ class MainWindow(QMainWindow):
         )
 
         for vox_mode in VoxMode:
-            self.ui.comboBoxMode.addItem(vox_mode.name.capitalize(), vox_mode)
+            if vox_mode is VoxMode.PRESET:
+                mode_name = _translate('main_win', 'Factory presets')
+            elif vox_mode is VoxMode.USER:
+                mode_name = _translate('main_win', 'User Banks')
+            else:
+                mode_name = _translate('main_win', 'Manual')
+
+            self.ui.comboBoxMode.addItem(mode_name, vox_mode)
 
         self.ui.comboBoxMode.activated.connect(self._change_mode)
+        self.ui.comboBoxBanksAndPresets.activated.connect(
+            self._change_program_number)
         self.ui.lineEditProgramName.textEdited.connect(
             self._set_program_name)
-        self.ui.toolButtonUndo.clicked.connect(
-            self._undo_program_changes)
-        self.ui.toolButton.clicked.connect(self._save_user_programs)
-        self.ui.toolButtonUndo.clicked.connect(self._upload_to_user_program)
         
+        self.upload_menu = QMenu()
+        banks_menu = QMenu(
+            _translate('main_win',
+                       '>> User Bank'),
+            self.upload_menu)
+        presets_menu = QMenu(
+            _translate('main_win',
+                       '>> User AmpFX'),
+            self.upload_menu)
+        
+        for i in range(4):
+            act = banks_menu.addAction(f'A{i+1}')
+            act.setData(i)
+            act.triggered.connect(self._upload_to_user_program)
+
+        banks_menu.addSeparator()
+
+        for i in range(4):
+            act = banks_menu.addAction(f'B{i+1}')
+            act.setData(i+4)
+            act.triggered.connect(self._upload_to_user_program)
+
+        i = 0
+        for letter in ('A', 'B', 'C'):
+            act = presets_menu.addAction(f'USER {letter}')
+            act.setData(i)
+            act.triggered.connect(self._upload_to_user_ampfx)
+            i += 1
+
+        self.upload_menu.addMenu(banks_menu)
+        self.upload_menu.addMenu(presets_menu)
+        self.ui.toolButtonUpload.setMenu(self.upload_menu)
+
         self.ui.progressBarNoiseGate.valueChanged.connect(
             self._noise_gate_changed)
         
@@ -165,21 +203,68 @@ class MainWindow(QMainWindow):
         self.connect_state_timer.setInterval(100)
         self.connect_state_timer.timeout.connect(
             self._set_delayed_connect_state)
+    
+    def set_vox_mode(self, vox_mode: VoxMode):
+        self.ui.comboBoxMode.setCurrentIndex(vox_mode.value)
+        self.ui.comboBoxBanksAndPresets.clear()
         
+        if vox_mode is VoxMode.MANUAL:
+            self.ui.comboBoxBanksAndPresets.setEnabled(False)
+            self.ui.labelBankPreset.setText('')
+            return
+
+        voxou: 'Voxou' = voxou_dict['voxou']
+        if voxou is None:
+            return
+
+        self.ui.comboBoxBanksAndPresets.setEnabled(True)
+
+        if vox_mode is VoxMode.USER:
+            self.ui.labelBankPreset.setText(
+                _translate('main_win', 'Bank'))
+
+            for bank_name in BankName:
+                self.ui.comboBoxBanksAndPresets.addItem(
+                    bank_name.name, bank_name.value)
+                self.ui.comboBoxBanksAndPresets.setCurrentIndex(
+                    voxou.prog_num)
+            self.ui.comboBoxBanksAndPresets.setCurrentIndex(voxou.prog_num)
+            return
+        
+        # vox_mode is VoxMode.PRESET
+        self.ui.labelBankPreset.setText(
+            _translate('main_win', 'Preset'))
+
+        for i in range(len(voxou.factory_programs)):
+            program = voxou.factory_programs[i]
+            self.ui.comboBoxBanksAndPresets.addItem(
+                program.program_name, i)
+        self.ui.comboBoxBanksAndPresets.setCurrentIndex(voxou.prog_num)
+
     def engine_callback(self, *args):
         self.callback_sig.emit(*args)
         
-    def apply_callback(self, *args):
-        if args[0] == 'CONNECT_STATE':
-            if args[1] is False:
+    def apply_callback(self, cb: GuiCallback, arg: Any):
+        if cb is GuiCallback.CONNECT_STATE:
+            if arg is False:
                 self.connect_state_timer.start()
-        
-        elif args[0] == 'MODE_CHANGED':
-            vox_mode: VoxMode = args[1]
-            self.ui.comboBoxMode.setCurrentIndex(vox_mode.value)
-        
-        elif args[0] == 'ALL_CURRENT':
-            program: 'VoxProgram' = args[1]
+
+        elif cb is GuiCallback.MODE_CHANGED:
+            vox_mode: VoxMode = arg
+            self.set_vox_mode(vox_mode)
+
+        elif cb is GuiCallback.USER_BANKS_READ:
+            if self.ui.comboBoxMode.currentData() is VoxMode.USER:
+                # update the banks combobox
+                self.set_vox_mode(VoxMode.USER)
+
+        elif cb is GuiCallback.FACTORY_BANKS_READ:
+            if self.ui.comboBoxMode.currentData() is VoxMode.PRESET:
+                # update the presets combobox
+                self.set_vox_mode(VoxMode.PRESET)
+
+        elif cb is GuiCallback.CURRENT_CHANGED:
+            program: 'VoxProgram' = arg
             
             self.ui.lineEditProgramName.setText(program.program_name.strip())
             self.ui.progressBarNoiseGate.setValue(program.nr_sens)
@@ -223,8 +308,8 @@ class MainWindow(QMainWindow):
 
             return
         
-        elif args[0] == 'PARAM_CHANGED':
-            program, vox_index, param_index = args[1]
+        elif cb is GuiCallback.PARAM_CHANGED:
+            program, vox_index, param_index = arg
 
             if vox_index is VoxIndex.NR_SENS:
                 self.ui.progressBarNoiseGate.setValue(program.nr_sens)
@@ -404,7 +489,7 @@ class MainWindow(QMainWindow):
     def _ask_connection(self):
         voxou: 'Voxou' = voxou_dict.get('voxou')
         if voxou is not None:
-            if voxou.connected is ConnectState.CONNECTED:
+            if voxou.connect_state is ConnectState.CONNECTED:
                 self.connection_timer.stop()
                 return
             
@@ -422,7 +507,7 @@ class MainWindow(QMainWindow):
         if voxou is None:
             connected = False
         else:
-            connected = voxou.connected is ConnectState.CONNECTED
+            connected = voxou.connect_state is ConnectState.CONNECTED
 
         if connected:
             self.ui.labelConnected.setText(
@@ -437,12 +522,6 @@ class MainWindow(QMainWindow):
             
             if not self.connection_timer.isActive():
                 self.connection_timer.start()
-
-    @Slot()
-    def _undo_program_changes(self):
-        voxou: 'Voxou' = voxou_dict.get('voxou')
-        if voxou is not None:
-            voxou.set_program_name('Rantanplan')
             
     @Slot(str)
     def _set_program_name(self, text: str):
@@ -459,7 +538,18 @@ class MainWindow(QMainWindow):
         voxou: 'Voxou' = voxou_dict.get('voxou')
         if voxou is not None:
             voxou.set_mode(new_mode)
-            
+        self.set_vox_mode(new_mode)
+    
+    @Slot(int)
+    def _change_program_number(self, index: int):
+        voxou: 'Voxou' = voxou_dict.get('voxou')
+        if voxou is not None:
+            vox_mode = self.ui.comboBoxMode.currentData()
+            if vox_mode is VoxMode.PRESET:
+                voxou.set_preset_num(index)
+            elif vox_mode is VoxMode.USER:
+                voxou.set_user_bank_num(index)
+    
     @Slot()
     def _save_user_programs(self):
         voxou: 'Voxou' = voxou_dict.get('voxou')
@@ -489,10 +579,16 @@ class MainWindow(QMainWindow):
     def _upload_to_user_program(self):
         voxou: 'Voxou' = voxou_dict.get('voxou')
         if voxou is not None:
-            voxou.upload_current_to_user_program()
-        # filename = QInputDialog.getText(
-        #     self, _translate('main_win', 'File name'),
-        #     _translate('main_win', 'Please type a name for the file write'))
+            bank_num: int = self.sender().data()
+            voxou.upload_current_to_user_program(bank_num)
+            
+    @Slot()
+    def _upload_to_user_ampfx(self):
+        voxou: 'Voxou' = voxou_dict.get('voxou')
+        if voxou is not None:
+            user_num: int = self.sender().data()
+            voxou.upload_current_to_user_ampfx(user_num)
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
