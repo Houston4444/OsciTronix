@@ -34,9 +34,7 @@ class MidiClient:
                 print('receive non sysex')
                 continue
             
-            # data = event.get_data()
-            # print('youoppu', data['ext'])
-            int_list = event.get_data()['ext']
+            int_list: list[int] = event.get_data()['ext']
             if self.voxou is not None:
                 self.voxou.rototo(int_list)
 
@@ -45,10 +43,10 @@ midi_client = MidiClient()
 
 
 def run_loop(voxou_dict: dict[str, Voxou]):
-    time.sleep(0.001)
-    midi_client.voxou = voxou_dict['voxou']
-    time.sleep(0.001)
-    
+    while midi_client.voxou is None:
+        midi_client.voxou = voxou_dict['voxou']
+        time.sleep(0.001)
+
     while True:
         midi_client.read_events()
         if midi_client.stopping:
