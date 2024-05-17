@@ -6,7 +6,7 @@ from typing import Any
 from qtpy.QtWidgets import (
     QApplication, QMainWindow, QFileDialog,
     QCheckBox, QComboBox, QGroupBox, QMenu,
-    QMessageBox)
+    QMessageBox, QStyle, QStyleFactory)
 from qtpy.QtCore import QTimer, Slot, Signal
 import threading
 
@@ -567,10 +567,14 @@ class MainWindow(QMainWindow):
 
 
 if __name__ == '__main__':
-    voxoul = Voxou()
+    voxou = Voxou()
     
     app = QApplication(sys.argv)
-    main_win = MainWindow(voxoul)
+    
+    # force Fusion style because of param widgets
+    app.setStyle(QStyleFactory.create('Fusion'))
+
+    main_win = MainWindow(voxou)
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
@@ -579,7 +583,7 @@ if __name__ == '__main__':
     timer.start(200)
     timer.timeout.connect(lambda: None)
 
-    midi_client.init(voxoul)
+    midi_client.init(voxou)
     
     midi_thread = threading.Thread(target=midi_client.run_loop)
     midi_thread.start()
