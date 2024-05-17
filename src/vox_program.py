@@ -49,7 +49,7 @@ class VoxProgram:
         
         return p
 
-    def to_json_dict(self) -> dict:
+    def to_json_dict(self, for_ampfx=False) -> dict:
         d = {}
         d['program_name'] = self.program_name
         d['nr_sens'] = self.nr_sens
@@ -72,6 +72,13 @@ class VoxProgram:
         d['pedal2_values'] = self.pedal2_values.copy()
         d['reverb_type'] = self.reverb_type.name
         d['reverb_values'] = self.reverb_values.copy()
+        
+        if for_ampfx:
+            d.__delitem__('program_name')
+            for amp_param in (
+                    AmpParam.GAIN, AmpParam.TREBLE, AmpParam.MIDDLE,
+                    AmpParam.BASS, AmpParam.VOLUME):
+                dam.__delitem__(amp_param.name)
         
         return d
     
@@ -134,25 +141,9 @@ class VoxProgram:
         self.program_name = ''.join([chr(p) for p in pname_int])
         
         self.nr_sens = shargs.pop(0)
-        # effects_status = EffectStatus(shargs.pop(0))
-        self.set_effect_status(EffectStatus(shargs.pop(0)))
-        # self.active_effects.clear()
 
-        # if effects_status & EffectStatus.PEDAL1_ON:
-        #     self.active_effects[EffectOnOff.PEDAL1] = 1
-        # else:
-        #     self.active_effects[EffectOnOff.PEDAL1] = 0
-            
-        # if effects_status & EffectStatus.PEDAL2_ON:
-        #     self.active_effects[EffectOnOff.PEDAL2] = 1
-        # else:
-        #     self.active_effects[EffectOnOff.PEDAL2] = 0
-        
-        # if effects_status & EffectStatus.REVERB_ON:
-        #     self.active_effects[EffectOnOff.REVERB] = 1
-        # else:
-        #     self.active_effects[EffectOnOff.REVERB] = 0
-        
+        self.set_effect_status(EffectStatus(shargs.pop(0)))        
+
         self.amp_model = AmpModel(shargs.pop(0))
 
         amp_params = self.amp_params

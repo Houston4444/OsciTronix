@@ -5,20 +5,22 @@ from typing import Any
 
 from qtpy.QtWidgets import (
     QApplication, QMainWindow, QFileDialog,
-    QCheckBox, QComboBox, QGroupBox, QMenu)
+    QCheckBox, QComboBox, QGroupBox, QMenu,
+    QMessageBox)
 from qtpy.QtCore import QTimer, Slot, Signal
 import threading
 
 import xdg
 from effects import (
-    AmpModel, AmpParam, BankName, DummyParam, EffParam, EffectOnOff, Pedal1Type, Pedal2Type,
+    AmpModel, AmpParam, BankName, DummyParam, EffParam,
+    EffectOnOff, Pedal1Type, Pedal2Type,
     ReverbParam, ReverbType, VoxIndex, VoxMode)
 from mentatronix import start_mentat, stop_mentat
+from voxou import FunctionCode, GuiCallback, VoxProgram, Voxou, ConnectState
 
 from ui.main_win import Ui_MainWindow
 from ui.progress import ParamProgressBar
 
-from voxou import GuiCallback, VoxProgram, Voxou, ConnectState
 
 _translate = QApplication.translate
 
@@ -248,6 +250,18 @@ class MainWindow(QMainWindow):
         if cb is GuiCallback.CONNECT_STATE:
             if arg is False:
                 self.connect_state_timer.start()
+
+        elif cb is GuiCallback.DATA_ERROR:
+            function_code: FunctionCode = arg
+            QMessageBox.critical(
+                self,
+                _translate('main_win', 'Data Error'),
+                _translate('main_win',
+                           "Amp sent an error message, "
+                           "probably because the last %s was incorrect.\n"
+                           "Try to restart the amp.")
+                % function_code.name
+            )            
 
         elif cb is GuiCallback.MODE_CHANGED:
             vox_mode: VoxMode = arg
@@ -580,6 +594,7 @@ class MainWindow(QMainWindow):
         voxou: 'Voxou' = voxou_dict.get('voxou')
         if voxou is not None:
             bank_num: int = self.sender().data()
+            print('yahoou upload to prog', bank_num)
             voxou.upload_current_to_user_program(bank_num)
             
     @Slot()

@@ -16,6 +16,7 @@ from vox_program import VoxProgram
 _logger = logging.getLogger(__name__)
 
 class GuiCallback(Enum):
+    DATA_ERROR = -1
     CONNECT_STATE = 0
     CURRENT_CHANGED = 1
     PARAM_CHANGED = 2
@@ -66,28 +67,33 @@ class Voxou(Module):
         self.current_program = VoxProgram()
         self.programs = [VoxProgram() for i in range(8)]
         self.factory_programs = [VoxProgram() for i in range(60)]
-        self.user_presets = [VoxProgram() for i in range(4)]
+        
+        # There are 4 user ampfxs in the amp,
+        # even if physically, only 3 exists
+        self.user_ampfxs = [VoxProgram() for i in range(4)]
         
         self.voxmode = VoxMode.PRESET
         self.prog_num = 0
         self.connect_state = ConnectState.DISCONNECTED
         
-        self._param_change_cb: Optional[Callable] = None
-
-        self.solo = False
+        self._last_sent_message = tuple[FunctionCode, tuple[int]]()
+        
+        self._gui_cb: Optional[Callable] = None
 
     def set_param_change_cb(self, cb: Callable):
-        self._param_change_cb = cb
+        self._gui_cb = cb
     
-    def _send_vox(self, *args):
-        self.send('/sysex', *(SYSEX_BEGIN + list(args) + [247]))
+    def _send_vox(self, function_code: FunctionCode, *args):
+        self._last_sent_message = (function_code, args)
+        self.send('/sysex', *(SYSEX_BEGIN + [function_code.value]
+                              + list(args) + [247]))
         self.connect_state = ConnectState.CHECKING
-        if self._param_change_cb:
-            self._param_change_cb(GuiCallback.CONNECT_STATE, False)
+        if self._gui_cb:
+            self._gui_cb(GuiCallback.CONNECT_STATE, False)
     
     def _send_cb(self, gui_callback: GuiCallback, arg=None):
-        if self._param_change_cb:
-            self._param_change_cb(gui_callback, arg)
+        if self._gui_cb:
+            self._gui_cb(gui_callback, arg)
     
     def ask_connection(self):
         self._send_vox(FunctionCode.MODE_REQUEST)
@@ -106,7 +112,7 @@ class Voxou(Module):
 
         self._send_vox(FunctionCode.CURRENT_PROGRAM_DATA_DUMP_REQUEST)
         
-        for user_preset_n in range(3):
+        for user_preset_n in range(4):
             self._send_vox(
                 FunctionCode.CUSTOM_AMPFX_DATA_DUMP_REQUEST, 0, user_preset_n)
 
@@ -132,6 +138,14 @@ class Voxou(Module):
             _logger.error(f'Received Unknown function code {hex(function_code)}')
             return
         
+        _logger.debug(f'message received from device {function_code.name}')
+        if function_code in (FunctionCode.DATA_LOAD_ERROR,
+                             FunctionCode.DATA_FORMAT_ERROR):
+            _logger.warning(f'error received from device {function_code.name}')
+            orig_func_code = self._last_sent_message[0]
+            _logger.warning(f'last sent message is {orig_func_code.name}')
+            self._send_cb(GuiCallback.DATA_ERROR, orig_func_code)
+        
         self.connect_state = ConnectState.CONNECTED
         # send connect state OK to gui
         self._send_cb(GuiCallback.CONNECT_STATE, True)
@@ -139,7 +153,7 @@ class Voxou(Module):
         if function_code is FunctionCode.CURRENT_PROGRAM_DATA_DUMP:
             self.current_program.read_data(shargs)
             self._send_cb(GuiCallback.CURRENT_CHANGED, self.current_program)
-            
+        
         elif function_code is FunctionCode.PROGRAM_DATA_DUMP:
             voxmode_int = shargs.pop(0)
             prog_num = shargs.pop(0)
@@ -233,8 +247,9 @@ class Voxou(Module):
             self._send_cb(GuiCallback.MODE_CHANGED, self.voxmode)
 
         elif function_code is FunctionCode.CUSTOM_AMPFX_DATA_DUMP:
-            # we don't need it
-            pass
+            unused = shargs.pop(0)
+            ampfx_num = shargs.pop(0)
+            self.user_ampfxs[ampfx_num].ampfx_data_read(shargs)
     
     @staticmethod
     def _rail_value(param: EffParam, value: int) -> int:
@@ -310,7 +325,7 @@ class Voxou(Module):
             value = self._rail_value(param, value)
             self.current_program.reverb_values[param.value] = value
         
-        self._send_vox(FunctionCode.PARAMETER_CHANGE.value,
+        self._send_vox(FunctionCode.PARAMETER_CHANGE,
                        vox_index.value, param.value, value, value_big)
     
     def set_program_name(self, new_name: str):
@@ -323,7 +338,7 @@ class Voxou(Module):
 
         for i in range(len(str_as_ints)):
             self._send_vox(
-                FunctionCode.PARAMETER_CHANGE.value,
+                FunctionCode.PARAMETER_CHANGE,
                 VoxIndex.PROGRAM_NAME.value,
                 i, str_as_ints[i], 0)
 
@@ -389,7 +404,7 @@ class Voxou(Module):
 
     def upload_current_to_user_program(self, bank_num: int):
         self._send_vox(
-            FunctionCode.PROGRAM_DATA_DUMP.value,
+            FunctionCode.PROGRAM_DATA_DUMP,
             VoxMode.USER.value,
             bank_num,
             *self.current_program.data_write())
@@ -397,7 +412,9 @@ class Voxou(Module):
 
     def upload_current_to_user_ampfx(self, ampfx_num: int):
         self._send_vox(
-            FunctionCode.CUSTOM_AMPFX_DATA_DUMP.value,
+            FunctionCode.CUSTOM_AMPFX_DATA_DUMP,
             0,
             ampfx_num,
             *self.current_program.ampfx_data_write())
+
+        self.user_ampfxs[ampfx_num] = self.current_program.copy()
