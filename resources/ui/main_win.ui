@@ -976,7 +976,7 @@ QGroupBox::title {
   <customwidget>
    <class>ParamProgressBar</class>
    <extends>QProgressBar</extends>
-   <header location="global">ui/progress</header>
+   <header location="global">progress</header>
   </customwidget>
  </customwidgets>
  <resources>

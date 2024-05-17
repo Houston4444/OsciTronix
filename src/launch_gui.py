@@ -19,7 +19,7 @@ from effects import (
 from voxou import FunctionCode, GuiCallback, VoxProgram, Voxou, ConnectState
 
 from ui.main_win import Ui_MainWindow
-from ui.progress import ParamProgressBar
+from progress import ParamProgressBar
 
 
 _translate = QApplication.translate
