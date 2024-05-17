@@ -25,8 +25,6 @@ from ui.progress import ParamProgressBar
 _translate = QApplication.translate
 
 
-voxou_dict = {'voxou': None}
-
 def signal_handler(sig, frame):
     QApplication.quit()
 
@@ -34,11 +32,14 @@ def signal_handler(sig, frame):
 class MainWindow(QMainWindow):
     callback_sig = Signal(Enum, object)
     
-    def __init__(self):
+    def __init__(self, voxou: Voxou):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        
+
+        self.voxou = voxou
+        self.voxou.set_gui_cb(self.engine_callback)
+
         self.amp_params_widgets = {
             AmpParam.GAIN: self.ui.progressBarGain,
             AmpParam.TREBLE: self.ui.progressBarTreble,
@@ -215,10 +216,6 @@ class MainWindow(QMainWindow):
             self.ui.labelBankPreset.setText('')
             return
 
-        voxou: 'Voxou' = voxou_dict['voxou']
-        if voxou is None:
-            return
-
         self.ui.comboBoxBanksAndPresets.setEnabled(True)
 
         if vox_mode is VoxMode.USER:
@@ -229,19 +226,21 @@ class MainWindow(QMainWindow):
                 self.ui.comboBoxBanksAndPresets.addItem(
                     bank_name.name, bank_name.value)
                 self.ui.comboBoxBanksAndPresets.setCurrentIndex(
-                    voxou.prog_num)
-            self.ui.comboBoxBanksAndPresets.setCurrentIndex(voxou.prog_num)
+                    self.voxou.prog_num)
+            self.ui.comboBoxBanksAndPresets.setCurrentIndex(
+                self.voxou.prog_num)
             return
         
         # vox_mode is VoxMode.PRESET
         self.ui.labelBankPreset.setText(
             _translate('main_win', 'Preset'))
 
-        for i in range(len(voxou.factory_programs)):
-            program = voxou.factory_programs[i]
+        for i in range(len(self.voxou.factory_programs)):
+            program = self.voxou.factory_programs[i]
             self.ui.comboBoxBanksAndPresets.addItem(
                 program.program_name, i)
-        self.ui.comboBoxBanksAndPresets.setCurrentIndex(voxou.prog_num)
+        self.ui.comboBoxBanksAndPresets.setCurrentIndex(
+            self.voxou.prog_num)
 
     def engine_callback(self, *args):
         self.callback_sig.emit(*args)
@@ -381,85 +380,70 @@ class MainWindow(QMainWindow):
     
     @Slot(float)
     def _noise_gate_changed(self, value: float):
-        voxou : 'Voxou' = voxou_dict['voxou']
-        if voxou is not None:
-            voxou.set_param_value(
+        self.voxou.set_param_value(
                 VoxIndex.NR_SENS, DummyParam.DUMMY, int(value))
 
     @Slot(int)
     def _effect_model_changed(self, index: int):
-        voxou: 'Voxou' = voxou_dict['voxou']
-        if voxou is not None:
-            sender: QComboBox = self.sender()
-            if sender is self.ui.comboBoxAmpModel:
-                effect_on_off = EffectOnOff.AMP
-            elif sender is self.ui.comboBoxPedal1:
-                effect_on_off = EffectOnOff.PEDAL1
-            elif sender is self.ui.comboBoxPedal2:
-                effect_on_off = EffectOnOff.PEDAL2
-            elif sender is self.ui.comboBoxReverb:
-                effect_on_off = EffectOnOff.REVERB
-            else:
-                return
-            
-            model: EffParam = sender.itemData(index)
-            
-            voxou.set_param_value(
-                VoxIndex.EFFECT_MODEL, effect_on_off, model.value)
+        sender: QComboBox = self.sender()
+        if sender is self.ui.comboBoxAmpModel:
+            effect_on_off = EffectOnOff.AMP
+        elif sender is self.ui.comboBoxPedal1:
+            effect_on_off = EffectOnOff.PEDAL1
+        elif sender is self.ui.comboBoxPedal2:
+            effect_on_off = EffectOnOff.PEDAL2
+        elif sender is self.ui.comboBoxReverb:
+            effect_on_off = EffectOnOff.REVERB
+        else:
+            return
+        
+        model: EffParam = sender.itemData(index)
+        
+        self.voxou.set_param_value(
+            VoxIndex.EFFECT_MODEL, effect_on_off, model.value)
     
     @Slot(bool)
     def _effect_checked(self, yesno: bool):
-        voxou: 'Voxou' = voxou_dict['voxou']
-        if voxou is not None:
-            sender: QGroupBox = self.sender()
-            if sender is self.ui.groupBoxPedal1:
-                param = EffectOnOff.PEDAL1
-            elif sender is self.ui.groupBoxPedal2:
-                param = EffectOnOff.PEDAL2
-            elif sender is self.ui.groupBoxReverb:
-                param = EffectOnOff.REVERB
-            else:
-                return
+        sender: QGroupBox = self.sender()
+        if sender is self.ui.groupBoxPedal1:
+            param = EffectOnOff.PEDAL1
+        elif sender is self.ui.groupBoxPedal2:
+            param = EffectOnOff.PEDAL2
+        elif sender is self.ui.groupBoxReverb:
+            param = EffectOnOff.REVERB
+        else:
+            return
 
-            voxou.set_param_value(VoxIndex.EFFECT_STATUS, param, int(yesno))
+        self.voxou.set_param_value(
+            VoxIndex.EFFECT_STATUS, param, int(yesno))
     
     @Slot(bool)
     def _amp_param_bool_changed(self, state: bool):
         checkbox: QCheckBox = self.sender()
-        voxou: 'Voxou' = voxou_dict['voxou']
-        if voxou is not None:
-            for param, cbox in self.amp_params_widgets.items():
-                if cbox is checkbox:
-                    voxou.set_param_value(VoxIndex.AMP, param, int(state))
-                    break
+        for param, cbox in self.amp_params_widgets.items():
+            if cbox is checkbox:
+                self.voxou.set_param_value(VoxIndex.AMP, param, int(state))
+                break
     
     @Slot(float)
     def _amp_param_moved(self, value: float):
         param_wg: ParamProgressBar = self.sender()
-        voxou: 'Voxou' = voxou_dict['voxou']
-        if voxou is not None:
-            voxou.set_param_value(VoxIndex.AMP, param_wg.param, int(value))
+        self.voxou.set_param_value(VoxIndex.AMP, param_wg.param, int(value))
     
     @Slot(float)
     def _pedal1_param_moved(self, value: float):
         param_wg: ParamProgressBar = self.sender()
-        voxou: 'Voxou' = voxou_dict['voxou']
-        if voxou is not None:
-            voxou.set_param_value(VoxIndex.PEDAL1, param_wg.param, int(value))
+        self.voxou.set_param_value(VoxIndex.PEDAL1, param_wg.param, int(value))
     
     @Slot(float)
     def _pedal2_param_moved(self, value: float):
         param_wg: ParamProgressBar = self.sender()
-        voxou: 'Voxou' = voxou_dict['voxou']
-        if voxou is not None:
-            voxou.set_param_value(VoxIndex.PEDAL2, param_wg.param, int(value))
+        self.voxou.set_param_value(VoxIndex.PEDAL2, param_wg.param, int(value))
             
     @Slot(float)
     def _reverb_param_moved(self, value: float):
         param_wg: ParamProgressBar = self.sender()
-        voxou: 'Voxou' = voxou_dict['voxou']
-        if voxou is not None:
-            voxou.set_param_value(VoxIndex.REVERB, param_wg.param, int(value))
+        self.voxou.set_param_value(VoxIndex.REVERB, param_wg.param, int(value))
     
     def _fill_pedal1(self, pedal1_type: Pedal1Type):
         pedal1_param: EffParam
@@ -502,27 +486,19 @@ class MainWindow(QMainWindow):
     
     @Slot()
     def _ask_connection(self):
-        voxou: 'Voxou' = voxou_dict.get('voxou')
-        if voxou is not None:
-            if voxou.connect_state is ConnectState.CONNECTED:
-                self.connection_timer.stop()
-                return
-            
-            voxou.ask_connection()
+        if self.voxou.connect_state is ConnectState.CONNECTED:
+            self.connection_timer.stop()
+            return
+        
+        self.voxou.ask_connection()
             
     @Slot()
     def _refresh_all(self):
-        voxou: 'Voxou' = voxou_dict.get('voxou')
-        if voxou is not None:
-            voxou.ask_connection()
+        self.voxou.ask_connection()
 
     @Slot()
     def _set_delayed_connect_state(self):
-        voxou: 'Voxou' = voxou_dict.get('voxou')
-        if voxou is None:
-            connected = False
-        else:
-            connected = voxou.connect_state is ConnectState.CONNECTED
+        connected = self.voxou.connect_state is ConnectState.CONNECTED
 
         if connected:
             self.ui.labelConnected.setText(
@@ -542,35 +518,24 @@ class MainWindow(QMainWindow):
     def _set_program_name(self, text: str):
         normed_text = ''.join([chr(ord(c) % 128) for c in text])
         self.ui.lineEditProgramName.setText(normed_text)
-        
-        voxou: 'Voxou' = voxou_dict.get('voxou')
-        if voxou is not None:
-            voxou.set_program_name(normed_text)
+        self.voxou.set_program_name(normed_text)
             
     @Slot(int)
     def _change_mode(self, index: int):
         new_mode: VoxMode = self.ui.comboBoxMode.currentData()
-        voxou: 'Voxou' = voxou_dict.get('voxou')
-        if voxou is not None:
-            voxou.set_mode(new_mode)
+        self.voxou.set_mode(new_mode)
         self.set_vox_mode(new_mode)
     
     @Slot(int)
     def _change_program_number(self, index: int):
-        voxou: 'Voxou' = voxou_dict.get('voxou')
-        if voxou is not None:
-            vox_mode = self.ui.comboBoxMode.currentData()
-            if vox_mode is VoxMode.PRESET:
-                voxou.set_preset_num(index)
-            elif vox_mode is VoxMode.USER:
-                voxou.set_user_bank_num(index)
+        vox_mode = self.ui.comboBoxMode.currentData()
+        if vox_mode is VoxMode.PRESET:
+            self.voxou.set_preset_num(index)
+        elif vox_mode is VoxMode.USER:
+            self.voxou.set_user_bank_num(index)
     
     @Slot()
     def _save_all_amp(self):
-        voxou: 'Voxou' = voxou_dict.get('voxou')
-        if voxou is None:
-            return
-        
         default_path = xdg.xdg_data_home() / 'OsciTronix' / 'full_amps'
         default_path.mkdir(parents=True, exist_ok=True)
         
@@ -588,26 +553,24 @@ class MainWindow(QMainWindow):
             _translate('main_win', 'JSON files (*.json)'))
 
         if filepath:
-            voxou.save_all_amp(filepath)
+            self.voxou.save_all_amp(filepath)
     
     @Slot()
     def _upload_to_user_program(self):
-        voxou: 'Voxou' = voxou_dict.get('voxou')
-        if voxou is not None:
-            bank_num: int = self.sender().data()
-            voxou.upload_current_to_user_program(bank_num)
+        bank_num: int = self.sender().data()
+        self.voxou.upload_current_to_user_program(bank_num)
             
     @Slot()
     def _upload_to_user_ampfx(self):
-        voxou: 'Voxou' = voxou_dict.get('voxou')
-        if voxou is not None:
-            user_num: int = self.sender().data()
-            voxou.upload_current_to_user_ampfx(user_num)
+        user_num: int = self.sender().data()
+        self.voxou.upload_current_to_user_ampfx(user_num)
 
 
 if __name__ == '__main__':
+    voxoul = Voxou()
+    
     app = QApplication(sys.argv)
-    main_win = MainWindow()
+    main_win = MainWindow(voxoul)
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
@@ -616,9 +579,7 @@ if __name__ == '__main__':
     timer.start(200)
     timer.timeout.connect(lambda: None)
 
-    voxou_dict['voxou'] = Voxou()
-    voxou_dict['voxou'].set_gui_cb(main_win.engine_callback)
-    midi_client.init(voxou_dict['voxou'])
+    midi_client.init(voxoul)
     
     midi_thread = threading.Thread(target=midi_client.run_loop)
     midi_thread.start()
