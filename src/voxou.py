@@ -1,6 +1,7 @@
 from enum import IntEnum, Enum
 import logging
 from pathlib import Path
+import time
 from typing import Callable, Optional
 import json
 
@@ -78,15 +79,27 @@ class Voxou(Module):
         
         self._last_sent_message = tuple[FunctionCode, tuple[int]]()
         
+        self._midi_out_func: Optional[Callable] = None
         self._gui_cb: Optional[Callable] = None
 
-    def set_param_change_cb(self, cb: Callable):
+    def set_gui_cb(self, cb: Callable):
         self._gui_cb = cb
+    
+    def set_midi_out_func(self, midi_out_func: Callable):
+        self._midi_out_func = midi_out_func
     
     def _send_vox(self, function_code: FunctionCode, *args):
         self._last_sent_message = (function_code, args)
-        self.send('/sysex', *(SYSEX_BEGIN + [function_code.value]
-                              + list(args) + [247]))
+
+        if self._midi_out_func is None:
+            _logger.warning(
+                "Trying to send midi message while midi port is not ready !")
+            return
+
+        self._midi_out_func(
+            SYSEX_BEGIN + [function_code.value] + list(args) + [247])
+        # self.send('/sysex', *(SYSEX_BEGIN + [function_code.value]
+        #                       + list(args) + [247]))
 
         self.connect_state = ConnectState.CHECKING
         self._send_cb(GuiCallback.CONNECT_STATE, False)
@@ -96,6 +109,10 @@ class Voxou(Module):
             self._gui_cb(gui_callback, arg)
     
     def ask_connection(self):
+        while self._midi_out_func is None:
+            time.sleep(0.010)
+        print('ok try ask connection')
+        
         self._send_vox(FunctionCode.MODE_REQUEST)
         
         for bank_n in range(8):
