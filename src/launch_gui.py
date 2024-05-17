@@ -565,12 +565,12 @@ class MainWindow(QMainWindow):
                 voxou.set_user_bank_num(index)
     
     @Slot()
-    def _save_user_programs(self):
+    def _save_all_amp(self):
         voxou: 'Voxou' = voxou_dict.get('voxou')
         if voxou is None:
             return
         
-        default_path = xdg.xdg_data_home() / 'OsciTronix'
+        default_path = xdg.xdg_data_home() / 'OsciTronix' / 'full_amps'
         default_path.mkdir(parents=True, exist_ok=True)
         
         base = 'vox_program'
@@ -585,9 +585,9 @@ class MainWindow(QMainWindow):
             self, _translate('main_win', 'user_programs destination'),
             str(default_file_path),
             _translate('main_win', 'JSON files (*.json)'))
-        
+
         if filepath:
-            voxou.save_user_programs(filepath)
+            voxou.save_all_amp(filepath)
     
     @Slot()
     def _upload_to_user_program(self):

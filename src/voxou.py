@@ -148,7 +148,8 @@ class Voxou(Module):
 
         if function_code in (FunctionCode.DATA_LOAD_ERROR,
                              FunctionCode.DATA_FORMAT_ERROR):
-            _logger.warning(f'error received from device {function_code.name}')
+            _logger.warning(
+                f'error received from device {function_code.name}')
             orig_func_code = self._last_sent_message[0]
             _logger.warning(f'last sent message is {orig_func_code.name}')
             self._send_cb(GuiCallback.DATA_ERROR, orig_func_code)
@@ -523,15 +524,19 @@ class Voxou(Module):
         self._send_cb(GuiCallback.CURRENT_CHANGED, self.current_program)
 
     # file managing
-    def save_user_programs(self, filepath: Path):
+    def save_all_amp(self, filepath: Path):
+        full_dict = {}
+        full_dict['banks'] = [p.to_json_dict() for p in self.programs]
+        full_dict['ampfxs'] = [p.to_json_dict(for_ampfx=True)
+                               for p in self.user_ampfxs]
+        
         try:
             with open(filepath, 'w') as f:
-                json.dump([p.to_json_dict() for p in self.programs], f,
-                          indent=2)
+                json.dump(full_dict, f, indent=2)
 
         except BaseException as e:
             _logger.error(f"Failed to save json file {filepath}"
-                          f"{str(e)}")            
+                          f"{str(e)}")
 
     def upload_current_to_user_program(self, bank_num: int):
         self._send_vox(
