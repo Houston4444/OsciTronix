@@ -4,16 +4,16 @@ from pathlib import Path
 from typing import Callable, Optional
 import json
 
-import xdg
 from mentat import Module
 from effects import (
     DummyParam, EffParam, EffectOnOff, Pedal1Type,
-    AmpModel, AmpParam, Pedal2Type, ReverbParam, ReverbType,
+    AmpModel, AmpParam, Pedal2Type, ReverbType,
     VoxIndex, VoxMode)
 from vox_program import VoxProgram
 
 
 _logger = logging.getLogger(__name__)
+
 
 class GuiCallback(Enum):
     DATA_ERROR = -1
@@ -87,9 +87,9 @@ class Voxou(Module):
         self._last_sent_message = (function_code, args)
         self.send('/sysex', *(SYSEX_BEGIN + [function_code.value]
                               + list(args) + [247]))
+
         self.connect_state = ConnectState.CHECKING
-        if self._gui_cb:
-            self._gui_cb(GuiCallback.CONNECT_STATE, False)
+        self._send_cb(GuiCallback.CONNECT_STATE, False)
     
     def _send_cb(self, gui_callback: GuiCallback, arg=None):
         if self._gui_cb:
@@ -116,11 +116,16 @@ class Voxou(Module):
             self._send_vox(
                 FunctionCode.CUSTOM_AMPFX_DATA_DUMP_REQUEST, 0, user_preset_n)
 
-    def route(self, address, args: list):
+    def route(self, address, args: list[int]):
         if address != '/sysex':
             return
         
         shargs = args.copy()
+        
+        if len(shargs) < 6:
+            _logger.info('Too short sysex message received')
+            return
+        
         header, shargs = shargs[:6], shargs[6:]
         
         if header != SYSEX_BEGIN:
@@ -135,10 +140,12 @@ class Voxou(Module):
         try:
             function_code = FunctionCode(function_code)
         except:
-            _logger.error(f'Received Unknown function code {hex(function_code)}')
+            _logger.critical(
+                f'Received Unknown function code {hex(function_code)}')
             return
         
         _logger.debug(f'message received from device {function_code.name}')
+
         if function_code in (FunctionCode.DATA_LOAD_ERROR,
                              FunctionCode.DATA_FORMAT_ERROR):
             _logger.warning(f'error received from device {function_code.name}')
@@ -151,41 +158,82 @@ class Voxou(Module):
         self._send_cb(GuiCallback.CONNECT_STATE, True)
         
         if function_code is FunctionCode.CURRENT_PROGRAM_DATA_DUMP:
-            self.current_program.read_data(shargs)
+            try:
+                self.current_program.read_data(shargs)
+            except BaseException as e:
+                _logger.error(
+                    f'Failed to read current program data.\n{str(e)}')
+                return
+
             self._send_cb(GuiCallback.CURRENT_CHANGED, self.current_program)
         
         elif function_code is FunctionCode.PROGRAM_DATA_DUMP:
             voxmode_int = shargs.pop(0)
             prog_num = shargs.pop(0)
             
-            vox_mode = VoxMode(voxmode_int)
+            try:
+                vox_mode = VoxMode(voxmode_int)
+            except:
+                _logger.critical(
+                    f'Received {function_code.name} with unknown mode')
+                return
 
-            if vox_mode is VoxMode.USER:
-                self.programs[prog_num].read_data(shargs)
-                if prog_num == 7:
-                    self._send_cb(GuiCallback.USER_BANKS_READ)
-                
-            elif vox_mode is VoxMode.PRESET:
-                self.factory_programs[prog_num].read_data(shargs)
-                if prog_num == 59:
-                    self._send_cb(GuiCallback.FACTORY_BANKS_READ)
+            try:
+                if vox_mode is VoxMode.USER:
+                    self.programs[prog_num].read_data(shargs)
+                    if prog_num == 7:
+                        self._send_cb(GuiCallback.USER_BANKS_READ)
+                    
+                elif vox_mode is VoxMode.PRESET:
+                    self.factory_programs[prog_num].read_data(shargs)
+                    if prog_num == 59:
+                        self._send_cb(GuiCallback.FACTORY_BANKS_READ)
+
+            except BaseException as e:
+                _logger.error(
+                    f"Failed to write incoming program.\n{str(e)}")
+                return
         
         elif function_code is FunctionCode.PARAMETER_CHANGE:
-            vox_index = VoxIndex(shargs.pop(0))
+            try:
+                vox_index = VoxIndex(shargs.pop(0))
+            except:
+                _logger.critical(
+                    f"Received {function_code.name} with wrong first index")
+                return
+
+            if len(shargs) < 3:
+                _logger.critical(
+                    f"Received too short {function_code.name} message")
+                return
+
             param_index = shargs.pop(0)
             value = shargs.pop(0)
             big_value = shargs.pop(0)
-            
+
             if vox_index is VoxIndex.NR_SENS:
                 if param_index == 0:
-                    self.current_program.nr_sens = value
-            
+                    self.current_program.nr_sens = min(max(value, 0), 100)
+
             elif vox_index is VoxIndex.EFFECT_STATUS:
-                effect_on_off = EffectOnOff(param_index)
-                self.current_program.active_effects[effect_on_off] = value
-                        
+                try:
+                    effect_on_off = EffectOnOff(param_index)
+                    self.current_program.active_effects[effect_on_off] = value
+                except:
+                    _logger.critical(
+                        f"unknown effect in {function_code.name}: "
+                        f"{param_index}")
+                    return
+
             elif vox_index is VoxIndex.EFFECT_MODEL:
-                effect = EffectOnOff(param_index)
+                try:
+                    effect = EffectOnOff(param_index)
+                except:
+                    _logger.critical(
+                        f"unknown effect in {function_code.name}: "
+                        f"{param_index}")
+                    return
+
                 if effect is EffectOnOff.AMP:
                     self.current_program.amp_model = AmpModel(value)
                 elif effect is EffectOnOff.PEDAL1:
@@ -196,22 +244,49 @@ class Voxou(Module):
                     self.current_program.reverb_type = ReverbType(value)
             
             elif vox_index is VoxIndex.AMP:
-                amp_param = AmpParam(param_index)
+                try:
+                    amp_param = AmpParam(param_index)
+                except:
+                    _logger.critical(
+                        f"Unknown amp param in {function_code.name}: "
+                        f"{amp_param}")
+                    return
+
                 self.current_program.amp_params[amp_param] = value
                 
             elif vox_index is VoxIndex.PEDAL1:
-                eff_param: EffParam = \
-                    self.current_program.pedal1_type.param_type()(param_index)
-                self.current_program.pedal1_values[eff_param.value] = \
+                try:
+                    assert 0 <= param_index <= 5
+                except:
+                    _logger.critical(
+                        'Message received with wrong param_index '
+                        f'{param_index}')
+                    return
+                
+                self.current_program.pedal1_values[param_index] = \
                     value + big_value * 128
             
             elif vox_index is VoxIndex.PEDAL2:
-                eff_param: EffParam = \
-                    self.current_program.pedal2_type.param_type()(param_index)
-                self.current_program.pedal2_values[eff_param.value] = \
+                try:
+                    assert 0 <= param_index <= 5
+                except:
+                    _logger.critical(
+                        'Message received with wrong param_index '
+                        f'{param_index}')
+                    return
+
+                self.current_program.pedal2_values[param_index] = \
                     value + big_value * 128
 
             elif vox_index is VoxIndex.REVERB:
+                try:
+                    assert 0 <= param_index <= 4
+                except:
+                    _logger.critical(
+                        'Message received with wrong param_index '
+                        f'{param_index}')
+                    return
+                
                 self.current_program.reverb_values[param_index] = value
                     
             self._send_cb(
@@ -219,22 +294,64 @@ class Voxou(Module):
                 (self.current_program, vox_index, param_index))
 
         elif function_code is FunctionCode.MODE_DATA:
+            if len(shargs) < 2:
+                _logger.critical(
+                    f"Received {function_code.name} with too short message")
+                return
+            
             voxmode_int = shargs.pop(0)
-            self.voxmode = VoxMode(voxmode_int)
             self.prog_num = shargs.pop(0)
+            
+            try:
+                self.voxmode = VoxMode(voxmode_int)
+            except:
+                _logger.critical(
+                    f"Received {function_code.name} with unknown mode: "
+                    f"{voxmode_int}")
+                return
+                
             self._send_cb(GuiCallback.MODE_CHANGED, self.voxmode)
 
         elif function_code is FunctionCode.MODE_CHANGE:
+            if len(shargs) < 2:
+                _logger.critical(
+                    f"Received {function_code.name} with too short message")
+                return
+
             voxmode_int = shargs.pop(0)
-            self.voxmode = VoxMode(voxmode_int)
-            self.prog_num = shargs.pop(0)
+            prog_num = shargs.pop(0)
+
+            try:
+                self.voxmode = VoxMode(voxmode_int)
+            except:
+                _logger.critical(
+                    f"Received {function_code.name} with unknown mode: "
+                    f"{voxmode_int}")
+                return
             
             if self.voxmode is VoxMode.USER:
+                try:
+                    assert(0 <= prog_num < len(self.programs))
+                except:
+                    _logger.critical(
+                        f"Received {function_code.name} with wrong "
+                        f"prog num :{prog_num}")
+                    return
+                
+                self.prog_num = prog_num
                 self.current_program = self.programs[self.prog_num].copy()
                 self._send_cb(GuiCallback.CURRENT_CHANGED,
                               self.current_program)
             
             elif self.voxmode is VoxMode.PRESET:
+                try:
+                    assert(0 <= prog_num < len(self.factory_programs))
+                except:
+                    _logger.critical(
+                        f"Received {function_code.name} with wrong "
+                        f"prog num :{prog_num}")
+                    return
+                
                 self.current_program = \
                     self.factory_programs[self.prog_num].copy()
                 self._send_cb(GuiCallback.CURRENT_CHANGED,
@@ -247,8 +364,22 @@ class Voxou(Module):
             self._send_cb(GuiCallback.MODE_CHANGED, self.voxmode)
 
         elif function_code is FunctionCode.CUSTOM_AMPFX_DATA_DUMP:
+            if len(shargs) < 2:
+                _logger.critical(
+                    f"Received {function_code.name} with too short message")
+                return
+            
             unused = shargs.pop(0)
             ampfx_num = shargs.pop(0)
+            
+            try:
+                assert(0 <= ampfx_num <= 3)
+            except:
+                _logger.critical(
+                        f"Received {function_code.name} with wrong "
+                        f"ampfx num :{ampfx_num}")
+                return
+                
             self.user_ampfxs[ampfx_num].ampfx_data_read(shargs)
     
     @staticmethod
