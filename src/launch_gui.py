@@ -16,7 +16,6 @@ from effects import (
     AmpModel, AmpParam, BankName, DummyParam, EffParam,
     EffectOnOff, Pedal1Type, Pedal2Type,
     ReverbParam, ReverbType, VoxIndex, VoxMode)
-from mentatronix import start_mentat, stop_mentat
 from voxou import FunctionCode, GuiCallback, VoxProgram, Voxou, ConnectState
 
 from ui.main_win import Ui_MainWindow
@@ -246,8 +245,9 @@ class MainWindow(QMainWindow):
 
     def engine_callback(self, *args):
         self.callback_sig.emit(*args)
-        
-    def apply_callback(self, cb: GuiCallback, arg: Any):
+    
+    @Slot(GuiCallback, object)
+    def apply_callback(self, cb: GuiCallback, arg: Any):        
         if cb is GuiCallback.CONNECT_STATE:
             if arg is False:
                 self.connect_state_timer.start()
@@ -595,7 +595,6 @@ class MainWindow(QMainWindow):
         voxou: 'Voxou' = voxou_dict.get('voxou')
         if voxou is not None:
             bank_num: int = self.sender().data()
-            print('yahoou upload to prog', bank_num)
             voxou.upload_current_to_user_program(bank_num)
             
     @Slot()
@@ -609,23 +608,22 @@ class MainWindow(QMainWindow):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     main_win = MainWindow()
-    
+
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
     
     timer = QTimer()
     timer.start(200)
     timer.timeout.connect(lambda: None)
+
+    voxou_dict['voxou'] = Voxou()
+    voxou_dict['voxou'].set_gui_cb(main_win.engine_callback)
+    midi_client.init(voxou_dict['voxou'])
     
-    mentat_thread = threading.Thread(
-        target=start_mentat, args=(main_win.engine_callback, voxou_dict))
-    mentat_thread.start()
-    
-    midi_thread = threading.Thread(target=midi_client.run_loop,
-                                   args=(voxou_dict,))
+    midi_thread = threading.Thread(target=midi_client.run_loop)
     midi_thread.start()
-    
+
     main_win.show()
     app.exec()
-    stop_mentat()
-    midi_client.midi_client.stopping = True
+
+    midi_client.stop()

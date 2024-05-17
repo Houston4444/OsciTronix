@@ -7,8 +7,6 @@ engine = Engine('Mentatronix', 4677, 'Mentatronix')
 
 
 def start_mentat(callback: Optional[Callable] =None, cb_dict: dict ={}):
-    print('top départ')
-    
     voxou = Voxou('voxou', protocol='midi')
     if callback:
         voxou.set_gui_cb(callback)

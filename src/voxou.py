@@ -5,7 +5,6 @@ import time
 from typing import Callable, Optional
 import json
 
-from mentat import Module
 from effects import (
     DummyParam, EffParam, EffectOnOff, Pedal1Type,
     AmpModel, AmpParam, Pedal2Type, ReverbType,
@@ -58,13 +57,8 @@ def rail_int(value: int, mini: int, maxi: int) -> int:
     return max(min(value, maxi), mini)
 
 
-class Voxou(Module):
-    def __init__(self, name: str,
-                 protocol: Optional[str] = None,
-                 port: int|str|None = None,
-                 parent=None):
-        super().__init__(name, protocol=protocol, port=port, parent=parent)
-
+class Voxou:
+    def __init__(self):
         self.current_program = VoxProgram()
         self.programs = [VoxProgram() for i in range(8)]
         self.factory_programs = [VoxProgram() for i in range(60)]
@@ -111,7 +105,6 @@ class Voxou(Module):
     def ask_connection(self):
         while self._midi_out_func is None:
             time.sleep(0.010)
-        print('ok try ask connection')
         
         self._send_vox(FunctionCode.MODE_REQUEST)
         
@@ -134,13 +127,7 @@ class Voxou(Module):
                 FunctionCode.CUSTOM_AMPFX_DATA_DUMP_REQUEST, 0, user_preset_n)
 
     def rototo(self, args: list[int]):
-    #     print('offq', args)
-
-    # def route(self, address, args: list[int]):
-    #     if address != '/sysex':
-    #         return
-        
-        shargs = args.copy()
+        shargs = args
         
         if len(shargs) < 6:
             _logger.info('Too short sysex message received')

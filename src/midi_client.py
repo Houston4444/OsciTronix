@@ -26,17 +26,20 @@ class MidiClient:
         self._midi_drain_pending = False
         self._pending_send = False
 
+    def set_voxou(self, voxou: Voxou):
+        self.voxou = voxou
+        self.voxou.set_midi_out_func(self.send_to_vox)
+
     def read_events(self):
         midi_events = self.server.receive_events()
         for event in midi_events:
             if event.type is not SEQ_EVENT_SYSEX:
-                print('receive non sysex')
                 continue
-            
+
             int_list: list[int] = event.get_data()['ext']
             if self.voxou is not None:
                 self.voxou.rototo(int_list)
-                
+
     def send_to_vox(self, args: list[int]):
         event = alsaseq.SeqEvent(SEQ_EVENT_SYSEX)
         event.set_data({'ext': args})
@@ -50,7 +53,7 @@ class MidiClient:
             _logger.warning('midi pool unnavailable, trying again')
 
         self._pending_send = True
-            
+
     def flush(self):
         if not self._pending_send:
             return
@@ -69,11 +72,16 @@ class MidiClient:
 midi_client = MidiClient()
 
 
-def run_loop(voxou_dict: dict[str, Voxou]):
-    while midi_client.voxou is None:
-        midi_client.voxou = voxou_dict['voxou']
-    midi_client.voxou.set_midi_out_func(midi_client.send_to_vox)
-    time.sleep(0.001)
+def init(voxou: Voxou):
+    midi_client.set_voxou(voxou)
+
+def stop():
+    midi_client.stopping = True
+
+def run_loop():
+    if midi_client.voxou is None:
+        _logger.error('voxou must be set before to run midi main loop')
+        return
 
     while True:
         midi_client.read_events()
