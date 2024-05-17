@@ -116,9 +116,12 @@ class Voxou(Module):
             self._send_vox(
                 FunctionCode.CUSTOM_AMPFX_DATA_DUMP_REQUEST, 0, user_preset_n)
 
-    def route(self, address, args: list[int]):
-        if address != '/sysex':
-            return
+    def rototo(self, args: list[int]):
+    #     print('offq', args)
+
+    # def route(self, address, args: list[int]):
+    #     if address != '/sysex':
+    #         return
         
         shargs = args.copy()
         

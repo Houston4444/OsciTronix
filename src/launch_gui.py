@@ -11,6 +11,7 @@ from qtpy.QtCore import QTimer, Slot, Signal
 import threading
 
 import xdg
+import midi_client
 from effects import (
     AmpModel, AmpParam, BankName, DummyParam, EffParam,
     EffectOnOff, Pedal1Type, Pedal2Type,
@@ -620,6 +621,11 @@ if __name__ == '__main__':
         target=start_mentat, args=(main_win.engine_callback, voxou_dict))
     mentat_thread.start()
     
+    midi_thread = threading.Thread(target=midi_client.run_loop,
+                                   args=(voxou_dict,))
+    midi_thread.start()
+    
     main_win.show()
     app.exec()
     stop_mentat()
+    midi_client.midi_client.stopping = True
