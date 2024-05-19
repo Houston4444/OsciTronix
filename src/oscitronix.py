@@ -7,6 +7,7 @@ from qtpy.QtWidgets import (
     QApplication, QMainWindow, QFileDialog,
     QCheckBox, QComboBox, QGroupBox, QMenu,
     QMessageBox, QStyleFactory)
+from qtpy.QtGui import QIcon
 from qtpy.QtCore import QTimer, Slot, Signal
 import threading
 from midi_enums import MidiConnectState
@@ -17,7 +18,7 @@ from effects import (
     AmpModel, AmpParam, BankName, DummyParam, EffParam,
     EffectOnOff, Pedal1Type, Pedal2Type,
     ReverbParam, ReverbType, VoxIndex, VoxMode)
-from voxou import FunctionCode, GuiCallback, VoxProgram, Voxou, ConnectState
+from voxou import FunctionCode, GuiCallback, VoxProgram, Voxou
 
 from ui.main_win import Ui_MainWindow
 from progress import ParamProgressBar
@@ -593,6 +594,7 @@ class MainWindow(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon.fromTheme('oscitronix'))
     
     # force Fusion style because of param widgets
     app.setStyle(QStyleFactory.create('Fusion'))

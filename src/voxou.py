@@ -46,12 +46,6 @@ class FunctionCode(IntEnum):
     WRITE_ERROR = 0x22
 
 
-class ConnectState(Enum):
-    DISCONNECTED = 0
-    CHECKING = 1
-    CONNECTED = 2
-
-
 SYSEX_BEGIN = [240, 66, 48, 0, 1, 52]
 
 
@@ -71,7 +65,6 @@ class Voxou:
         
         self.voxmode = VoxMode.PRESET
         self.prog_num = 0
-        self.connect_state = ConnectState.DISCONNECTED
         self.communication_state = False
         
         self._last_sent_message = tuple[FunctionCode, tuple[int]]()
