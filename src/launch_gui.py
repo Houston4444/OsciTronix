@@ -6,9 +6,10 @@ from typing import Any
 from qtpy.QtWidgets import (
     QApplication, QMainWindow, QFileDialog,
     QCheckBox, QComboBox, QGroupBox, QMenu,
-    QMessageBox, QStyle, QStyleFactory)
+    QMessageBox, QStyleFactory)
 from qtpy.QtCore import QTimer, Slot, Signal
 import threading
+from midi_enums import MidiConnectState
 
 import xdg
 import midi_client
@@ -197,16 +198,42 @@ class MainWindow(QMainWindow):
         
         self.ui.toolButtonRefresh.clicked.connect(self._refresh_all)
         
+        self.comm_state_timer = QTimer()
+        self.comm_state_timer.setInterval(100)
+        self.comm_state_timer.timeout.connect(self._comm_timer_timeout)
+        
         self.connection_timer = QTimer()
         self.connection_timer.setInterval(200)
-        self.connection_timer.timeout.connect(self._ask_connection)
+        self.connection_timer.timeout.connect(self._start_communication)
         self.connection_timer.start()
     
-        self.connect_state_timer = QTimer()
-        self.connect_state_timer.setInterval(100)
-        self.connect_state_timer.timeout.connect(
-            self._set_delayed_connect_state)
+    def set_communication_state(self, state: bool):
+        if state:
+            text = _translate('main_win', 'Communication OK')
+            style_sheet = 'QLabel{color: green}'
+        else:
+            text = _translate('main_win', 'Communication failure')
+            style_sheet = 'QLabel{color: red}'
+
+        self.ui.labelConnected.setStyleSheet(style_sheet)
+        self.ui.labelConnected.setText(text)
     
+    def set_midi_connect_state(self, connect_state: MidiConnectState):
+        self.ui.labelMidiConnectState.setVisible(True)
+        
+        text = _translate('main_win', 'Absent device')
+        if connect_state is MidiConnectState.DISCONNECTED:
+            text = _translate('main_win', 'Not connected')
+        elif connect_state is MidiConnectState.INPUT_ONLY:
+            text = _translate('main_win', 'Output not connected')
+        elif connect_state is MidiConnectState.OUTPUT_ONLY:
+            text = _translate('main_win', 'Input not connected')
+        elif connect_state is MidiConnectState.CONNECTED:
+            text = ''
+            self.ui.labelMidiConnectState.setVisible(False)
+        
+        self.ui.labelMidiConnectState.setText(text)
+
     def set_vox_mode(self, vox_mode: VoxMode):
         self.ui.comboBoxMode.setCurrentIndex(vox_mode.value)
         self.ui.comboBoxBanksAndPresets.clear()
@@ -246,10 +273,17 @@ class MainWindow(QMainWindow):
         self.callback_sig.emit(*args)
     
     @Slot(GuiCallback, object)
-    def apply_callback(self, cb: GuiCallback, arg: Any):        
-        if cb is GuiCallback.CONNECT_STATE:
-            if arg is False:
-                self.connect_state_timer.start()
+    def apply_callback(self, cb: GuiCallback, arg: Any):
+        if cb is GuiCallback.COMMUNICATION_STATE:
+            if arg is True:
+                self.set_communication_state(True)
+                self.comm_state_timer.stop()
+            else:
+                if not self.comm_state_timer.isActive():
+                    self.comm_state_timer.start()
+                
+        elif cb is GuiCallback.MIDI_CONNECT_STATE:
+            self.set_midi_connect_state(arg)
 
         elif cb is GuiCallback.DATA_ERROR:
             function_code: FunctionCode = arg
@@ -485,34 +519,22 @@ class MainWindow(QMainWindow):
             self._fill_pedal2(pedal2_type)
     
     @Slot()
-    def _ask_connection(self):
-        if self.voxou.connect_state is ConnectState.CONNECTED:
+    def _comm_timer_timeout(self):
+        self.set_communication_state(False)
+
+    @Slot()
+    def _start_communication(self):
+        if self.voxou.communication_state is True:
             self.connection_timer.stop()
+            self.ui.labelConnected.setText(
+                _translate('main_win', 'Communication OK'))
             return
         
-        self.voxou.ask_connection()
+        self.voxou.start_communication()
             
     @Slot()
     def _refresh_all(self):
-        self.voxou.ask_connection()
-
-    @Slot()
-    def _set_delayed_connect_state(self):
-        connected = self.voxou.connect_state is ConnectState.CONNECTED
-
-        if connected:
-            self.ui.labelConnected.setText(
-                _translate('main_win', 'Connected'))
-            self.ui.labelConnected.setStyleSheet(
-                'QLabel{color: green}')
-        else:
-            self.ui.labelConnected.setText(
-                _translate('main_win', 'Not Connected'))
-            self.ui.labelConnected.setStyleSheet(
-                'QLabel{color: red}')
-            
-            if not self.connection_timer.isActive():
-                self.connection_timer.start()
+        self.voxou.start_communication()
             
     @Slot(str)
     def _set_program_name(self, text: str):
@@ -567,13 +589,12 @@ class MainWindow(QMainWindow):
 
 
 if __name__ == '__main__':
-    voxou = Voxou()
-    
     app = QApplication(sys.argv)
     
     # force Fusion style because of param widgets
     app.setStyle(QStyleFactory.create('Fusion'))
 
+    voxou = Voxou()
     main_win = MainWindow(voxou)
 
     signal.signal(signal.SIGINT, signal_handler)

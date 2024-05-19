@@ -2,9 +2,10 @@ from enum import IntEnum, Enum
 import logging
 from pathlib import Path
 import time
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
 import json
 
+from midi_enums import MidiConnectState
 from effects import (
     DummyParam, EffParam, EffectOnOff, Pedal1Type,
     AmpModel, AmpParam, Pedal2Type, ReverbType,
@@ -17,12 +18,13 @@ _logger = logging.getLogger(__name__)
 
 class GuiCallback(Enum):
     DATA_ERROR = -1
-    CONNECT_STATE = 0
-    CURRENT_CHANGED = 1
-    PARAM_CHANGED = 2
-    MODE_CHANGED = 3
-    USER_BANKS_READ = 4
-    FACTORY_BANKS_READ = 5
+    COMMUNICATION_STATE = 0
+    MIDI_CONNECT_STATE = 1
+    CURRENT_CHANGED = 2
+    PARAM_CHANGED = 3
+    MODE_CHANGED = 4
+    USER_BANKS_READ = 5
+    FACTORY_BANKS_READ = 6
 
 
 class FunctionCode(IntEnum):
@@ -70,18 +72,36 @@ class Voxou:
         self.voxmode = VoxMode.PRESET
         self.prog_num = 0
         self.connect_state = ConnectState.DISCONNECTED
+        self.communication_state = False
         
         self._last_sent_message = tuple[FunctionCode, tuple[int]]()
-        
+        self._midi_connect_state = MidiConnectState.ABSENT_DEVICE
+
         self._midi_out_func: Optional[Callable] = None
         self._gui_cb: Optional[Callable] = None
 
-    def set_gui_cb(self, cb: Callable):
+    def set_gui_cb(self, cb: Callable[[FunctionCode, Any], None]):
         self._gui_cb = cb
     
     def set_midi_out_func(self, midi_out_func: Callable):
         self._midi_out_func = midi_out_func
-    
+
+    def set_communication_state(self, comm_state: bool):
+        self.communication_state = comm_state
+        self._send_cb(GuiCallback.COMMUNICATION_STATE, comm_state)
+
+    def set_midi_connect_state(self, connect_state: MidiConnectState):
+        if (self.communication_state
+                and self._midi_connect_state is MidiConnectState.CONNECTED
+                and connect_state is not MidiConnectState.CONNECTED):
+            # device was midi connected and communication working
+            # let's try now if everything is still working
+            # (very probably not !).
+            self._send_vox(FunctionCode.MODE_REQUEST)
+             
+        self._midi_connect_state = connect_state
+        self._send_cb(GuiCallback.MIDI_CONNECT_STATE, connect_state)
+
     def _send_vox(self, function_code: FunctionCode, *args):
         self._last_sent_message = (function_code, args)
 
@@ -92,20 +112,14 @@ class Voxou:
 
         self._midi_out_func(
             SYSEX_BEGIN + [function_code.value] + list(args) + [247])
-        # self.send('/sysex', *(SYSEX_BEGIN + [function_code.value]
-        #                       + list(args) + [247]))
 
-        self.connect_state = ConnectState.CHECKING
-        self._send_cb(GuiCallback.CONNECT_STATE, False)
+        self.set_communication_state(False)
     
     def _send_cb(self, gui_callback: GuiCallback, arg=None):
         if self._gui_cb:
             self._gui_cb(gui_callback, arg)
     
-    def ask_connection(self):
-        while self._midi_out_func is None:
-            time.sleep(0.010)
-        
+    def start_communication(self):
         self._send_vox(FunctionCode.MODE_REQUEST)
         
         for bank_n in range(8):
@@ -126,7 +140,7 @@ class Voxou:
             self._send_vox(
                 FunctionCode.CUSTOM_AMPFX_DATA_DUMP_REQUEST, 0, user_preset_n)
 
-    def rototo(self, args: list[int]):
+    def receive_sysex(self, args: list[int]):
         shargs = args
         
         if len(shargs) < 6:
@@ -160,10 +174,8 @@ class Voxou:
             orig_func_code = self._last_sent_message[0]
             _logger.warning(f'last sent message is {orig_func_code.name}')
             self._send_cb(GuiCallback.DATA_ERROR, orig_func_code)
-        
-        self.connect_state = ConnectState.CONNECTED
-        # send connect state OK to gui
-        self._send_cb(GuiCallback.CONNECT_STATE, True)
+
+        self.set_communication_state(True)
         
         if function_code is FunctionCode.CURRENT_PROGRAM_DATA_DUMP:
             try:

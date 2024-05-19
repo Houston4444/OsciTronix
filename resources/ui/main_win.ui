@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Tronix Hammer</string>
+   <string>OsciTronix</string>
   </property>
   <property name="styleSheet">
    <string notr="true"/>
@@ -347,17 +347,31 @@ QProgressBar::chunck {background-color: #888888;}</string>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_6">
           <item>
-           <widget class="QLabel" name="labelConnected">
-            <property name="styleSheet">
-             <string notr="true">QLabel{color:red}</string>
-            </property>
-            <property name="text">
-             <string>Not Connected</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
+           <layout class="QVBoxLayout" name="verticalLayout_5">
+            <item>
+             <widget class="QLabel" name="labelConnected">
+              <property name="styleSheet">
+               <string notr="true">QLabel{color:red}</string>
+              </property>
+              <property name="text">
+               <string>Communication failure</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="labelMidiConnectState">
+              <property name="text">
+               <string>Absent device</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
            <widget class="QToolButton" name="toolButtonRefresh">
@@ -366,7 +380,7 @@ QProgressBar::chunck {background-color: #888888;}</string>
             </property>
             <property name="icon">
              <iconset theme="view-refresh">
-              <normaloff>.</normaloff>.</iconset>
+              <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
             </property>
            </widget>
           </item>
@@ -426,7 +440,8 @@ QProgressBar::chunck {background-color: #888888;}</string>
                 <string>...</string>
                </property>
                <property name="icon">
-                <iconset theme="document-save-as"/>
+                <iconset theme="document-save-as">
+                 <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
                </property>
               </widget>
              </item>
@@ -439,7 +454,8 @@ QProgressBar::chunck {background-color: #888888;}</string>
                 <string>...</string>
                </property>
                <property name="icon">
-                <iconset theme="cloud-upload"/>
+                <iconset theme="cloud-upload">
+                 <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
                </property>
                <property name="popupMode">
                 <enum>QToolButton::InstantPopup</enum>
