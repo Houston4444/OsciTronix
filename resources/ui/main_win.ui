@@ -985,7 +985,106 @@ QGroupBox::title {
      <height>30</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionSaveCurrentProgram"/>
+    <addaction name="actionSaveCompleteAmp"/>
+    <addaction name="actionLoadProgram"/>
+    <addaction name="actionLoadCompleteAmp"/>
+    <addaction name="actionQuit"/>
+   </widget>
+   <widget class="QMenu" name="menuAbout">
+    <property name="title">
+     <string>About</string>
+    </property>
+    <addaction name="actionAboutQt"/>
+    <addaction name="actionAboutOsciTronix"/>
+   </widget>
+   <widget class="QMenu" name="menuAmp">
+    <property name="title">
+     <string>Amp</string>
+    </property>
+    <addaction name="actionSaveCurrentProgramToUserBank"/>
+    <addaction name="actionSaveCurrentProgramToUserAmpfx"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuAmp"/>
+   <addaction name="menuAbout"/>
   </widget>
+  <action name="actionSaveCurrentProgram">
+   <property name="icon">
+    <iconset theme="document-save"/>
+   </property>
+   <property name="text">
+    <string>Save current program</string>
+   </property>
+  </action>
+  <action name="actionSaveCompleteAmp">
+   <property name="icon">
+    <iconset theme="document-save"/>
+   </property>
+   <property name="text">
+    <string>Save complete amp</string>
+   </property>
+  </action>
+  <action name="actionLoadProgram">
+   <property name="icon">
+    <iconset theme="document-open"/>
+   </property>
+   <property name="text">
+    <string>Load program</string>
+   </property>
+  </action>
+  <action name="actionLoadCompleteAmp">
+   <property name="icon">
+    <iconset theme="document-open"/>
+   </property>
+   <property name="text">
+    <string>Load complete amp</string>
+   </property>
+  </action>
+  <action name="actionAboutQt">
+   <property name="icon">
+    <iconset theme="qtlogo"/>
+   </property>
+   <property name="text">
+    <string>About Qt</string>
+   </property>
+  </action>
+  <action name="actionAboutOsciTronix">
+   <property name="icon">
+    <iconset theme="oscitronix"/>
+   </property>
+   <property name="text">
+    <string>About OsciTronix</string>
+   </property>
+  </action>
+  <action name="actionQuit">
+   <property name="icon">
+    <iconset theme="application-exit"/>
+   </property>
+   <property name="text">
+    <string>Quit</string>
+   </property>
+  </action>
+  <action name="actionSaveCurrentProgramToUserBank">
+   <property name="icon">
+    <iconset theme="cloud-upload"/>
+   </property>
+   <property name="text">
+    <string>Save current program to user bank</string>
+   </property>
+  </action>
+  <action name="actionSaveCurrentProgramToUserAmpfx">
+   <property name="icon">
+    <iconset theme="cloud-upload"/>
+   </property>
+   <property name="text">
+    <string>Save current program to user ampfx</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

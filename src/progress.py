@@ -245,10 +245,12 @@ class ParamProgressBar(QProgressBar):
 
             elif self._label_suffix == ' Hz':
                 self.setFormat(
-                    f'{self._label_prefix}%.3f{self._label_suffix}' % (self._real_value * 0.001))
+                    f'{self._label_prefix}%.3f{self._label_suffix}'
+                    % (self._real_value * 0.001))
             else:
                 self.setFormat(
-                    f'{self._label_prefix}{int(self._real_value)}{self._label_suffix}')
+                    f'{self._label_prefix}{int(self._real_value)}'
+                    f'{self._label_suffix}')
 
         else:
             self.setFormat(
