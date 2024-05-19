@@ -134,7 +134,7 @@ class VoxProgram:
         self.active_effects[EffectOnOff.REVERB] = int(bool(
             effect_status & EffectStatus.REVERB_ON))
     
-    def read_data(self, shargs: list[int]):
+    def data_read(self, shargs: list[int]):
         unused = shargs.pop(0)
         pname_intor, shargs = shargs[:18], shargs[18:]
         pname_int = pname_intor[:7] + pname_intor[8:15] + pname_intor[16:18]
@@ -219,6 +219,12 @@ class VoxProgram:
         
         # program name
         name_ints = [ord(c) for c in self.program_name]
+        
+        if len(name_ints) > 16:
+            name_ints = name_ints[:16]
+        while len(name_ints) < 16:
+            name_ints.append(ord(' '))
+        
         name_ints.insert(7, 0)
         name_ints.insert(15, 0)
         out += name_ints

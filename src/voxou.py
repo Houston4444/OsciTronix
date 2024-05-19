@@ -179,7 +179,7 @@ class Voxou:
         
         if function_code is FunctionCode.CURRENT_PROGRAM_DATA_DUMP:
             try:
-                self.current_program.read_data(shargs)
+                self.current_program.data_read(shargs)
             except BaseException as e:
                 _logger.error(
                     f'Failed to read current program data.\n{str(e)}')
@@ -200,12 +200,12 @@ class Voxou:
 
             try:
                 if vox_mode is VoxMode.USER:
-                    self.programs[prog_num].read_data(shargs)
+                    self.programs[prog_num].data_read(shargs)
                     if prog_num == 7:
                         self._send_cb(GuiCallback.USER_BANKS_READ)
                     
                 elif vox_mode is VoxMode.PRESET:
-                    self.factory_programs[prog_num].read_data(shargs)
+                    self.factory_programs[prog_num].data_read(shargs)
                     if prog_num == 59:
                         self._send_cb(GuiCallback.FACTORY_BANKS_READ)
 
@@ -419,8 +419,7 @@ class Voxou:
                     f"bank num :{bank_num}")
                 
             self.programs[bank_num] = self.current_program.copy()
-            
-    
+
     @staticmethod
     def _rail_value(param: EffParam, value: int) -> int:
         mini, maxi, unit = param.range_unit()
@@ -582,7 +581,7 @@ class Voxou:
             VoxMode.USER.value,
             bank_num,
             *self.current_program.data_write())
-        self.factory_programs[bank_num] = self.current_program.copy()
+        self.programs[bank_num] = self.current_program.copy()
 
     def upload_current_to_user_ampfx(self, ampfx_num: int):
         self._send_vox(
