@@ -200,6 +200,7 @@ class MainWindow(QMainWindow):
         
         self.comm_state_timer = QTimer()
         self.comm_state_timer.setInterval(100)
+        self.comm_state_timer.setSingleShot(True)
         self.comm_state_timer.timeout.connect(self._comm_timer_timeout)
         
         self.connection_timer = QTimer()
@@ -521,6 +522,8 @@ class MainWindow(QMainWindow):
     @Slot()
     def _comm_timer_timeout(self):
         self.set_communication_state(False)
+        if not self.connection_timer.isActive():
+            self.connection_timer.start()
 
     @Slot()
     def _start_communication(self):

@@ -221,7 +221,7 @@ class MidiClient:
                         and data['connect.dest.client'] == self._vtronix_client_id
                         and data['connect.dest.port'] == self._vtronix_port_id):
                     if self._midi_connect_state is MidiConnectState.OUTPUT_ONLY:
-                        self.set_midi_connect_state(MidiConnectState.CONNECTED)
+                        self.set_midi_connect_state(MidiConnectState.DISCONNECTED)
                     elif self._midi_connect_state is MidiConnectState.CONNECTED:
                         self.set_midi_connect_state(MidiConnectState.INPUT_ONLY)
 
