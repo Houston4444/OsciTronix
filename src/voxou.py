@@ -401,6 +401,25 @@ class Voxou:
                 return
                 
             self.user_ampfxs[ampfx_num].ampfx_data_read(shargs)
+            
+        elif function_code is FunctionCode.WRITE_COMPLETED:
+            if len(shargs) < 2:
+                _logger.critical(
+                    f"Received {function_code.name} with too short message")
+                return
+            
+            reserved = shargs.pop(0)
+            bank_num = shargs.pop(0)
+            
+            try:
+                assert(0 <= bank_num <= 7)
+            except:
+                _logger.critical(
+                    f"Received {function_code.name} with wrong "
+                    f"bank num :{bank_num}")
+                
+            self.programs[bank_num] = self.current_program.copy()
+            
     
     @staticmethod
     def _rail_value(param: EffParam, value: int) -> int:
