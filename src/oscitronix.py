@@ -2,6 +2,7 @@ import signal
 import sys
 from enum import Enum
 from typing import Any
+import threading
 
 from qtpy.QtWidgets import (
     QApplication, QMainWindow, QFileDialog,
@@ -9,19 +10,19 @@ from qtpy.QtWidgets import (
     QMessageBox, QStyleFactory)
 from qtpy.QtGui import QIcon
 from qtpy.QtCore import QTimer, Slot, Signal
-import threading
-from midi_enums import MidiConnectState
 
 import xdg
 import midi_client
+from midi_enums import MidiConnectState
 from effects import (
     AmpModel, AmpParam, BankName, DummyParam, EffParam,
     EffectOnOff, Pedal1Type, Pedal2Type,
     ReverbParam, ReverbType, VoxIndex, VoxMode)
 from voxou import FunctionCode, GuiCallback, VoxProgram, Voxou
+from progress import ParamProgressBar
+from about_dialog import AboutDialog
 
 from ui.main_win import Ui_MainWindow
-from progress import ParamProgressBar
 
 
 _translate = QApplication.translate
@@ -198,6 +199,10 @@ class MainWindow(QMainWindow):
         self.callback_sig.connect(self.apply_callback)
         
         self.ui.toolButtonRefresh.clicked.connect(self._refresh_all)
+        
+        self.ui.actionAboutOsciTronix.triggered.connect(
+            self._about_oscitronix)
+        self.ui.actionAboutQt.triggered.connect(QApplication.aboutQt)
         
         self.comm_state_timer = QTimer()
         self.comm_state_timer.setInterval(100)
@@ -590,6 +595,11 @@ class MainWindow(QMainWindow):
     def _upload_to_user_ampfx(self):
         user_num: int = self.sender().data()
         self.voxou.upload_current_to_user_ampfx(user_num)
+
+    @Slot()
+    def _about_oscitronix(self):
+        dialog = AboutDialog(self)
+        dialog.show()
 
 
 if __name__ == '__main__':

@@ -990,9 +990,13 @@ QGroupBox::title {
      <string>File</string>
     </property>
     <addaction name="actionSaveCurrentProgram"/>
+    <addaction name="actionSave8ProgramsSetup"/>
     <addaction name="actionSaveCompleteAmp"/>
+    <addaction name="separator"/>
     <addaction name="actionLoadProgram"/>
+    <addaction name="actionLoad8ProgramsSetup"/>
     <addaction name="actionLoadCompleteAmp"/>
+    <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
@@ -1015,7 +1019,8 @@ QGroupBox::title {
   </widget>
   <action name="actionSaveCurrentProgram">
    <property name="icon">
-    <iconset theme="document-save"/>
+    <iconset theme="document-save">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Save current program</string>
@@ -1023,7 +1028,8 @@ QGroupBox::title {
   </action>
   <action name="actionSaveCompleteAmp">
    <property name="icon">
-    <iconset theme="document-save"/>
+    <iconset theme="document-save">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Save complete amp</string>
@@ -1031,7 +1037,8 @@ QGroupBox::title {
   </action>
   <action name="actionLoadProgram">
    <property name="icon">
-    <iconset theme="document-open"/>
+    <iconset theme="document-open">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Load program</string>
@@ -1039,7 +1046,8 @@ QGroupBox::title {
   </action>
   <action name="actionLoadCompleteAmp">
    <property name="icon">
-    <iconset theme="document-open"/>
+    <iconset theme="document-open">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Load complete amp</string>
@@ -1047,7 +1055,8 @@ QGroupBox::title {
   </action>
   <action name="actionAboutQt">
    <property name="icon">
-    <iconset theme="qtlogo"/>
+    <iconset theme="qtlogo">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>About Qt</string>
@@ -1055,7 +1064,8 @@ QGroupBox::title {
   </action>
   <action name="actionAboutOsciTronix">
    <property name="icon">
-    <iconset theme="oscitronix"/>
+    <iconset theme="oscitronix">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>About OsciTronix</string>
@@ -1063,7 +1073,8 @@ QGroupBox::title {
   </action>
   <action name="actionQuit">
    <property name="icon">
-    <iconset theme="application-exit"/>
+    <iconset theme="application-exit">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Quit</string>
@@ -1071,7 +1082,8 @@ QGroupBox::title {
   </action>
   <action name="actionSaveCurrentProgramToUserBank">
    <property name="icon">
-    <iconset theme="cloud-upload"/>
+    <iconset theme="cloud-upload">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Save current program to user bank</string>
@@ -1079,10 +1091,27 @@ QGroupBox::title {
   </action>
   <action name="actionSaveCurrentProgramToUserAmpfx">
    <property name="icon">
-    <iconset theme="cloud-upload"/>
+    <iconset theme="cloud-upload">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Save current program to user ampfx</string>
+   </property>
+  </action>
+  <action name="actionSave8ProgramsSetup">
+   <property name="icon">
+    <iconset theme="document-save"/>
+   </property>
+   <property name="text">
+    <string>Save an 8 programs setup</string>
+   </property>
+  </action>
+  <action name="actionLoad8ProgramsSetup">
+   <property name="icon">
+    <iconset theme="document-open"/>
+   </property>
+   <property name="text">
+    <string>Load an 8 programs setup</string>
    </property>
   </action>
  </widget>

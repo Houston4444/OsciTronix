@@ -29,9 +29,10 @@ RES: src/resources_rc.py
 src/resources_rc.py: resources/resources.qrc
 	$(PYRCC) $< -o $@
 
-UI: tronix_hammer
+UI: oscitronix
 
-tronix_hammer: src/ui/main_win.py
+oscitronix: src/ui/main_win.py \
+			src/ui/about_oscitronix.py
 
 src/ui/%.py: resources/ui/%.ui
 	$(PYUIC) $< |sed "s/from PyQt$(QT_VERSION) import/from qtpy import/" > $@

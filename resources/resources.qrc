@@ -1,6 +1,6 @@
  <RCC version="1.0">
     <qresource prefix="/">
-        <file>vox512d.jpg</file>
+        <file>main_icon/128x128/oscitronix.png</file>
         <file>transparent.png</file>
     </qresource>
 </RCC>
