@@ -1,6 +1,7 @@
 from enum import IntEnum, Enum
 import logging
 from pathlib import Path
+from pyclbr import Function
 import time
 from typing import Any, Callable, Optional
 import json
@@ -95,7 +96,7 @@ class Voxou:
         self._midi_connect_state = connect_state
         self._send_cb(GuiCallback.MIDI_CONNECT_STATE, connect_state)
 
-    def _send_vox(self, function_code: FunctionCode, *args):
+    def _send_vox(self, function_code: FunctionCode, *args: tuple[int]):
         self._last_sent_message = (function_code, args)
 
         if self._midi_out_func is None:
@@ -553,21 +554,6 @@ class Voxou:
         self.prog_num = bank_num
         self._send_cb(GuiCallback.CURRENT_CHANGED, self.current_program)
 
-    # file managing
-    def save_all_amp(self, filepath: Path):
-        full_dict = {}
-        full_dict['banks'] = [p.to_json_dict() for p in self.programs]
-        full_dict['ampfxs'] = [p.to_json_dict(for_ampfx=True)
-                               for p in self.user_ampfxs]
-        
-        try:
-            with open(filepath, 'w') as f:
-                json.dump(full_dict, f, indent=2)
-
-        except BaseException as e:
-            _logger.error(f"Failed to save json file {filepath}"
-                          f"{str(e)}")
-
     def upload_current_to_user_program(self, bank_num: int):
         self._send_vox(
             FunctionCode.PROGRAM_DATA_DUMP,
@@ -584,3 +570,124 @@ class Voxou:
             *self.current_program.ampfx_data_write())
 
         self.user_ampfxs[ampfx_num] = self.current_program.copy()
+        
+    # file managing
+    def save_current_program_to_disk(self, filepath: Path):
+        try:
+            with open(filepath, 'w') as f:
+                json.dump(self.current_program.to_json_dict(), f, indent=2)
+        except BaseException as e:
+            _logger.error(f"Failed to save json file {filepath}"
+                          f"{str(e)}")
+    
+    def load_program_from_disk(self, filepath: Path):
+        try:
+            with open(filepath , 'r') as f:
+                program = VoxProgram.from_json_dict(json.load(f))
+        except BaseException as e:
+            _logger.error(f'Failed to load program {filepath}\n{str(e)}')
+            return
+        
+        self._send_vox(
+            FunctionCode.CURRENT_PROGRAM_DATA_DUMP,
+            *program.data_write())
+        self.current_program = program
+    
+    def load_program(self, program: VoxProgram):
+        self._send_vox(
+            FunctionCode.CURRENT_PROGRAM_DATA_DUMP,
+            *program.data_write())
+        self.current_program = program
+    
+    def load_bank(self, in_program: VoxProgram, out_bank_index: int):
+        if not 0 <= out_bank_index <= 7:
+            _logger.error(
+                f'can not load bank to out_bank_index {out_bank_index}')
+            return
+        
+        self._send_vox(
+            FunctionCode.PROGRAM_DATA_DUMP,
+            VoxMode.USER.value,
+            out_bank_index,
+            *in_program.data_write())
+        
+        self.programs[out_bank_index] = in_program.copy()
+    
+    def load_ampfx(self, in_program: VoxProgram, out_ampfx_index: int):
+        if not 0 <= out_ampfx_index <= 3:
+            _logger.error(
+                f'can not load ampfx to ampfx index {out_ampfx_index}')
+            return
+        self._send_vox(
+            FunctionCode.CUSTOM_AMPFX_DATA_DUMP,
+            0,
+            out_ampfx_index,
+            *in_program.ampfx_data_write())
+        
+        self.user_ampfxs[out_ampfx_index] = in_program.copy()
+    
+    def save_all_amp(self, filepath: Path, with_ampfxs=True):
+        full_dict = {}
+        full_dict['banks'] = [p.to_json_dict() for p in self.programs]
+        if with_ampfxs:
+            full_dict['ampfxs'] = [p.to_json_dict(for_ampfx=True)
+                                   for p in self.user_ampfxs]
+
+        try:
+            with open(filepath, 'w') as f:
+                json.dump(full_dict, f, indent=2)
+
+        except BaseException as e:
+            _logger.error(f"Failed to save json file {filepath}"
+                          f"{str(e)}")
+            
+    def load_full_amp(self, filepath: Path, with_ampfxs=True) -> False:
+        try:
+            with open(filepath, 'r') as f:
+                full_dict = json.load(f)
+        except BaseException as e:
+            _logger.error(
+                f'Failed to load full amp file {filepath}\n{str(e)}')
+            return False
+        
+        if not isinstance(full_dict, dict):
+            return False
+        
+        banks_dict = full_dict.get('banks')
+        if not isinstance(banks_dict, list):
+            return False
+
+        for bank_num in range(len(banks_dict)):
+            if bank_num > 7:
+                break
+            
+            program = VoxProgram.from_json_dict(banks_dict[bank_num])
+            
+            self._send_vox(
+                FunctionCode.PROGRAM_DATA_DUMP,
+                VoxMode.USER.value,
+                bank_num,
+                *program.data_write())
+            
+            self.programs[bank_num] = program
+            
+        if not with_ampfxs:
+            return True
+        
+        ampfxs_dict = full_dict.get('ampfxs')
+        if not isinstance(ampfxs_dict, list):
+            return False
+        
+        for ampfx_n in range(len(ampfxs_dict)):
+            if ampfx_n > 3:
+                break
+            
+            program = VoxProgram.from_json_dict(ampfxs_dict[ampfx_n])
+            
+            self._send_vox(
+                FunctionCode.CUSTOM_AMPFX_DATA_DUMP,
+                0,
+                ampfx_n,
+                *program.ampfx_data_write())
+            
+            self.user_ampfxs[ampfx_n] = program

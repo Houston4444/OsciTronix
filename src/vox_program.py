@@ -56,9 +56,11 @@ class VoxProgram:
         
         dae = {}
         for eff_onff, value in self.active_effects.items():
+            if eff_onff is EffectOnOff.AMP:
+                continue
             dae[eff_onff.name] = value
         d['active_effects'] = dae
-        
+
         d['amp_model'] = self.amp_model.name
         
         dam = {}
@@ -100,8 +102,8 @@ class VoxProgram:
                 p.amp_params[amp_param] = int(d['amp_params'][amp_param.name])
 
             p.pedal1_type = Pedal1Type[d['pedal1_type']]
-            p.pedal2_type = Pedal2Type(d['pedal2_type'])
-            p.reverb_type = ReverbType(d['reverb_type'])
+            p.pedal2_type = Pedal2Type[d['pedal2_type']]
+            p.reverb_type = ReverbType[d['reverb_type']]
             
             for i in range(6):
                 p.pedal1_values[i] = int(d['pedal1_values'][i])

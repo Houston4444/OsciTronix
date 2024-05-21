@@ -6,6 +6,7 @@ from qtpy.QtWidgets import (
     QCheckBox, QComboBox, QGroupBox, QMenu,
     QMessageBox)
 from qtpy.QtCore import QTimer, Slot, Signal
+from amp_import_dialog import FullAmpImportDialog
 
 import xdg
 from midi_enums import MidiConnectState
@@ -194,6 +195,17 @@ class MainWindow(QMainWindow):
         self.ui.actionAboutOsciTronix.triggered.connect(
             self._about_oscitronix)
         self.ui.actionAboutQt.triggered.connect(QApplication.aboutQt)
+        
+        # manage saving paths
+        self.data_path = xdg.xdg_data_home() / 'OsciTronix'
+        self.ui.actionSaveCurrentProgram.triggered.connect(
+            self._save_current_program_to_disk)
+        self.ui.actionLoadProgram.triggered.connect(
+            self._load_program_from_disk)
+        self.ui.actionSaveCompleteAmp.triggered.connect(
+            self._save_full_amp)
+        self.ui.actionLoadCompleteAmp.triggered.connect(
+            self._load_full_amp)
         
         self.comm_state_timer = QTimer()
         self.comm_state_timer.setInterval(100)
@@ -557,25 +569,75 @@ class MainWindow(QMainWindow):
             self.voxou.set_user_bank_num(index)
     
     @Slot()
-    def _save_all_amp(self):
-        default_path = xdg.xdg_data_home() / 'OsciTronix' / 'full_amps'
+    def _save_current_program_to_disk(self):
+        default_path = self.data_path / 'programs'
         default_path.mkdir(parents=True, exist_ok=True)
         
-        base = 'vox_program'
+        base = self.voxou.current_program.program_name
         default_file_path = default_path / f'{base}.json'
         if default_file_path.exists():
             num = 2
             while default_file_path.exists():
-                default_file_path = default_path / f"{base}{num}.json"
+                default_file_path = default_path / f"{base} ({num}).json"
+                num += 1
+                
+        filepath, filter = QFileDialog.getSaveFileName(
+            self, _translate('main_win', 'Save your program...'),
+            str(default_file_path),
+            _translate('main_win', 'JSON files (*.json)'))
+        
+        if filepath:
+            self.voxou.save_current_program_to_disk(filepath)
+    
+    @Slot()
+    def _load_program_from_disk(self):
+        default_path = self.data_path / 'programs'
+        default_path.mkdir(parents=True, exist_ok=True)
+        
+        filepath, filter = QFileDialog.getOpenFileName(
+            self, _translate('main_win', 'Save your program...'),
+            str(default_path),
+            _translate('main_win', 'JSON files (*.json)'))
+        
+        if filepath:
+            self.voxou.load_program_from_disk(filepath)
+    
+    @Slot()
+    def _save_full_amp(self):
+        default_path = self.data_path / 'full_amps'
+        default_path.mkdir(parents=True, exist_ok=True)
+        
+        base = _translate('main_win', 'my_amp')
+        default_file_path = default_path / f'{base}.json'
+        if default_file_path.exists():
+            num = 2
+            while default_file_path.exists():
+                default_file_path = default_path / f"{base} ({num}).json"
                 num += 1
 
         filepath, filter = QFileDialog.getSaveFileName(
-            self, _translate('main_win', 'user_programs destination'),
+            self, _translate('main_win', 'full amp destination'),
             str(default_file_path),
             _translate('main_win', 'JSON files (*.json)'))
 
         if filepath:
             self.voxou.save_all_amp(filepath)
+    
+    @Slot()
+    def _load_full_amp(self):
+        dialog = FullAmpImportDialog(self, self.voxou)
+        dialog.exec()
+        
+        # default_path = self.data_path / 'full_amps'
+        # default_path.mkdir(parents=True, exist_ok=True)
+        
+        # filepath, filter = QFileDialog.getOpenFileName(
+        #     self, _translate('main_win', 'load full amp'),
+        #     str(default_path),
+        #     _translate('main_win', 'JSON files (*.json)'))
+        
+        # if filepath:
+        #     self.voxou.load_full_amp(filepath, with_ampfxs=True)
     
     @Slot()
     def _upload_to_user_program(self):

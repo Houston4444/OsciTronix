@@ -32,7 +32,8 @@ src/resources_rc.py: resources/resources.qrc
 UI: oscitronix
 
 oscitronix: src/ui/main_win.py \
-			src/ui/about_oscitronix.py
+			src/ui/about_oscitronix.py \
+			src/ui/full_amp_import.py
 
 src/ui/%.py: resources/ui/%.ui
 	$(PYUIC) $< |sed "s/from PyQt$(QT_VERSION) import/from qtpy import/" > $@
