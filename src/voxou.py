@@ -67,22 +67,23 @@ class Voxou:
         self.voxmode = VoxMode.PRESET
         self.prog_num = 0
         self.communication_state = False
+        self._send_count = 0
         
         self._last_sent_message = tuple[FunctionCode, tuple[int]]()
         self._midi_connect_state = MidiConnectState.ABSENT_DEVICE
 
         self._midi_out_func: Optional[Callable] = None
         self._gui_cb: Optional[Callable] = None
+        self._ready_cbs = set[Callable]()
 
     def set_gui_cb(self, cb: Callable[[FunctionCode, Any], None]):
         self._gui_cb = cb
     
+    def set_a_ready_cb(self, cb: Callable):
+        self._ready_cbs.add(cb)
+    
     def set_midi_out_func(self, midi_out_func: Callable):
         self._midi_out_func = midi_out_func
-
-    def set_communication_state(self, comm_state: bool):
-        self.communication_state = comm_state
-        self._send_cb(GuiCallback.COMMUNICATION_STATE, comm_state)
 
     def set_midi_connect_state(self, connect_state: MidiConnectState):
         if (self.communication_state
@@ -96,6 +97,19 @@ class Voxou:
         self._midi_connect_state = connect_state
         self._send_cb(GuiCallback.MIDI_CONNECT_STATE, connect_state)
 
+    def _set_communication_state(self, comm_state: bool):
+        self.communication_state = comm_state
+        self._send_cb(GuiCallback.COMMUNICATION_STATE, comm_state)
+        
+        if comm_state:
+            self._send_count += 1
+        else:
+            self._send_count -= 1
+        
+        if self._send_count == 0:
+            for ready_cb in self._ready_cbs:
+                ready_cb()
+
     def _send_vox(self, function_code: FunctionCode, *args: tuple[int]):
         self._last_sent_message = (function_code, args)
 
@@ -107,13 +121,14 @@ class Voxou:
         self._midi_out_func(
             SYSEX_BEGIN + [function_code.value] + list(args) + [247])
 
-        self.set_communication_state(False)
+        self._set_communication_state(False)
     
     def _send_cb(self, gui_callback: GuiCallback, arg=None):
         if self._gui_cb:
             self._gui_cb(gui_callback, arg)
     
     def start_communication(self):
+        self._send_count = 0
         self._send_vox(FunctionCode.MODE_REQUEST)
         
         for bank_n in range(8):
@@ -169,7 +184,7 @@ class Voxou:
             _logger.warning(f'last sent message is {orig_func_code.name}')
             self._send_cb(GuiCallback.DATA_ERROR, orig_func_code)
 
-        self.set_communication_state(True)
+        self._set_communication_state(True)
         
         if function_code is FunctionCode.CURRENT_PROGRAM_DATA_DUMP:
             try:

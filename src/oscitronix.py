@@ -42,6 +42,7 @@ if __name__ == '__main__':
     if nsm_osci.is_under_nsm():
         QApplication.setQuitOnLastWindowClosed(False)
         nsm_osci.set_main_win(main_win)
+        nsm_osci.set_voxou(voxou)
         nsm_thread = threading.Thread(target=nsm_osci.run_loop)
         nsm_thread.start()
     else:
