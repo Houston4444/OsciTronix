@@ -49,5 +49,5 @@ if __name__ == '__main__':
 
     app.exec()
 
-    midi_client.stop()
-    nsm_osci.stop()
+    midi_client.stop_loop()
+    nsm_osci.stop_loop()

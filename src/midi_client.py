@@ -288,7 +288,7 @@ def init(voxou: Voxou):
 def restart(new_name: str):
     midi_client.restart(new_name)
 
-def stop():
+def stop_loop():
     midi_client.stopping = True
 
 def run_loop():
