@@ -209,6 +209,11 @@ class MainWindow(QMainWindow):
             self._save_full_amp)
         self.ui.actionLoadCompleteAmp.triggered.connect(
             self._load_full_amp)
+        self.ui.actionQuit.triggered.connect(QApplication.quit)
+        self.ui.actionHide.triggered.connect(self.hide)
+        
+        # visible only under NSM
+        self.ui.actionHide.setVisible(False)
         
         self.comm_state_timer = QTimer()
         self.comm_state_timer.setInterval(100)
@@ -227,6 +232,9 @@ class MainWindow(QMainWindow):
     
     def set_nsm_visible_callback(self, nsm_cb: Callable[[bool], None]):
         self._nsm_visible_cb = nsm_cb
+        
+        self.ui.actionQuit.setVisible(False)
+        self.ui.actionHide.setVisible(True)
     
     def set_communication_state(self, state: bool):
         if state:

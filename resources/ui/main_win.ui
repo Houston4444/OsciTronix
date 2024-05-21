@@ -996,6 +996,7 @@ QGroupBox::title {
     <addaction name="actionLoadCompleteAmp"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
+    <addaction name="actionHide"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
@@ -1112,6 +1113,14 @@ QGroupBox::title {
    </property>
    <property name="text">
     <string>Load an 8 programs setup</string>
+   </property>
+  </action>
+  <action name="actionHide">
+   <property name="icon">
+    <iconset theme="hide_table_row"/>
+   </property>
+   <property name="text">
+    <string>Hide</string>
    </property>
   </action>
  </widget>
