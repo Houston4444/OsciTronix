@@ -92,7 +92,8 @@ class VoxProgram:
             p.program_name = str(d['program_name'])
             p.nr_sens = int(d['nr_sens'])
 
-            for effect_on_off in EffectOnOff:
+            for effect_on_off in (EffectOnOff.PEDAL1, EffectOnOff.PEDAL2,
+                                  EffectOnOff.REVERB):
                 p.active_effects[effect_on_off] = \
                     int(d['active_effects'][effect_on_off.name])
 
@@ -140,8 +141,8 @@ class VoxProgram:
         unused = shargs.pop(0)
         pname_intor, shargs = shargs[:18], shargs[18:]
         pname_int = pname_intor[:7] + pname_intor[8:15] + pname_intor[16:18]
-        self.program_name = ''.join([chr(p) for p in pname_int])
-        
+        self.program_name = ''.join([chr(p) for p in pname_int]).strip()
+
         self.nr_sens = shargs.pop(0)
 
         self.set_effect_status(EffectStatus(shargs.pop(0)))        

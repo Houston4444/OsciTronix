@@ -588,16 +588,14 @@ class Voxou:
             _logger.error(f'Failed to load program {filepath}\n{str(e)}')
             return
         
-        self._send_vox(
-            FunctionCode.CURRENT_PROGRAM_DATA_DUMP,
-            *program.data_write())
-        self.current_program = program
+        self.load_program(program)
     
     def load_program(self, program: VoxProgram):
         self._send_vox(
             FunctionCode.CURRENT_PROGRAM_DATA_DUMP,
             *program.data_write())
         self.current_program = program
+        self._send_cb(GuiCallback.CURRENT_CHANGED, self.current_program)
     
     def load_bank(self, in_program: VoxProgram, out_bank_index: int):
         if not 0 <= out_bank_index <= 7:
