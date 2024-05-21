@@ -3,6 +3,7 @@ import time
 from enum import Flag
 
 from pyalsa import alsaseq
+from app_infos import APP_NAME
 
 from voxou import Voxou
 from midi_enums import MidiConnectState
@@ -28,7 +29,7 @@ class MidiClient:
         self._vtronix_client_id = 0
         self._vtronix_port_id = 0
 
-        self.seq = alsaseq.Sequencer(clientname='OsciTronix')
+        self.seq = alsaseq.Sequencer(clientname=APP_NAME)
 
         port_type = (alsaseq.SEQ_PORT_TYPE_MIDI_GENERIC
                      | alsaseq.SEQ_PORT_TYPE_APPLICATION)
@@ -47,6 +48,30 @@ class MidiClient:
         self.voxou: Voxou = None
         self._midi_drain_pending = False
         self._pending_send = False
+
+    def restart(self, new_name: str):
+        if self._midi_connect_state is not MidiConnectState.ABSENT_DEVICE:
+            self.set_midi_connect_state(MidiConnectState.DISCONNECTED)
+
+        del self.seq
+        self.seq = alsaseq.Sequencer(clientname=new_name)
+
+        port_type = (alsaseq.SEQ_PORT_TYPE_MIDI_GENERIC
+                     | alsaseq.SEQ_PORT_TYPE_APPLICATION)
+        port_caps = (alsaseq.SEQ_PORT_CAP_WRITE
+                     | alsaseq.SEQ_PORT_CAP_SUBS_WRITE
+                     | alsaseq.SEQ_PORT_CAP_READ
+                     | alsaseq.SEQ_PORT_CAP_SUBS_READ)
+        self._port_id = self.seq.create_simple_port(
+            "Valvetronix", port_type, port_caps)
+
+        self.seq.connect_ports(
+            (alsaseq.SEQ_CLIENT_SYSTEM, alsaseq.SEQ_PORT_SYSTEM_ANNOUNCE),
+            (self.seq.client_id, self._port_id))
+
+        self._midi_drain_pending = False
+        self._pending_send = False
+        self.startup_vox_check()
 
     def set_voxou(self, voxou: Voxou):
         self.voxou = voxou
@@ -259,6 +284,9 @@ midi_client = MidiClient()
 
 def init(voxou: Voxou):
     midi_client.set_voxou(voxou)
+
+def restart(new_name: str):
+    midi_client.restart(new_name)
 
 def stop():
     midi_client.stopping = True

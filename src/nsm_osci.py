@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Optional
 
 from liblo import Address
 
+import midi_client
 from nsm_client import NsmServer, NsmCallback, Err
 from app_infos import APP_NAME
 
@@ -34,6 +35,7 @@ class NsmObject:
 
 def open_file(project_path: str, session_name: str,
               full_client_id: str) -> tuple[Err, str]:
+    midi_client.restart(full_client_id)
     return (Err.OK, 'open done')
 
 def save_file():
