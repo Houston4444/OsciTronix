@@ -4,7 +4,9 @@ from pathlib import Path
 import json
 
 from qtpy.QtCore import Slot
-from qtpy.QtWidgets import QDialog, QApplication, QDialogButtonBox
+from qtpy.QtWidgets import (
+    QDialog, QApplication, QDialogButtonBox,
+    QFileDialog)   
 from effects import BankName, EffectOnOff
 
 import xdg
@@ -36,10 +38,10 @@ class FullAmpImportDialog(QDialog):
 
         # fill combobox with amp configs found
 
-        full_amps_dir = xdg.xdg_data_home() / APP_NAME / 'full_amps'
+        self.full_amps_dir = xdg.xdg_data_home() / APP_NAME / 'full_amps'
         full_amps = dict[str, Path]()
         
-        for root, dirs, files in os.walk(full_amps_dir):
+        for root, dirs, files in os.walk(self.full_amps_dir):
             for file in files:
                 if file.endswith('.json'):                    
                     full_amps[file.rpartition('.')[0]] = Path(root) / file
@@ -98,6 +100,7 @@ class FullAmpImportDialog(QDialog):
             
         self._full_amp_conf = FullAmpConf()
         
+        self.ui.toolButtonBrowse.clicked.connect(self._browse)
         self.ui.comboBoxAmpConfig.activated.connect(
             self._amp_config_changed)
         self.ui.comboBoxAmpConfig.activated.emit(0)
@@ -115,16 +118,8 @@ class FullAmpImportDialog(QDialog):
         self.ui.labelInvalidFile.setVisible(not valid)
         self.ui.groupBoxMainAction.setEnabled(valid)
 
-    @Slot(int)
-    def _amp_config_changed(self, index: int):
-        file_path = self.ui.comboBoxAmpConfig.currentData()
-        if file_path is None:
-            self.ui.framePathSelector.setEnabled(True)
-            # TODO launch file selector
-            return
-        
+    def _set_full_amp_conf(self, file_path: Path):
         self._set_amp_file_valid(True)
-        self.ui.framePathSelector.setEnabled(False)
         
         try:
             with open(file_path, 'r') as f:
@@ -180,7 +175,33 @@ class FullAmpImportDialog(QDialog):
         self.ui.labelSingleAmp.setText(
             self._full_amp_conf.programs[
                 self.ui.comboBoxSingleFrom.currentIndex()].amp_model.name)
+
+    @Slot(int)
+    def _amp_config_changed(self, index: int):
+        file_path = self.ui.comboBoxAmpConfig.currentData()
+        if file_path is None:
+            self.ui.framePathSelector.setEnabled(True)
+            self.ui.toolButtonBrowse.clicked.emit()
+            return
         
+        self.ui.lineEditPath.setText('')
+        self.ui.framePathSelector.setEnabled(False)
+        self._set_full_amp_conf(file_path)
+    
+    @Slot()
+    def _browse(self):
+        filepath, filter = QFileDialog.getOpenFileName(
+            self,
+            "Select a full amp config file...",
+            str(self.full_amps_dir),
+            _translate('main_win', 'JSON files (*.json)'))
+
+        if not filepath:
+            return
+
+        self.ui.lineEditPath.setText(filepath)
+        self._set_full_amp_conf(Path(filepath))        
+    
     @Slot(int)
     def _ampfx_index_changed(self, index: int):
         p = self._full_amp_conf.user_ampfxs[index]
@@ -211,7 +232,6 @@ class FullAmpImportDialog(QDialog):
     
     @Slot()
     def _apply_import(self):
-        print('go apply import')
         if not self.voxou.communication_state:
             return
         
