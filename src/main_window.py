@@ -1,5 +1,6 @@
 from enum import Enum
-from typing import Any
+from pathlib import Path
+from typing import Any, Callable, Optional
 
 from qtpy.QtWidgets import (
     QApplication, QMainWindow, QFileDialog,
@@ -26,6 +27,8 @@ _translate = QApplication.translate
 
 class MainWindow(QMainWindow):
     callback_sig = Signal(Enum, object)
+    nsm_show = Signal()
+    nsm_hide = Signal()
     
     def __init__(self, voxou: Voxou):
         super().__init__()
@@ -216,6 +219,14 @@ class MainWindow(QMainWindow):
         self.connection_timer.setInterval(200)
         self.connection_timer.timeout.connect(self._start_communication)
         self.connection_timer.start()
+        
+        # for NSM show/hide optional gui
+        self._nsm_visible_cb: Optional[Callable[[bool], None]] = None
+        self.nsm_show.connect(self.show)
+        self.nsm_hide.connect(self.hide)
+    
+    def set_nsm_visible_callback(self, nsm_cb: Callable[[bool], None]):
+        self._nsm_visible_cb = nsm_cb
     
     def set_communication_state(self, state: bool):
         if state:
@@ -587,7 +598,9 @@ class MainWindow(QMainWindow):
             _translate('main_win', 'JSON files (*.json)'))
         
         if filepath:
-            self.voxou.save_current_program_to_disk(filepath)
+            if not filepath.endswith('.json'):
+                filepath += '.json'
+            self.voxou.save_current_program_to_disk(Path(filepath))
     
     @Slot()
     def _load_program_from_disk(self):
@@ -627,17 +640,6 @@ class MainWindow(QMainWindow):
     def _load_full_amp(self):
         dialog = FullAmpImportDialog(self, self.voxou)
         dialog.exec()
-        
-        # default_path = self.data_path / 'full_amps'
-        # default_path.mkdir(parents=True, exist_ok=True)
-        
-        # filepath, filter = QFileDialog.getOpenFileName(
-        #     self, _translate('main_win', 'load full amp'),
-        #     str(default_path),
-        #     _translate('main_win', 'JSON files (*.json)'))
-        
-        # if filepath:
-        #     self.voxou.load_full_amp(filepath, with_ampfxs=True)
     
     @Slot()
     def _upload_to_user_program(self):
@@ -653,3 +655,14 @@ class MainWindow(QMainWindow):
     def _about_oscitronix(self):
         dialog = AboutDialog(self)
         dialog.show()
+
+    # reimplemented functions
+    def showEvent(self, event):
+        super().showEvent(event)
+        if self._nsm_visible_cb is not None:
+            self._nsm_visible_cb(True)
+            
+    def hideEvent(self, event):
+        super().hideEvent(event)
+        if self._nsm_visible_cb is not None:
+            self._nsm_visible_cb(False)

@@ -10,7 +10,7 @@ from qtpy.QtWidgets import (
 from effects import BankName, EffectOnOff
 
 import xdg
-from version import APP_NAME
+from app_infos import APP_NAME
 from vox_program import VoxProgram
 from voxou import Voxou
 
