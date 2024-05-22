@@ -34,13 +34,13 @@ class MainWindow(QMainWindow):
     apply_under_nsm = Signal()
     config_changed = Signal()
     
-    def __init__(self, voxou: Engine):
+    def __init__(self, engine: Engine):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        self.voxou = voxou
-        self.voxou.set_gui_cb(self.engine_callback)
+        self.engine = engine
+        self.engine.set_gui_cb(self.engine_callback)
 
         self.amp_params_widgets = {
             AmpParam.GAIN: self.ui.progressBarGain,
@@ -257,11 +257,11 @@ class MainWindow(QMainWindow):
     @Slot()
     def _config_changed(self):
         self.ui.actionAutoConnectMidi.setChecked(
-            self.voxou.config.auto_connect_device)
+            self.engine.config.auto_connect_device)
         self.ui.actionNsmFree.setChecked(
-            self.voxou.config.nsm_mode is NsmMode.FREE)
+            self.engine.config.nsm_mode is NsmMode.FREE)
         self.ui.actionLoadSavedProgram.setChecked(
-            self.voxou.config.nsm_mode is NsmMode.LOAD_SAVED_PROGRAM)
+            self.engine.config.nsm_mode is NsmMode.LOAD_SAVED_PROGRAM)
     
     def set_communication_state(self, state: bool):
         if state:
@@ -309,21 +309,21 @@ class MainWindow(QMainWindow):
                 self.ui.comboBoxBanksAndPresets.addItem(
                     bank_name.name, bank_name.value)
                 self.ui.comboBoxBanksAndPresets.setCurrentIndex(
-                    self.voxou.prog_num)
+                    self.engine.prog_num)
             self.ui.comboBoxBanksAndPresets.setCurrentIndex(
-                self.voxou.prog_num)
+                self.engine.prog_num)
             return
         
         # vox_mode is VoxMode.PRESET
         self.ui.labelBankPreset.setText(
             _translate('main_win', 'Preset'))
 
-        for i in range(len(self.voxou.factory_programs)):
-            program = self.voxou.factory_programs[i]
+        for i in range(len(self.engine.factory_programs)):
+            program = self.engine.factory_programs[i]
             self.ui.comboBoxBanksAndPresets.addItem(
                 program.program_name, i)
         self.ui.comboBoxBanksAndPresets.setCurrentIndex(
-            self.voxou.prog_num)
+            self.engine.prog_num)
 
     def engine_callback(self, *args):
         self.callback_sig.emit(*args)
@@ -470,7 +470,7 @@ class MainWindow(QMainWindow):
     
     @Slot(float)
     def _noise_gate_changed(self, value: float):
-        self.voxou.set_param_value(
+        self.engine.set_param_value(
                 VoxIndex.NR_SENS, DummyParam.DUMMY, int(value))
 
     @Slot(int)
@@ -489,7 +489,7 @@ class MainWindow(QMainWindow):
         
         model: EffParam = sender.itemData(index)
         
-        self.voxou.set_param_value(
+        self.engine.set_param_value(
             VoxIndex.EFFECT_MODEL, effect_on_off, model.value)
     
     @Slot(bool)
@@ -504,7 +504,7 @@ class MainWindow(QMainWindow):
         else:
             return
 
-        self.voxou.set_param_value(
+        self.engine.set_param_value(
             VoxIndex.EFFECT_STATUS, param, int(yesno))
     
     @Slot(bool)
@@ -512,28 +512,28 @@ class MainWindow(QMainWindow):
         checkbox: QCheckBox = self.sender()
         for param, cbox in self.amp_params_widgets.items():
             if cbox is checkbox:
-                self.voxou.set_param_value(VoxIndex.AMP, param, int(state))
+                self.engine.set_param_value(VoxIndex.AMP, param, int(state))
                 break
     
     @Slot(float)
     def _amp_param_moved(self, value: float):
         param_wg: ParamProgressBar = self.sender()
-        self.voxou.set_param_value(VoxIndex.AMP, param_wg.param, int(value))
+        self.engine.set_param_value(VoxIndex.AMP, param_wg.param, int(value))
     
     @Slot(float)
     def _pedal1_param_moved(self, value: float):
         param_wg: ParamProgressBar = self.sender()
-        self.voxou.set_param_value(VoxIndex.PEDAL1, param_wg.param, int(value))
+        self.engine.set_param_value(VoxIndex.PEDAL1, param_wg.param, int(value))
     
     @Slot(float)
     def _pedal2_param_moved(self, value: float):
         param_wg: ParamProgressBar = self.sender()
-        self.voxou.set_param_value(VoxIndex.PEDAL2, param_wg.param, int(value))
+        self.engine.set_param_value(VoxIndex.PEDAL2, param_wg.param, int(value))
             
     @Slot(float)
     def _reverb_param_moved(self, value: float):
         param_wg: ParamProgressBar = self.sender()
-        self.voxou.set_param_value(VoxIndex.REVERB, param_wg.param, int(value))
+        self.engine.set_param_value(VoxIndex.REVERB, param_wg.param, int(value))
     
     def _fill_pedal1(self, pedal1_type: Pedal1Type):
         pedal1_param: EffParam
@@ -582,44 +582,44 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def _start_communication(self):
-        if self.voxou.communication_state is True:
+        if self.engine.communication_state is True:
             self.connection_timer.stop()
             self.ui.labelConnected.setText(
                 _translate('main_win', 'Communication OK'))
             return
         
-        self.voxou.start_communication()
+        self.engine.start_communication()
             
     @Slot()
     def _refresh_all(self):
-        self.voxou.start_communication()
+        self.engine.start_communication()
             
     @Slot(str)
     def _set_program_name(self, text: str):
         normed_text = ''.join([chr(ord(c) % 128) for c in text])
         self.ui.lineEditProgramName.setText(normed_text)
-        self.voxou.set_program_name(normed_text)
+        self.engine.set_program_name(normed_text)
             
     @Slot(int)
     def _change_mode(self, index: int):
         new_mode: VoxMode = self.ui.comboBoxMode.currentData()
-        self.voxou.set_mode(new_mode)
+        self.engine.set_mode(new_mode)
         self.set_vox_mode(new_mode)
     
     @Slot(int)
     def _change_program_number(self, index: int):
         vox_mode = self.ui.comboBoxMode.currentData()
         if vox_mode is VoxMode.PRESET:
-            self.voxou.set_preset_num(index)
+            self.engine.set_preset_num(index)
         elif vox_mode is VoxMode.USER:
-            self.voxou.set_user_bank_num(index)
+            self.engine.set_user_bank_num(index)
     
     @Slot()
     def _save_current_program_to_disk(self):
         default_path = self.data_path / 'programs'
         default_path.mkdir(parents=True, exist_ok=True)
         
-        base = self.voxou.current_program.program_name
+        base = self.engine.current_program.program_name
         default_file_path = default_path / f'{base}.json'
         if default_file_path.exists():
             num = 2
@@ -635,7 +635,7 @@ class MainWindow(QMainWindow):
         if filepath:
             if not filepath.endswith('.json'):
                 filepath += '.json'
-            self.voxou.save_current_program_to_disk(Path(filepath))
+            self.engine.save_current_program_to_disk(Path(filepath))
     
     @Slot()
     def _load_program_from_disk(self):
@@ -648,7 +648,7 @@ class MainWindow(QMainWindow):
             _translate('main_win', 'JSON files (*.json)'))
         
         if filepath:
-            self.voxou.load_program_from_disk(filepath)
+            self.engine.load_program_from_disk(filepath)
     
     @Slot()
     def _save_full_amp(self):
@@ -669,26 +669,26 @@ class MainWindow(QMainWindow):
             _translate('main_win', 'JSON files (*.json)'))
 
         if filepath:
-            self.voxou.save_all_amp(filepath)
+            self.engine.save_all_amp(filepath)
     
     @Slot()
     def _load_full_amp(self):
-        dialog = FullAmpImportDialog(self, self.voxou)
+        dialog = FullAmpImportDialog(self, self.engine)
         dialog.exec()
     
     @Slot()
     def _upload_to_user_program(self):
         bank_num: int = self.sender().data()
-        self.voxou.upload_current_to_user_program(bank_num)
+        self.engine.upload_current_to_user_program(bank_num)
             
     @Slot()
     def _upload_to_user_ampfx(self):
         user_num: int = self.sender().data()
-        self.voxou.upload_current_to_user_ampfx(user_num)
+        self.engine.upload_current_to_user_ampfx(user_num)
 
     @Slot(bool)
     def _auto_connect_device_change(self, checked: bool):
-        self.voxou.config.auto_connect_device = checked
+        self.engine.config.auto_connect_device = checked
 
     @Slot(bool)
     def _nsm_mode_change(self, checked: bool):
@@ -697,9 +697,9 @@ class MainWindow(QMainWindow):
         load_prog = bool(sender is self.ui.actionLoadSavedProgram)
 
         if load_prog:
-            self.voxou.config.nsm_mode = NsmMode.LOAD_SAVED_PROGRAM
+            self.engine.config.nsm_mode = NsmMode.LOAD_SAVED_PROGRAM
         else:
-            self.voxou.config.nsm_mode = NsmMode.FREE
+            self.engine.config.nsm_mode = NsmMode.FREE
 
         self.ui.actionNsmFree.setChecked(not load_prog)
         self.ui.actionLoadSavedProgram.setChecked(load_prog)

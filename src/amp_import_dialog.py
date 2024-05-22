@@ -29,12 +29,12 @@ class FullAmpConf:
 
 
 class FullAmpImportDialog(QDialog):
-    def __init__(self, parent, voxou: Engine):
+    def __init__(self, parent, engine: Engine):
         super().__init__(parent)
         self.ui = ui.full_amp_import.Ui_DialogFullAmpImport()
         self.ui.setupUi(self)
         
-        self.voxou = voxou
+        self.engine = engine
 
         # fill combobox with amp configs found
 
@@ -232,7 +232,7 @@ class FullAmpImportDialog(QDialog):
     
     @Slot()
     def _apply_import(self):
-        if not self.voxou.communication_state:
+        if not self.engine.communication_state:
             return
         
         main_index = self.ui.comboBoxMainChoice.currentIndex()
@@ -242,22 +242,22 @@ class FullAmpImportDialog(QDialog):
             
             if self.ui.checkBoxUserBanks.isChecked():
                 for i in range(8):
-                    self.voxou.load_bank(
+                    self.engine.load_bank(
                         self._full_amp_conf.programs[i], i)
                     
             if self.ui.checkBoxAmpFx.isChecked():
                 for i in range(4):
-                    self.voxou.load_ampfx(
+                    self.engine.load_ampfx(
                         self._full_amp_conf.user_ampfxs[i], i)
                     
             if self.ui.checkBoxCurrentProgram.isChecked():
-                self.voxou.load_program(
+                self.engine.load_program(
                     self._full_amp_conf.current_program)
                     
         elif main_index == 1:
             # AmpFX import
 
-            self.voxou.load_ampfx(
+            self.engine.load_ampfx(
                 self._full_amp_conf.user_ampfxs[
                     self.ui.comboBoxAmpFxFrom.currentIndex()],
                 self.ui.comboBoxAmpFxTo.currentIndex())
@@ -270,24 +270,24 @@ class FullAmpImportDialog(QDialog):
             
             if bank_in_num < 0 and bank_out_num < 0:
                 # load current program to current program
-                self.voxou.load_program(
+                self.engine.load_program(
                         self._full_amp_conf.current_program)
                 return
             
             if bank_in_num < 0:
                 # load current program to bank
-                self.voxou.load_bank(
+                self.engine.load_bank(
                     self._full_amp_conf.current_program, bank_out_num)
                 return
             
             if bank_out_num < 0:
                 # load bank to current program
-                self.voxou.load_program(
+                self.engine.load_program(
                     self._full_amp_conf.programs[bank_in_num])
                 return
                 
             # load bank to bank
-            self.voxou.load_bank(
+            self.engine.load_bank(
                 self._full_amp_conf.programs[bank_in_num], bank_out_num)
             return
             

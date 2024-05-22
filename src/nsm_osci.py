@@ -49,7 +49,7 @@ class NsmObject:
         self.server_addr: Optional[Address] = None
         self.main_win: 'Optional[MainWindow]' = None
         self.nsm_server: Optional[NsmServer] = None
-        self.voxou: Optional[Engine] = None
+        self.engine: Optional[Engine] = None
 
         if url:
             try:
@@ -77,20 +77,20 @@ class NsmObject:
             self.nsm_server.send_gui_state)
         self.main_win = main_win
 
-    def set_voxou(self, voxou: Engine):
-        self.voxou = voxou
-        self.voxou.set_a_ready_cb(self.voxou_is_ready)
+    def set_engine(self, engine: Engine):
+        self.engine = engine
+        self.engine.set_a_ready_cb(self.engine_is_ready)
         
-    def voxou_is_ready(self):
+    def engine_is_ready(self):
         if self._pending_path_to_load is not None:
-            self.voxou.load_program_from_disk(
+            self.engine.load_program_from_disk(
                 self._pending_path_to_load)
             self._pending_path_to_load = None
 
     def load_project_path(self, project_path: Path):
         self.project_path = project_path
 
-        if self.voxou is None:
+        if self.engine is None:
             return
 
         config_path = self.project_path / CONFIG_FILE
@@ -99,7 +99,7 @@ class NsmObject:
         if config_path.exists():
             try:
                 with open(config_path, 'r') as f:
-                    self.voxou.config.adjust_from_dict(json.load(f))
+                    self.engine.config.adjust_from_dict(json.load(f))
             except BaseException as e:
                 _logger.warning(
                     "No valid config file found "
@@ -108,19 +108,19 @@ class NsmObject:
         if self.main_win is not None:
             self.main_win.config_changed.emit()
 
-        if self.voxou.config.nsm_mode is not NsmMode.LOAD_SAVED_PROGRAM:
+        if self.engine.config.nsm_mode is not NsmMode.LOAD_SAVED_PROGRAM:
             return
 
         if not program_path.exists():
             return
         
-        if not self.voxou.communication_state:
+        if not self.engine.communication_state:
             _logger.info(
                 'communication_state is not ok for loading program now')
             self._pending_path_to_load = program_path
             return
         
-        self.voxou.load_program_from_disk(program_path)
+        self.engine.load_program_from_disk(program_path)
 
     def save_file(self):
         try:
@@ -132,21 +132,21 @@ class NsmObject:
         config_path = self.project_path / CONFIG_FILE
         program_path = self.project_path / CURRENT_PROGRAM_FILE
 
-        if self.voxou is None:
+        if self.engine is None:
             return
 
         try:
             with open(config_path, 'w') as f:
-                json.dump(self.voxou.config.to_dict(), f, indent=2)
+                json.dump(self.engine.config.to_dict(), f, indent=2)
         except BaseException as e:
             _logger.critical("Failed to save config file "
                              f"to {config_path}.\n{str(e)}")
 
-        if not self.voxou.communication_state:
+        if not self.engine.communication_state:
             _logger.critical('communication_state is not ok for saving')
             return
 
-        program_dict = self.voxou.current_program.to_json_dict()
+        program_dict = self.engine.current_program.to_json_dict()
         try:
             with open(program_path, 'w') as f:
                 json.dump(program_dict, f, indent=2)
@@ -173,8 +173,8 @@ def is_under_nsm() -> bool:
 def set_main_win(main_win: 'MainWindow'):
     nsm_object.set_main_win(main_win)
 
-def set_voxou(voxou: Engine):
-    nsm_object.set_voxou(voxou)
+def set_engine(engine: Engine):
+    nsm_object.set_engine(engine)
 
 def run_loop():
     nsm_object.run_loop()

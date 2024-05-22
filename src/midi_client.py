@@ -21,7 +21,7 @@ VALVETRONIX_PORT_NAME = 'Valvetronix X MIDI 1'
 class MidiClient:
     def __init__(self):
         self._midi_connect_state = MidiConnectState.ABSENT_DEVICE
-        self.voxou: Engine = None
+        self.engine: Engine = None
         self.stopping = False
         self.restart_asked = False
         self.restart_name = ''
@@ -67,20 +67,20 @@ class MidiClient:
         self._pending_send = False
         self.startup_vox_check()
 
-    def set_voxou(self, voxou: Engine):
-        self.voxou = voxou
-        self.voxou.set_midi_connect_state(self._midi_connect_state)
-        self.voxou.set_midi_out_func(self.send_to_vox)
+    def set_engine(self, engine: Engine):
+        self.engine = engine
+        self.engine.set_midi_connect_state(self._midi_connect_state)
+        self.engine.set_midi_out_func(self.send_to_vox)
 
     def auto_connect(self) -> bool:
-        if self.voxou is not None:
-            return self.voxou.config.auto_connect_device
+        if self.engine is not None:
+            return self.engine.config.auto_connect_device
         return True
 
     def set_midi_connect_state(self, connect_state: MidiConnectState):
         self._midi_connect_state = connect_state
-        if self.voxou is not None:
-            self.voxou.set_midi_connect_state(connect_state)
+        if self.engine is not None:
+            self.engine.set_midi_connect_state(connect_state)
 
     def startup_vox_check(self):
         clients = self._seq.connection_list()
@@ -151,8 +151,8 @@ class MidiClient:
             
             if event.type is alsaseq.SEQ_EVENT_SYSEX:
                 int_list: list[int] = data['ext']
-                if self.voxou is not None:
-                    self.voxou.receive_sysex(int_list)
+                if self.engine is not None:
+                    self.engine.receive_sysex(int_list)
 
             elif event.type is alsaseq.SEQ_EVENT_PORT_START:
                 client_id, port_id = data['addr.client'], data['addr.port']
@@ -225,8 +225,8 @@ class MidiClient:
                 if (ex_midi_conn_state is not self._midi_connect_state
                         and self._midi_connect_state
                         is MidiConnectState.CONNECTED):
-                    # ask to voxou to send the announce messages
-                    self.voxou.start_communication()
+                    # ask to engine to send the announce messages
+                    self.engine.start_communication()
             
             elif event.type is alsaseq.SEQ_EVENT_PORT_UNSUBSCRIBED:
                 if self._midi_connect_state is MidiConnectState.ABSENT_DEVICE:
@@ -282,8 +282,8 @@ class MidiClient:
 midi_client = MidiClient()
 
 
-def init(voxou: Engine):
-    midi_client.set_voxou(voxou)
+def init(engine: Engine):
+    midi_client.set_engine(engine)
 
 def restart(new_name: str):
     midi_client.restart_asked = True
@@ -293,8 +293,8 @@ def stop_loop():
     midi_client.stopping = True
 
 def run_loop():
-    if midi_client.voxou is None:
-        _logger.error('voxou must be set before to run midi main loop')
+    if midi_client.engine is None:
+        _logger.error('engine must be set before to run midi main loop')
         return
 
     while not midi_client.stopping:
