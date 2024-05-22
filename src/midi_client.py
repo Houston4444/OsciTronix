@@ -5,7 +5,7 @@ from enum import Enum
 from pyalsa import alsaseq
 from app_infos import APP_NAME
 
-from engine import Voxou
+from engine import Engine
 from midi_enums import MidiConnectState
 
 
@@ -21,7 +21,7 @@ VALVETRONIX_PORT_NAME = 'Valvetronix X MIDI 1'
 class MidiClient:
     def __init__(self):
         self._midi_connect_state = MidiConnectState.ABSENT_DEVICE
-        self.voxou: Voxou = None
+        self.voxou: Engine = None
         self.stopping = False
         self.restart_asked = False
         self.restart_name = ''
@@ -67,7 +67,7 @@ class MidiClient:
         self._pending_send = False
         self.startup_vox_check()
 
-    def set_voxou(self, voxou: Voxou):
+    def set_voxou(self, voxou: Engine):
         self.voxou = voxou
         self.voxou.set_midi_connect_state(self._midi_connect_state)
         self.voxou.set_midi_out_func(self.send_to_vox)
@@ -282,7 +282,7 @@ class MidiClient:
 midi_client = MidiClient()
 
 
-def init(voxou: Voxou):
+def init(voxou: Engine):
     midi_client.set_voxou(voxou)
 
 def restart(new_name: str):

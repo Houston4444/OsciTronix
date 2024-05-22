@@ -11,7 +11,7 @@ from liblo import Address
 import midi_client
 from nsm_client import NsmServer, NsmCallback, Err
 from app_infos import APP_NAME, CONFIG_FILE, CURRENT_PROGRAM_FILE
-from engine import Voxou
+from engine import Engine
 
 if TYPE_CHECKING:
     from main_window import MainWindow
@@ -49,7 +49,7 @@ class NsmObject:
         self.server_addr: Optional[Address] = None
         self.main_win: 'Optional[MainWindow]' = None
         self.nsm_server: Optional[NsmServer] = None
-        self.voxou: Optional[Voxou] = None
+        self.voxou: Optional[Engine] = None
 
         if url:
             try:
@@ -77,7 +77,7 @@ class NsmObject:
             self.nsm_server.send_gui_state)
         self.main_win = main_win
 
-    def set_voxou(self, voxou: Voxou):
+    def set_voxou(self, voxou: Engine):
         self.voxou = voxou
         self.voxou.set_a_ready_cb(self.voxou_is_ready)
         
@@ -173,7 +173,7 @@ def is_under_nsm() -> bool:
 def set_main_win(main_win: 'MainWindow'):
     nsm_object.set_main_win(main_win)
 
-def set_voxou(voxou: Voxou):
+def set_voxou(voxou: Engine):
     nsm_object.set_voxou(voxou)
 
 def run_loop():

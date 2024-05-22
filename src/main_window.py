@@ -17,7 +17,7 @@ from effects import (
     AmpModel, AmpParam, BankName, DummyParam, EffParam,
     EffectOnOff, Pedal1Type, Pedal2Type,
     ReverbParam, ReverbType, VoxIndex, VoxMode)
-from engine import FunctionCode, GuiCallback, VoxProgram, Voxou
+from engine import FunctionCode, GuiCallback, VoxProgram, Engine
 from progress import ParamProgressBar
 from about_dialog import AboutDialog
 
@@ -34,7 +34,7 @@ class MainWindow(QMainWindow):
     apply_under_nsm = Signal()
     config_changed = Signal()
     
-    def __init__(self, voxou: Voxou):
+    def __init__(self, voxou: Engine):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)

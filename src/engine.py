@@ -53,7 +53,7 @@ def rail_int(value: int, mini: int, maxi: int) -> int:
     return max(min(value, maxi), mini)
 
 
-class Voxou:
+class Engine:
     def __init__(self):
         self.config = Config()
         self.current_program = VoxProgram()

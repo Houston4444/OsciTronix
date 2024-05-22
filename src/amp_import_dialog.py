@@ -12,7 +12,7 @@ from effects import BankName, EffectOnOff
 import xdg
 from app_infos import APP_NAME
 from vox_program import VoxProgram
-from engine import Voxou
+from engine import Engine
 
 import ui.full_amp_import
 
@@ -29,7 +29,7 @@ class FullAmpConf:
 
 
 class FullAmpImportDialog(QDialog):
-    def __init__(self, parent, voxou: Voxou):
+    def __init__(self, parent, voxou: Engine):
         super().__init__(parent)
         self.ui = ui.full_amp_import.Ui_DialogFullAmpImport()
         self.ui.setupUi(self)

@@ -12,7 +12,7 @@ from app_infos import APP_NAME, CONFIG_FILE
 import xdg
 import midi_client
 import nsm_osci
-from engine import Voxou
+from engine import Engine
 from main_window import MainWindow
 
 _logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     # force Fusion style because of param widgets
     app.setStyle(QStyleFactory.create('Fusion'))
 
-    voxou = Voxou()
+    voxou = Engine()
     main_win = MainWindow(voxou)
 
     config_path = xdg.xdg_config_home() / APP_NAME / CONFIG_FILE
