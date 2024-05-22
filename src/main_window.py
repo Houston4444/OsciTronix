@@ -29,6 +29,7 @@ class MainWindow(QMainWindow):
     callback_sig = Signal(Enum, object)
     nsm_show = Signal()
     nsm_hide = Signal()
+    apply_under_nsm = Signal()
     
     def __init__(self, voxou: Voxou):
         super().__init__()
@@ -177,14 +178,14 @@ class MainWindow(QMainWindow):
         for pedal2_type in Pedal2Type:
             self.ui.comboBoxPedal2.addItem(
                 pedal2_type.name.replace('_', ' ').capitalize(), pedal2_type)
-            
+
         for i in (5, 4, 1):
             self.ui.comboBoxPedal2.insertSeparator(i)
-            
+
         for reverb_type in ReverbType:
             self.ui.comboBoxReverb.addItem(
                 reverb_type.name.replace('_', ' ').capitalize(), reverb_type)
-        
+
         self.ui.comboBoxAmpModel.currentIndexChanged.connect(
             self.amp_model_changed)
         self.ui.comboBoxPedal1.currentIndexChanged.connect(
@@ -198,7 +199,7 @@ class MainWindow(QMainWindow):
         self.ui.actionAboutOsciTronix.triggered.connect(
             self._about_oscitronix)
         self.ui.actionAboutQt.triggered.connect(QApplication.aboutQt)
-        
+
         # manage saving paths
         self.data_path = xdg.xdg_data_home() / 'OsciTronix'
         self.ui.actionSaveCurrentProgram.triggered.connect(
@@ -214,6 +215,9 @@ class MainWindow(QMainWindow):
         
         # visible only under NSM
         self.ui.actionHide.setVisible(False)
+        # self.ui.menuNsmMode.setVisible(False)
+        self.ui.menuOptions.clear()
+        self.ui.menuOptions.addAction(self.ui.actionAutoConnectMidi)
         
         self.comm_state_timer = QTimer()
         self.comm_state_timer.setInterval(100)
@@ -229,12 +233,17 @@ class MainWindow(QMainWindow):
         self._nsm_visible_cb: Optional[Callable[[bool], None]] = None
         self.nsm_show.connect(self.show)
         self.nsm_hide.connect(self.hide)
-    
+        self.apply_under_nsm.connect(self._under_nsm)
+
     def set_nsm_visible_callback(self, nsm_cb: Callable[[bool], None]):
         self._nsm_visible_cb = nsm_cb
-        
+        self.apply_under_nsm.emit()
+
+    @Slot()
+    def _under_nsm(self):
         self.ui.actionQuit.setVisible(False)
         self.ui.actionHide.setVisible(True)
+        self.ui.menuOptions.addMenu(self.ui.menuNsmMode)
     
     def set_communication_state(self, state: bool):
         if state:

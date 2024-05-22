@@ -1012,8 +1012,23 @@ QGroupBox::title {
     <addaction name="actionSaveCurrentProgramToUserBank"/>
     <addaction name="actionSaveCurrentProgramToUserAmpfx"/>
    </widget>
+   <widget class="QMenu" name="menuOptions">
+    <property name="title">
+     <string>Options</string>
+    </property>
+    <widget class="QMenu" name="menuNsmMode">
+     <property name="title">
+      <string>NSM Mode</string>
+     </property>
+     <addaction name="actionNsmFree"/>
+     <addaction name="actionLoadSavedProgram"/>
+    </widget>
+    <addaction name="actionAutoConnectMidi"/>
+    <addaction name="menuNsmMode"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuAmp"/>
+   <addaction name="menuOptions"/>
    <addaction name="menuAbout"/>
   </widget>
   <action name="actionSaveCurrentProgram">
@@ -1117,10 +1132,41 @@ QGroupBox::title {
   </action>
   <action name="actionHide">
    <property name="icon">
-    <iconset theme="hide_table_row"/>
+    <iconset theme="hide_table_row">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Hide</string>
+   </property>
+  </action>
+  <action name="actionAutoConnectMidi">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Auto connect MIDI</string>
+   </property>
+  </action>
+  <action name="actionNsmFree">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Free</string>
+   </property>
+  </action>
+  <action name="actionLoadSavedProgram">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Load saved program</string>
    </property>
   </action>
  </widget>
