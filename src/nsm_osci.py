@@ -104,7 +104,7 @@ class NsmObject:
                 _logger.warning(
                     "No valid config file found "
                     f"in {config_path},\n{str(e)}")
-        
+
         if self.main_win is not None:
             self.main_win.config_changed.emit()
 
