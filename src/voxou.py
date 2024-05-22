@@ -1,11 +1,10 @@
 from enum import IntEnum, Enum
 import logging
 from pathlib import Path
-from pyclbr import Function
-import time
 from typing import Any, Callable, Optional
 import json
 
+from config import Config
 from midi_enums import MidiConnectState
 from effects import (
     DummyParam, EffParam, EffectOnOff, Pedal1Type,
@@ -56,6 +55,7 @@ def rail_int(value: int, mini: int, maxi: int) -> int:
 
 class Voxou:
     def __init__(self):
+        self.config = Config()
         self.current_program = VoxProgram()
         self.programs = [VoxProgram() for i in range(8)]
         self.factory_programs = [VoxProgram() for i in range(60)]

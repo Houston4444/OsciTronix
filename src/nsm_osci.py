@@ -4,12 +4,13 @@ import sys
 import json
 from typing import TYPE_CHECKING, Optional
 from pathlib import Path
+from config import NsmMode
 
 from liblo import Address
 
 import midi_client
 from nsm_client import NsmServer, NsmCallback, Err
-from app_infos import APP_NAME
+from app_infos import APP_NAME, CONFIG_FILE, CURRENT_PROGRAM_FILE
 from voxou import Voxou
 
 if TYPE_CHECKING:
@@ -88,17 +89,34 @@ class NsmObject:
 
     def load_project_path(self, project_path: Path):
         self.project_path = project_path
-        
+
         if self.voxou is None:
             return
+
+        config_path = self.project_path / CONFIG_FILE
+        program_path = self.project_path / CURRENT_PROGRAM_FILE
+
+        if config_path.exists():
+            try:
+                with open(config_path, 'r') as f:
+                    self.voxou.config.adjust_from_dict(json.load(f))
+            except BaseException as e:
+                _logger.warning(
+                    "No valid config file found "
+                    f"in {config_path},\n{str(e)}")
         
-        program_path = self.project_path / 'current_program.json'
+        if self.main_win is not None:
+            self.main_win.config_changed.emit()
+
+        if self.voxou.config.nsm_mode is not NsmMode.LOAD_SAVED_PROGRAM:
+            return
+
         if not program_path.exists():
             return
         
         if not self.voxou.communication_state:
             _logger.info(
-                'communication_state is not ok for loading program')
+                'communication_state is not ok for loading program now')
             self._pending_path_to_load = program_path
             return
         
@@ -111,9 +129,18 @@ class NsmObject:
             _logger.critical('Failed to create the project directory')
             return
 
-        program_path = self.project_path / 'current_program.json'
+        config_path = self.project_path / CONFIG_FILE
+        program_path = self.project_path / CURRENT_PROGRAM_FILE
+
         if self.voxou is None:
             return
+
+        try:
+            with open(config_path, 'w') as f:
+                json.dump(self.voxou.config.to_dict(), f, indent=2)
+        except BaseException as e:
+            _logger.critical("Failed to save config file "
+                             f"to {config_path}.\n{str(e)}")
 
         if not self.voxou.communication_state:
             _logger.critical('communication_state is not ok for saving')
@@ -122,7 +149,7 @@ class NsmObject:
         program_dict = self.voxou.current_program.to_json_dict()
         try:
             with open(program_path, 'w') as f:
-                json.dump(program_dict, f)
+                json.dump(program_dict, f, indent=2)
         except:
             _logger.critical(f'Failed to save file {program_path}')
 

@@ -5,9 +5,11 @@ from typing import Any, Callable, Optional
 from qtpy.QtWidgets import (
     QApplication, QMainWindow, QFileDialog,
     QCheckBox, QComboBox, QGroupBox, QMenu,
-    QMessageBox)
+    QMessageBox, QAction)
 from qtpy.QtCore import QTimer, Slot, Signal
 from amp_import_dialog import FullAmpImportDialog
+from app_infos import APP_NAME
+from config import NsmMode
 
 import xdg
 from midi_enums import MidiConnectState
@@ -30,6 +32,7 @@ class MainWindow(QMainWindow):
     nsm_show = Signal()
     nsm_hide = Signal()
     apply_under_nsm = Signal()
+    config_changed = Signal()
     
     def __init__(self, voxou: Voxou):
         super().__init__()
@@ -196,12 +199,18 @@ class MainWindow(QMainWindow):
         
         self.ui.toolButtonRefresh.clicked.connect(self._refresh_all)
         
+        self.ui.actionAutoConnectMidi.triggered.connect(
+            self._auto_connect_device_change)
+        self.ui.actionNsmFree.triggered.connect(
+            self._nsm_mode_change)
+        self.ui.actionLoadSavedProgram.triggered.connect(
+            self._nsm_mode_change)
         self.ui.actionAboutOsciTronix.triggered.connect(
             self._about_oscitronix)
         self.ui.actionAboutQt.triggered.connect(QApplication.aboutQt)
 
         # manage saving paths
-        self.data_path = xdg.xdg_data_home() / 'OsciTronix'
+        self.data_path = xdg.xdg_data_home() / APP_NAME
         self.ui.actionSaveCurrentProgram.triggered.connect(
             self._save_current_program_to_disk)
         self.ui.actionLoadProgram.triggered.connect(
@@ -215,7 +224,6 @@ class MainWindow(QMainWindow):
         
         # visible only under NSM
         self.ui.actionHide.setVisible(False)
-        # self.ui.menuNsmMode.setVisible(False)
         self.ui.menuOptions.clear()
         self.ui.menuOptions.addAction(self.ui.actionAutoConnectMidi)
         
@@ -234,6 +242,7 @@ class MainWindow(QMainWindow):
         self.nsm_show.connect(self.show)
         self.nsm_hide.connect(self.hide)
         self.apply_under_nsm.connect(self._under_nsm)
+        self.config_changed.connect(self._config_changed)
 
     def set_nsm_visible_callback(self, nsm_cb: Callable[[bool], None]):
         self._nsm_visible_cb = nsm_cb
@@ -244,6 +253,15 @@ class MainWindow(QMainWindow):
         self.ui.actionQuit.setVisible(False)
         self.ui.actionHide.setVisible(True)
         self.ui.menuOptions.addMenu(self.ui.menuNsmMode)
+    
+    @Slot()
+    def _config_changed(self):
+        self.ui.actionAutoConnectMidi.setChecked(
+            self.voxou.config.auto_connect_device)
+        self.ui.actionNsmFree.setChecked(
+            self.voxou.config.nsm_mode is NsmMode.FREE)
+        self.ui.actionLoadSavedProgram.setChecked(
+            self.voxou.config.nsm_mode is NsmMode.LOAD_SAVED_PROGRAM)
     
     def set_communication_state(self, state: bool):
         if state:
@@ -667,6 +685,24 @@ class MainWindow(QMainWindow):
     def _upload_to_user_ampfx(self):
         user_num: int = self.sender().data()
         self.voxou.upload_current_to_user_ampfx(user_num)
+
+    @Slot(bool)
+    def _auto_connect_device_change(self, checked: bool):
+        self.voxou.config.auto_connect_device = checked
+
+    @Slot(bool)
+    def _nsm_mode_change(self, checked: bool):
+        sender: QAction = self.sender()
+        
+        load_prog = bool(sender is self.ui.actionLoadSavedProgram)
+
+        if load_prog:
+            self.voxou.config.nsm_mode = NsmMode.LOAD_SAVED_PROGRAM
+        else:
+            self.voxou.config.nsm_mode = NsmMode.FREE
+
+        self.ui.actionNsmFree.setChecked(not load_prog)
+        self.ui.actionLoadSavedProgram.setChecked(load_prog)
 
     @Slot()
     def _about_oscitronix(self):
