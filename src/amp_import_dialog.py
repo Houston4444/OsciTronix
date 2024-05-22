@@ -12,7 +12,7 @@ from effects import BankName, EffectOnOff
 import xdg
 from app_infos import APP_NAME
 from vox_program import VoxProgram
-from voxou import Voxou
+from engine import Voxou
 
 import ui.full_amp_import
 

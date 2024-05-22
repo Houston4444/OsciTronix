@@ -17,7 +17,7 @@ from effects import (
     AmpModel, AmpParam, BankName, DummyParam, EffParam,
     EffectOnOff, Pedal1Type, Pedal2Type,
     ReverbParam, ReverbType, VoxIndex, VoxMode)
-from voxou import FunctionCode, GuiCallback, VoxProgram, Voxou
+from engine import FunctionCode, GuiCallback, VoxProgram, Voxou
 from progress import ParamProgressBar
 from about_dialog import AboutDialog
 

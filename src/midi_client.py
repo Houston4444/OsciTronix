@@ -5,7 +5,7 @@ from enum import Enum
 from pyalsa import alsaseq
 from app_infos import APP_NAME
 
-from voxou import Voxou
+from engine import Voxou
 from midi_enums import MidiConnectState
 
 

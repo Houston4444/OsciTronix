@@ -12,7 +12,7 @@ from app_infos import APP_NAME, CONFIG_FILE
 import xdg
 import midi_client
 import nsm_osci
-from voxou import Voxou
+from engine import Voxou
 from main_window import MainWindow
 
 _logger = logging.getLogger(__name__)

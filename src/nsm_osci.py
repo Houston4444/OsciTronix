@@ -11,7 +11,7 @@ from liblo import Address
 import midi_client
 from nsm_client import NsmServer, NsmCallback, Err
 from app_infos import APP_NAME, CONFIG_FILE, CURRENT_PROGRAM_FILE
-from voxou import Voxou
+from engine import Voxou
 
 if TYPE_CHECKING:
     from main_window import MainWindow
