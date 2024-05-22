@@ -12,6 +12,7 @@ import midi_client
 from nsm_client import NsmServer, NsmCallback, Err
 from app_infos import APP_NAME, CONFIG_FILE, CURRENT_PROGRAM_FILE
 from engine import Engine
+from osc import OscUdpServer
 
 if TYPE_CHECKING:
     from main_window import MainWindow
@@ -29,6 +30,9 @@ def open_file(project_path: str, session_name: str,
 
 def save_file():
     nsm_object.save_file()
+    fla = nsm_object.engine.current_program.to_json_dict()
+    stra = json.dumps(fla, separators=(',', ':'))
+    print(stra, len(stra))
     return (Err.OK, 'Done')
 
 def hide_optional_gui():
@@ -51,26 +55,29 @@ class NsmObject:
         self.nsm_server: Optional[NsmServer] = None
         self.engine: Optional[Engine] = None
 
+        self.project_path = Path()
+        self._pending_path_to_load: Optional[Path] = None
+
         if url:
             try:
                 self.server_addr = Address(url)
             except:
                 _logger.warning(f'NSM_URL {url} is not a valid OSC url')
-        
-        if self.server_addr is not None:
-            nsm_server = NsmServer(self.server_addr)
-            nsm_server.set_callback(NsmCallback.OPEN, open_file)
-            nsm_server.set_callback(NsmCallback.SAVE, save_file)
-            nsm_server.set_callback(NsmCallback.HIDE_OPTIONAL_GUI,
-                                    hide_optional_gui)
-            nsm_server.set_callback(NsmCallback.SHOW_OPTIONAL_GUI,
-                                    show_optional_gui)
-            nsm_server.announce(
-                APP_NAME, ':optional-gui:switch:', sys.argv[0])
-            self.nsm_server = nsm_server
-        
-        self.project_path = Path()
-        self._pending_path_to_load: Optional[Path] = None
+
+    def init(self, port=0):
+        if self.server_addr is None:
+            return
+
+        nsm_server = NsmServer(self.server_addr, port)
+        nsm_server.set_callback(NsmCallback.OPEN, open_file)
+        nsm_server.set_callback(NsmCallback.SAVE, save_file)
+        nsm_server.set_callback(NsmCallback.HIDE_OPTIONAL_GUI,
+                                hide_optional_gui)
+        nsm_server.set_callback(NsmCallback.SHOW_OPTIONAL_GUI,
+                                show_optional_gui)
+        nsm_server.announce(
+            APP_NAME, ':optional-gui:switch:', sys.argv[0])
+        self.nsm_server = nsm_server
     
     def set_main_win(self, main_win: 'MainWindow'):
         main_win.set_nsm_visible_callback(
@@ -96,14 +103,7 @@ class NsmObject:
         config_path = self.project_path / CONFIG_FILE
         program_path = self.project_path / CURRENT_PROGRAM_FILE
 
-        if config_path.exists():
-            try:
-                with open(config_path, 'r') as f:
-                    self.engine.config.adjust_from_dict(json.load(f))
-            except BaseException as e:
-                _logger.warning(
-                    "No valid config file found "
-                    f"in {config_path},\n{str(e)}")
+        self.engine.config.load_from_file(config_path)
 
         if self.main_win is not None:
             self.main_win.config_changed.emit()
@@ -135,12 +135,7 @@ class NsmObject:
         if self.engine is None:
             return
 
-        try:
-            with open(config_path, 'w') as f:
-                json.dump(self.engine.config.to_dict(), f, indent=2)
-        except BaseException as e:
-            _logger.critical("Failed to save config file "
-                             f"to {config_path}.\n{str(e)}")
+        self.engine.config.save_in_file(config_path)
 
         if not self.engine.communication_state:
             _logger.critical('communication_state is not ok for saving')
@@ -164,11 +159,13 @@ class NsmObject:
 nsm_object = NsmObject()
 
 
-
-# --- used by launcher ---
+# --- used by the launcher ---
 
 def is_under_nsm() -> bool:
     return nsm_object.server_addr is not None
+
+def init(port=0):
+    nsm_object.init(port)
 
 def set_main_win(main_win: 'MainWindow'):
     nsm_object.set_main_win(main_win)

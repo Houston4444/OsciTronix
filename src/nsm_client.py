@@ -5,6 +5,8 @@ import os
 from liblo import Server, make_method, Address
 from typing import Callable, Optional
 
+from osc import OscUdpServer as Server
+
 
 class Err(IntEnum):
     OK =  0
@@ -34,11 +36,15 @@ class NsmCallback(IntEnum):
 
 
 class NsmServer(Server):
-    def __init__(self, daemon_address: Address):
-        Server.__init__(self)
+    def __init__(self, daemon_address: Address, port=0):
+        if port:
+            Server.__init__(self, port)
+        else:
+            Server.__init__(self)
+
         self._daemon_address = daemon_address
         self._server_capabilities = ""
-        
+
         self._callbacks = dict[NsmCallback, Callable]()
 
     @make_method('/reply', None)

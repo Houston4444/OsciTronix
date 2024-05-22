@@ -1,4 +1,3 @@
-import json
 import logging
 import signal
 import sys
@@ -21,8 +20,33 @@ _logger = logging.getLogger(__name__)
 def signal_handler(sig, frame):
     QApplication.quit()
 
+def read_args(*args: tuple[str]) -> int:
+    reading = ''
+    osc_port = 0
+    
+    for arg in args:
+        if reading == 'osc_port':
+            try:
+                osc_port = int(arg)
+            except:
+                sys.stderr.write(f'Invalid osc port argument : {arg}\n')
+                sys.exit(1)
+            
+        if arg == '--osc-port':
+            reading = 'osc_port'
+        elif arg == '--help':
+            sys.stdout.write(
+                f'{APP_NAME.lower()} help\n'
+                '    --osc-port  PORT  set port number for OSC\n'
+                '    --help            print this help\n')
+            sys.exit(0)
+
+    return osc_port
+
 
 if __name__ == '__main__':
+    osc_port = read_args(*sys.argv[1:])
+
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon.fromTheme(APP_NAME.lower()))
     
@@ -48,18 +72,13 @@ if __name__ == '__main__':
     
     if nsm_osci.is_under_nsm():
         QApplication.setQuitOnLastWindowClosed(False)
-        nsm_osci.set_main_win(main_win)
+        nsm_osci.init()
         nsm_osci.set_engine(engine)
+        nsm_osci.set_main_win(main_win)
         nsm_thread = threading.Thread(target=nsm_osci.run_loop)
         nsm_thread.start()
     else:
-        if config_path.exists():
-            try:
-                with open(config_path, 'r') as f:
-                    engine.config.adjust_from_dict(json.load(config_path))
-            except BaseException as e:
-                _logger.warning(
-                    f'Failed to open config file {str(e)}')
+        engine.config.load_from_file(config_path)
 
         main_win.show()
 
@@ -69,9 +88,5 @@ if __name__ == '__main__':
     nsm_osci.stop_loop()
     
     if not nsm_osci.is_under_nsm():
-        try:
-            with open(config_path, 'w') as f:
-                json.dump(engine.config.to_dict(), f, indent=2)
-        except BaseException as e:
-            _logger.warning(f'Failed to save config file\n{str(e)}')
+        engine.config.save_in_file(config_path)
 

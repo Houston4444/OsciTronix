@@ -119,6 +119,21 @@ class VoxProgram:
 
         return p
     
+    def to_osc(self) -> tuple:
+        return (
+            self.program_name,
+            self.nr_sens,
+            self.get_effect_status().value,
+            self.amp_model.value,
+            *[a.value for a in self.amp_params],
+            self.pedal1_type.value,
+            *self.pedal1_values,
+            self.pedal2_type.value,
+            *self.pedal2_values,
+            self.reverb_type.value,
+            *self.reverb_values
+        )
+    
     def get_effect_status(self) -> EffectStatus:
         effect_status = EffectStatus.ALL_OFF
         if self.active_effects[EffectOnOff.PEDAL1]:
