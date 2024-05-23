@@ -77,6 +77,8 @@ class NsmObject:
                                 show_optional_gui)
         nsm_server.announce(
             APP_NAME, ':optional-gui:switch:', sys.argv[0])
+        
+        print('pafkpafe', nsm_server.port)
         self.nsm_server = nsm_server
     
     def set_main_win(self, main_win: 'MainWindow'):
@@ -87,6 +89,7 @@ class NsmObject:
     def set_engine(self, engine: Engine):
         self.engine = engine
         self.engine.set_a_ready_cb(self.engine_is_ready)
+        self.nsm_server.set_engine(engine)
         
     def engine_is_ready(self):
         if self._pending_path_to_load is not None:

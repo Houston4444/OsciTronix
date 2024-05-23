@@ -1,6 +1,7 @@
 from enum import IntEnum, Enum
 import logging
 from pathlib import Path
+from queue import Queue
 from typing import Any, Callable, Optional
 import json
 
@@ -16,7 +17,7 @@ from vox_program import VoxProgram
 _logger = logging.getLogger(__name__)
 
 
-class GuiCallback(Enum):
+class EngineCallback(Enum):
     DATA_ERROR = -1
     COMMUNICATION_STATE = 0
     MIDI_CONNECT_STATE = 1
@@ -52,6 +53,14 @@ SYSEX_BEGIN = [240, 66, 48, 0, 1, 52]
 def rail_int(value: int, mini: int, maxi: int) -> int:
     return max(min(value, maxi), mini)
 
+def in_midi_thread():
+    def decorator(func: Callable):
+        def wrapper(*args, **kwargs):
+            engine: 'Engine' = args[0]
+            engine.event_queue.put((func, args, kwargs))
+        return wrapper
+    return decorator
+
 
 class Engine:
     def __init__(self):
@@ -73,11 +82,14 @@ class Engine:
         self._midi_connect_state = MidiConnectState.ABSENT_DEVICE
 
         self._midi_out_func: Optional[Callable] = None
-        self._gui_cb: Optional[Callable] = None
+        self._cbs = set[Callable]() # callbacks (GUI and OSC)
         self._ready_cbs = set[Callable]()
+        
+        self.event_queue = Queue()
 
-    def set_gui_cb(self, cb: Callable[[FunctionCode, Any], None]):
-        self._gui_cb = cb
+    @in_midi_thread()
+    def add_callback(self, cb: Callable[[FunctionCode, Any], None]):
+        self._cbs.add(cb)
     
     def set_a_ready_cb(self, cb: Callable):
         self._ready_cbs.add(cb)
@@ -95,11 +107,11 @@ class Engine:
             self._send_vox(FunctionCode.MODE_REQUEST)
              
         self._midi_connect_state = connect_state
-        self._send_cb(GuiCallback.MIDI_CONNECT_STATE, connect_state)
+        self._send_cb(EngineCallback.MIDI_CONNECT_STATE, connect_state)
 
     def _set_communication_state(self, comm_state: bool):
         self.communication_state = comm_state
-        self._send_cb(GuiCallback.COMMUNICATION_STATE, comm_state)
+        self._send_cb(EngineCallback.COMMUNICATION_STATE, comm_state)
         
         if comm_state:
             self._send_count += 1
@@ -123,9 +135,9 @@ class Engine:
 
         self._set_communication_state(False)
     
-    def _send_cb(self, gui_callback: GuiCallback, arg=None):
-        if self._gui_cb:
-            self._gui_cb(gui_callback, arg)
+    def _send_cb(self, gui_callback: EngineCallback, arg=None):
+        for cb in self._cbs:
+            cb(gui_callback, arg)
     
     def start_communication(self):
         self._send_count = 0
@@ -182,7 +194,7 @@ class Engine:
                 f'error received from device {function_code.name}')
             orig_func_code = self._last_sent_message[0]
             _logger.warning(f'last sent message is {orig_func_code.name}')
-            self._send_cb(GuiCallback.DATA_ERROR, orig_func_code)
+            self._send_cb(EngineCallback.DATA_ERROR, orig_func_code)
 
         self._set_communication_state(True)
         
@@ -194,7 +206,7 @@ class Engine:
                     f'Failed to read current program data.\n{str(e)}')
                 return
 
-            self._send_cb(GuiCallback.CURRENT_CHANGED, self.current_program)
+            self._send_cb(EngineCallback.CURRENT_CHANGED, self.current_program)
         
         elif function_code is FunctionCode.PROGRAM_DATA_DUMP:
             voxmode_int = shargs.pop(0)
@@ -211,12 +223,12 @@ class Engine:
                 if vox_mode is VoxMode.USER:
                     self.programs[prog_num].data_read(shargs)
                     if prog_num == 7:
-                        self._send_cb(GuiCallback.USER_BANKS_READ)
+                        self._send_cb(EngineCallback.USER_BANKS_READ)
                     
                 elif vox_mode is VoxMode.PRESET:
                     self.factory_programs[prog_num].data_read(shargs)
                     if prog_num == 59:
-                        self._send_cb(GuiCallback.FACTORY_BANKS_READ)
+                        self._send_cb(EngineCallback.FACTORY_BANKS_READ)
 
             except BaseException as e:
                 _logger.error(
@@ -319,7 +331,7 @@ class Engine:
                 self.current_program.reverb_values[param_index] = value
                     
             self._send_cb(
-                GuiCallback.PARAM_CHANGED,
+                EngineCallback.PARAM_CHANGED,
                 (self.current_program, vox_index, param_index))
 
         elif function_code is FunctionCode.MODE_DATA:
@@ -339,7 +351,7 @@ class Engine:
                     f"{voxmode_int}")
                 return
                 
-            self._send_cb(GuiCallback.MODE_CHANGED, self.voxmode)
+            self._send_cb(EngineCallback.MODE_CHANGED, self.voxmode)
 
         elif function_code is FunctionCode.MODE_CHANGE:
             if len(shargs) < 2:
@@ -369,7 +381,7 @@ class Engine:
                 
                 self.prog_num = prog_num
                 self.current_program = self.programs[self.prog_num].copy()
-                self._send_cb(GuiCallback.CURRENT_CHANGED,
+                self._send_cb(EngineCallback.CURRENT_CHANGED,
                               self.current_program)
             
             elif self.voxmode is VoxMode.PRESET:
@@ -383,14 +395,14 @@ class Engine:
                 
                 self.current_program = \
                     self.factory_programs[self.prog_num].copy()
-                self._send_cb(GuiCallback.CURRENT_CHANGED,
+                self._send_cb(EngineCallback.CURRENT_CHANGED,
                               self.current_program)
 
             elif self.voxmode is VoxMode.MANUAL:
                 # reask the VOX for all current values
                 self._send_vox(FunctionCode.CURRENT_PROGRAM_DATA_DUMP_REQUEST)
                 
-            self._send_cb(GuiCallback.MODE_CHANGED, self.voxmode)
+            self._send_cb(EngineCallback.MODE_CHANGED, self.voxmode)
 
         elif function_code is FunctionCode.CUSTOM_AMPFX_DATA_DUMP:
             if len(shargs) < 2:
@@ -444,18 +456,32 @@ class Engine:
             return maxi
         return value
     
+    @in_midi_thread()
     def set_param_value(
-            self, vox_index: VoxIndex, param: EffParam, value: int):
+            self, vox_index: VoxIndex|int, param: EffParam|int, value: int):
+        if isinstance(vox_index, int):
+            try:
+                vox_index = VoxIndex(vox_index)
+            except:
+                _logger.warning(
+                    f'set_param_value : vox_index {vox_index}'
+                    f' does not exists, operation ignored')
+                return
+        
         if VoxIndex is VoxIndex.ERROR:
             return
         
         value_big = 0
         
         if vox_index is VoxIndex.NR_SENS:
-            if param is DummyParam.DUMMY:
-                self.current_program.nr_sens = value
+            self.current_program.nr_sens = value
+            param = DummyParam.DUMMY
             
         elif vox_index is VoxIndex.EFFECT_MODEL:
+            if isinstance(param, int):
+                try: param = EffectOnOff(param)
+                except: return
+            
             if param is EffectOnOff.AMP:
                 self.current_program.amp_model = AmpModel(value)
 
@@ -469,21 +495,27 @@ class Engine:
                 self.current_program.reverb_type = ReverbType(value)
         
         elif vox_index is VoxIndex.AMP:
-            cvalue = self.current_program.amp_params.get(param)
-            if cvalue is None:
-                _logger.error(
-                    f'attempting to change a not known amp parameter {param}')
-                return
-            
+            if isinstance(param, int):
+                try: param = AmpParam(param)
+                except: return
+
             value = self._rail_value(param, value)
             self.current_program.amp_params[param] = value
             
         elif vox_index is VoxIndex.EFFECT_STATUS:
+            if isinstance(param, int):
+                try: param = EffectOnOff(param)
+                except: return
+            
             value = self._rail_value(param, value)            
             self.current_program.active_effects[param] = value
         
         elif vox_index is VoxIndex.PEDAL1:
-            cvalue = self.current_program.pedal1_values[param.value]            
+            if isinstance(param, int):
+                try: param = \
+                    self.current_program.pedal1_type.param_type()(param)
+                except: return
+            
             value = self._rail_value(param, value)
             self.current_program.pedal1_values[param.value] = value
             
@@ -491,7 +523,11 @@ class Engine:
                 value_big, value = divmod(value, 128)
             
         elif vox_index is VoxIndex.PEDAL2:
-            cvalue = self.current_program.pedal1_values[param.value]
+            if isinstance(param, int):
+                try: param = \
+                    self.current_program.pedal2_type.param_type()(param)
+                except: return
+            
             value = self._rail_value(param, value)
             self.current_program.pedal2_values[param.value] = value
             
@@ -499,13 +535,20 @@ class Engine:
                 value_big, value = divmod(value, 128)
             
         elif vox_index is VoxIndex.REVERB:
-            cvalue = self.current_program.reverb_values[param.value]
+            if isinstance(param, int):
+                try: param = \
+                    self.current_program.reverb_type.param_type()(param)
+                except: return
+            
             value = self._rail_value(param, value)
             self.current_program.reverb_values[param.value] = value
         
         self._send_vox(FunctionCode.PARAMETER_CHANGE,
                        vox_index.value, param.value, value, value_big)
+        self._send_cb(EngineCallback.PARAM_CHANGED, 
+                      (self.current_program, vox_index, param.value))
     
+    @in_midi_thread()
     def set_program_name(self, new_name: str):
         if len(new_name) > 16:
             new_name = new_name[:16]
@@ -521,7 +564,8 @@ class Engine:
                 i, str_as_ints[i], 0)
 
         self.current_program.program_name = new_name
-        
+    
+    @in_midi_thread()
     def set_mode(self, vox_mode: VoxMode):
         if vox_mode is VoxMode.MANUAL:
             self._send_vox(FunctionCode.MODE_CHANGE, vox_mode.value, 0)
@@ -538,7 +582,7 @@ class Engine:
             self._send_vox(FunctionCode.MODE_CHANGE, vox_mode.value, i)
             self.current_program = self.factory_programs[i].copy()
             self.prog_num = i
-            self._send_cb(GuiCallback.CURRENT_CHANGED, self.current_program)
+            self._send_cb(EngineCallback.CURRENT_CHANGED, self.current_program)
 
         elif vox_mode is VoxMode.USER:
             for i in range(len(self.programs)):
@@ -551,24 +595,27 @@ class Engine:
             self._send_vox(FunctionCode.MODE_CHANGE, vox_mode.value, i)
             self.current_program = self.programs[i].copy()
             self.prog_num = i
-            self._send_cb(GuiCallback.CURRENT_CHANGED, self.current_program)
+            self._send_cb(EngineCallback.CURRENT_CHANGED, self.current_program)
 
+    @in_midi_thread()
     def set_user_bank_num(self, bank_num: int):
         bank_num = min(max(bank_num, 0), 7)
         self._send_vox(
             FunctionCode.MODE_CHANGE, VoxMode.USER.value, bank_num)
         self.current_program = self.programs[bank_num].copy()
         self.prog_num = bank_num
-        self._send_cb(GuiCallback.CURRENT_CHANGED, self.current_program)
+        self._send_cb(EngineCallback.CURRENT_CHANGED, self.current_program)
 
+    @in_midi_thread()
     def set_preset_num(self, bank_num: int):
         bank_num = min(max(bank_num, 0), 59)
         self._send_vox(
             FunctionCode.MODE_CHANGE, VoxMode.PRESET.value, bank_num)
         self.current_program = self.factory_programs[bank_num].copy()
         self.prog_num = bank_num
-        self._send_cb(GuiCallback.CURRENT_CHANGED, self.current_program)
+        self._send_cb(EngineCallback.CURRENT_CHANGED, self.current_program)
 
+    @in_midi_thread()
     def upload_current_to_user_program(self, bank_num: int):
         self._send_vox(
             FunctionCode.PROGRAM_DATA_DUMP,
@@ -577,6 +624,7 @@ class Engine:
             *self.current_program.data_write())
         self.programs[bank_num] = self.current_program.copy()
 
+    @in_midi_thread()
     def upload_current_to_user_ampfx(self, ampfx_num: int):
         self._send_vox(
             FunctionCode.CUSTOM_AMPFX_DATA_DUMP,
@@ -595,6 +643,7 @@ class Engine:
             _logger.error(f"Failed to save json file {filepath}"
                           f"{str(e)}")
     
+    @in_midi_thread()
     def load_program_from_disk(self, filepath: Path):
         try:
             with open(filepath , 'r') as f:
@@ -605,13 +654,15 @@ class Engine:
         
         self.load_program(program)
     
+    @in_midi_thread()
     def load_program(self, program: VoxProgram):
         self._send_vox(
             FunctionCode.CURRENT_PROGRAM_DATA_DUMP,
             *program.data_write())
         self.current_program = program
-        self._send_cb(GuiCallback.CURRENT_CHANGED, self.current_program)
+        self._send_cb(EngineCallback.CURRENT_CHANGED, self.current_program)
     
+    @in_midi_thread()
     def load_bank(self, in_program: VoxProgram, out_bank_index: int):
         if not 0 <= out_bank_index <= 7:
             _logger.error(
@@ -626,6 +677,7 @@ class Engine:
         
         self.programs[out_bank_index] = in_program.copy()
     
+    @in_midi_thread()
     def load_ampfx(self, in_program: VoxProgram, out_ampfx_index: int):
         if not 0 <= out_ampfx_index <= 3:
             _logger.error(
@@ -653,7 +705,8 @@ class Engine:
         except BaseException as e:
             _logger.error(f"Failed to save json file {filepath}"
                           f"{str(e)}")
-            
+    
+    @in_midi_thread()
     def load_full_amp(self, filepath: Path, with_ampfxs=True) -> False:
         try:
             with open(filepath, 'r') as f:

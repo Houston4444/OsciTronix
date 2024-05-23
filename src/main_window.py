@@ -17,7 +17,7 @@ from effects import (
     AmpModel, AmpParam, BankName, DummyParam, EffParam,
     EffectOnOff, Pedal1Type, Pedal2Type,
     ReverbParam, ReverbType, VoxIndex, VoxMode)
-from engine import FunctionCode, GuiCallback, VoxProgram, Engine
+from engine import FunctionCode, EngineCallback, VoxProgram, Engine
 from progress import ParamProgressBar
 from about_dialog import AboutDialog
 
@@ -40,7 +40,7 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
 
         self.engine = engine
-        self.engine.set_gui_cb(self.engine_callback)
+        self.engine.add_callback(self.engine_callback)
 
         self.amp_params_widgets = {
             AmpParam.GAIN: self.ui.progressBarGain,
@@ -328,9 +328,9 @@ class MainWindow(QMainWindow):
     def engine_callback(self, *args):
         self.callback_sig.emit(*args)
     
-    @Slot(GuiCallback, object)
-    def apply_callback(self, cb: GuiCallback, arg: Any):
-        if cb is GuiCallback.COMMUNICATION_STATE:
+    @Slot(EngineCallback, object)
+    def apply_callback(self, cb: EngineCallback, arg: Any):
+        if cb is EngineCallback.COMMUNICATION_STATE:
             if arg is True:
                 self.set_communication_state(True)
                 self.comm_state_timer.stop()
@@ -338,10 +338,10 @@ class MainWindow(QMainWindow):
                 if not self.comm_state_timer.isActive():
                     self.comm_state_timer.start()
                 
-        elif cb is GuiCallback.MIDI_CONNECT_STATE:
+        elif cb is EngineCallback.MIDI_CONNECT_STATE:
             self.set_midi_connect_state(arg)
 
-        elif cb is GuiCallback.DATA_ERROR:
+        elif cb is EngineCallback.DATA_ERROR:
             function_code: FunctionCode = arg
             QMessageBox.critical(
                 self,
@@ -353,21 +353,21 @@ class MainWindow(QMainWindow):
                 % function_code.name
             )            
 
-        elif cb is GuiCallback.MODE_CHANGED:
+        elif cb is EngineCallback.MODE_CHANGED:
             vox_mode: VoxMode = arg
             self.set_vox_mode(vox_mode)
 
-        elif cb is GuiCallback.USER_BANKS_READ:
+        elif cb is EngineCallback.USER_BANKS_READ:
             if self.ui.comboBoxMode.currentData() is VoxMode.USER:
                 # update the banks combobox
                 self.set_vox_mode(VoxMode.USER)
 
-        elif cb is GuiCallback.FACTORY_BANKS_READ:
+        elif cb is EngineCallback.FACTORY_BANKS_READ:
             if self.ui.comboBoxMode.currentData() is VoxMode.PRESET:
                 # update the presets combobox
                 self.set_vox_mode(VoxMode.PRESET)
 
-        elif cb is GuiCallback.CURRENT_CHANGED:
+        elif cb is EngineCallback.CURRENT_CHANGED:
             program: 'VoxProgram' = arg
             
             self.ui.lineEditProgramName.setText(program.program_name.strip())
@@ -412,7 +412,7 @@ class MainWindow(QMainWindow):
 
             return
         
-        elif cb is GuiCallback.PARAM_CHANGED:
+        elif cb is EngineCallback.PARAM_CHANGED:
             program, vox_index, param_index = arg
 
             if vox_index is VoxIndex.NR_SENS:

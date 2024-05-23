@@ -304,3 +304,7 @@ def run_loop():
         midi_client.read_events()
         midi_client.flush()
         time.sleep(0.001)
+        
+        while midi_client.engine.event_queue.qsize():
+            func, args, kwargs = midi_client.engine.event_queue.get()
+            func(*args, **kwargs)

@@ -72,7 +72,7 @@ if __name__ == '__main__':
     
     if nsm_osci.is_under_nsm():
         QApplication.setQuitOnLastWindowClosed(False)
-        nsm_osci.init()
+        nsm_osci.init(osc_port)
         nsm_osci.set_engine(engine)
         nsm_osci.set_main_win(main_win)
         nsm_thread = threading.Thread(target=nsm_osci.run_loop)
