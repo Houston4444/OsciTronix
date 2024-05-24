@@ -11,7 +11,7 @@ from liblo import Address
 import midi_client
 from nsm_client import NsmServer, NsmCallback, Err
 from app_infos import APP_NAME, CONFIG_FILE, CURRENT_PROGRAM_FILE
-from engine import Engine
+from engine import CommunicationState, Engine
 from osc import OscUdpServer
 
 if TYPE_CHECKING:
@@ -117,7 +117,7 @@ class NsmObject:
         if not program_path.exists():
             return
         
-        if not self.engine.communication_state:
+        if not self.engine.communication_state.is_ok():
             _logger.info(
                 'communication_state is not ok for loading program now')
             self._pending_path_to_load = program_path
@@ -140,7 +140,7 @@ class NsmObject:
 
         self.engine.config.save_in_file(config_path)
 
-        if not self.engine.communication_state:
+        if not self.engine.communication_state.is_ok():
             _logger.critical('communication_state is not ok for saving')
             return
 

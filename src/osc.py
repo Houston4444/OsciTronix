@@ -8,7 +8,7 @@ from effects import AmpModel, AmpParam, ChorusParam, CompParam, DelayParam, Dist
 
 from liblo import Message, Server, Address
 
-from engine import Engine, EngineCallback
+from engine import CommunicationState, Engine, EngineCallback
 from vox_program import VoxProgram
 
 _logger = logging.getLogger(__name__)
@@ -99,17 +99,14 @@ class OscUdpServer(Server):
             self.engine.current_program.to_json_dict(),
             separators=(',', ':'))
 
-    def engine_callback(self, cb: EngineCallback, arg):
-        if cb is EngineCallback.COMMUNICATION_STATE:
-            return
-        
-        print('osc engine callback', cb.name, arg)
+    def engine_callback(self, cb: EngineCallback, arg):        
         PFXREG = PFX + 'reg/'
         msg = None
         
         if cb is EngineCallback.COMMUNICATION_STATE:
-            comm_state: bool = arg
-            msg = Message(PFXREG + 'communication_state', int(comm_state))
+            comm_state: CommunicationState = arg
+            msg = Message(PFXREG + 'communication_state',
+                          int(comm_state.is_ok()))
 
         elif cb is EngineCallback.CURRENT_CHANGED:
             msg = Message(

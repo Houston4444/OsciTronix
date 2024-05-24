@@ -17,7 +17,8 @@ from effects import (
     AmpModel, AmpParam, BankName, DummyParam, EffParam,
     EffectOnOff, Pedal1Type, Pedal2Type,
     ReverbParam, ReverbType, VoxIndex, VoxMode)
-from engine import FunctionCode, EngineCallback, VoxProgram, Engine
+from engine import (CommunicationState, FunctionCode, EngineCallback,
+                    VoxProgram, Engine)
 from progress import ParamProgressBar
 from about_dialog import AboutDialog
 
@@ -263,8 +264,8 @@ class MainWindow(QMainWindow):
         self.ui.actionLoadSavedProgram.setChecked(
             self.engine.config.nsm_mode is NsmMode.LOAD_SAVED_PROGRAM)
     
-    def set_communication_state(self, state: bool):
-        if state:
+    def set_communication_state(self, comm_state: CommunicationState):
+        if comm_state.is_ok():
             text = _translate('main_win', 'Communication OK')
             style_sheet = 'QLabel{color: green}'
         else:
@@ -331,8 +332,9 @@ class MainWindow(QMainWindow):
     @Slot(EngineCallback, object)
     def apply_callback(self, cb: EngineCallback, arg: Any):
         if cb is EngineCallback.COMMUNICATION_STATE:
-            if arg is True:
-                self.set_communication_state(True)
+            comm_state: CommunicationState = arg
+            self.set_communication_state(comm_state)
+            if comm_state.is_ok():
                 self.comm_state_timer.stop()
             else:
                 if not self.comm_state_timer.isActive():
@@ -586,13 +588,13 @@ class MainWindow(QMainWindow):
     
     @Slot()
     def _comm_timer_timeout(self):
-        self.set_communication_state(False)
+        self.set_communication_state(CommunicationState.LOSED)
         if not self.connection_timer.isActive():
             self.connection_timer.start()
 
     @Slot()
     def _start_communication(self):
-        if self.engine.communication_state is True:
+        if self.engine.communication_state.is_ok():
             self.connection_timer.stop()
             self.ui.labelConnected.setText(
                 _translate('main_win', 'Communication OK'))

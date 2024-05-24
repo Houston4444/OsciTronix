@@ -4,6 +4,8 @@ from pathlib import Path
 from queue import Queue
 from typing import Any, Callable, Optional
 import json
+import time
+
 from unidecode import unidecode
 
 from config import Config
@@ -16,6 +18,29 @@ from vox_program import VoxProgram
 
 
 _logger = logging.getLogger(__name__)
+
+
+class CommunicationState(Enum):
+    # No message received since at least 100ms
+    LOSED = 0
+
+    # No message sent since last message received
+    OK = 1
+    
+    # At least one message send waiting 
+    # for an answer for less than 100ms
+    YES_BUT_CHECKING = 2
+    
+    NO_BUT_CHECKING = 3
+    
+    def is_ok(self) -> bool:
+        return  self in (self.OK, self.YES_BUT_CHECKING)
+    
+    def is_checking(self) -> bool:
+        return self in (self.YES_BUT_CHECKING, self.NO_BUT_CHECKING)
+    
+    def exported(self) -> 'CommunicationState':
+        return self.OK if self.is_ok() else self.LOSED
 
 
 class EngineCallback(Enum):
@@ -77,9 +102,10 @@ class Engine:
         
         self.voxmode = VoxMode.PRESET
         self.prog_num = 0
-        self.communication_state = False
+        self.communication_state = CommunicationState.LOSED
         self._send_count = 0
-        
+        self.last_send_time = 0.0
+
         self._last_sent_message = tuple[FunctionCode, tuple[int]]()
         self._midi_connect_state = MidiConnectState.ABSENT_DEVICE
 
@@ -100,26 +126,30 @@ class Engine:
         self._midi_out_func = midi_out_func
 
     def set_midi_connect_state(self, connect_state: MidiConnectState):
-        if (self.communication_state
+        if (self.communication_state.is_ok()
                 and self._midi_connect_state is MidiConnectState.CONNECTED
                 and connect_state is not MidiConnectState.CONNECTED):
             # device was midi connected and communication working
-            # let's try now if everything is still working
+            # let's try now if communication is still working
             # (very probably not !).
             self._send_vox(FunctionCode.MODE_REQUEST)
              
         self._midi_connect_state = connect_state
         self._send_cb(EngineCallback.MIDI_CONNECT_STATE, connect_state)
 
-    def _set_communication_state(self, comm_state: bool):
+    def set_communication_state(self, comm_state: CommunicationState):
+        if comm_state.is_ok() is not self.communication_state.is_ok():
+            self._send_cb(EngineCallback.COMMUNICATION_STATE,
+                          comm_state.exported())
+        
         self.communication_state = comm_state
-        self._send_cb(EngineCallback.COMMUNICATION_STATE, comm_state)
-        
-        if comm_state:
-            self._send_count += 1
-        else:
+
+        if comm_state is CommunicationState.OK:
             self._send_count -= 1
-        
+        elif comm_state.is_checking():
+            self._send_count += 1
+            self.last_send_time = time.time()
+
         if self._send_count == 0:
             for ready_cb in self._ready_cbs:
                 ready_cb()
@@ -135,7 +165,10 @@ class Engine:
         self._midi_out_func(
             SYSEX_BEGIN + [function_code.value] + list(args) + [247])
 
-        self._set_communication_state(False)
+        if self.communication_state.is_ok():
+            self.set_communication_state(CommunicationState.YES_BUT_CHECKING)
+        else:
+            self.set_communication_state(CommunicationState.NO_BUT_CHECKING)
     
     def _send_cb(self, engine_callback: EngineCallback, arg=None):
         for cb in self._cbs:
@@ -198,7 +231,7 @@ class Engine:
             _logger.warning(f'last sent message is {orig_func_code.name}')
             self._send_cb(EngineCallback.DATA_ERROR, orig_func_code)
 
-        self._set_communication_state(True)
+        self.set_communication_state(CommunicationState.OK)
         
         if function_code is FunctionCode.CURRENT_PROGRAM_DATA_DUMP:
             try:

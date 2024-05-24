@@ -5,7 +5,7 @@ from enum import Enum
 from pyalsa import alsaseq
 from app_infos import APP_NAME
 
-from engine import Engine
+from engine import CommunicationState, Engine
 from midi_enums import MidiConnectState
 
 
@@ -297,7 +297,17 @@ def run_loop():
         _logger.error('engine must be set before to run midi main loop')
         return
 
+    engine = midi_client.engine
+
     while not midi_client.stopping:
+        while engine.event_queue.qsize():
+            func, args, kwargs = engine.event_queue.get()
+            func(*args, **kwargs)
+
+        if engine.communication_state.is_checking():
+            if time.time() - engine.last_send_time > 0.100:
+                engine.set_communication_state(CommunicationState.LOSED)
+
         if midi_client.restart_asked:
             midi_client.start_client()
 
@@ -305,6 +315,3 @@ def run_loop():
         midi_client.flush()
         time.sleep(0.001)
         
-        while midi_client.engine.event_queue.qsize():
-            func, args, kwargs = midi_client.engine.event_queue.get()
-            func(*args, **kwargs)

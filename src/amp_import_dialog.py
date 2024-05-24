@@ -12,7 +12,7 @@ from effects import BankName, EffectOnOff
 import xdg
 from app_infos import APP_NAME
 from vox_program import VoxProgram
-from engine import Engine
+from engine import CommunicationState, Engine
 
 import ui.full_amp_import
 
@@ -232,7 +232,7 @@ class FullAmpImportDialog(QDialog):
     
     @Slot()
     def _apply_import(self):
-        if not self.engine.communication_state:
+        if not self.engine.communication_state.is_ok():
             return
         
         main_index = self.ui.comboBoxMainChoice.currentIndex()
