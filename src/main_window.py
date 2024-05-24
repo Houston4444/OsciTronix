@@ -467,6 +467,16 @@ class MainWindow(QMainWindow):
                 for widget in self._reverb_sliders:
                     widget.setValue(program.reverb_values[widget.param.value])
                 return
+        
+        elif cb is EngineCallback.PROGRAM_NAME_CHANGED:
+            cursor_pos = -1
+            if self.ui.lineEditProgramName.hasFocus():
+                cursor_pos = self.ui.lineEditProgramName.cursorPosition()
+
+            self.ui.lineEditProgramName.setText(arg)
+            
+            if cursor_pos != -1:
+                self.ui.lineEditProgramName.setCursorPosition(cursor_pos)
     
     @Slot(float)
     def _noise_gate_changed(self, value: float):
@@ -596,9 +606,7 @@ class MainWindow(QMainWindow):
             
     @Slot(str)
     def _set_program_name(self, text: str):
-        normed_text = ''.join([chr(ord(c) % 128) for c in text])
-        self.ui.lineEditProgramName.setText(normed_text)
-        self.engine.set_program_name(normed_text)
+        self.engine.set_program_name(text)
             
     @Slot(int)
     def _change_mode(self, index: int):

@@ -24,3 +24,56 @@ list_custom_programs
 list_params
     for each param
     /reply path 
+
+
+-------------------
+
+All messages start with : /oscitronix/
+
+/oscitronix/register
+/oscitronix/unregister
+/oscitronix/current/amp/gain i
+
+messages that a registered program can receive
+* reg/communication_state i (#TODO)
+* reg/program_changed s (json string)
+* reg/mode_changed s (can be PRESET, USER or MANUAL)
+* reg/current/nr_sens i (noise gate)
+* reg/current/amp/type s (amp model name)
+* reg/current/amp/PARAM iiis (value, min, max, unit)
+    where PARAM can be:
+        gain
+        treble
+        middle
+        bass
+        volume
+        tone
+        presence
+        resonance
+        bright_cap
+        low_cut
+        mid_boost
+        bias_shift
+        class
+* reg/current/pedal1/type s (pedal1 type)
+* reg/current/pedal1/active i (1 active, 0 bypassed)
+* reg/current/pedal1/PARAM iiis (value, min, max, unit)
+    where PARAM can be:
+        sens
+        level
+        attack
+        voice
+        speed
+        depth
+        manual
+        mix
+        low_cut
+        high_cut
+        drive
+        tone
+        treble
+        middle
+        basse
+* reg/current/pedal2/type s (pedal2 type)
+* reg/current/pedal2/active i (1 active, 0 bypassed)
+* reg/current/reverb/type s (reverb type)

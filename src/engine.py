@@ -4,6 +4,7 @@ from pathlib import Path
 from queue import Queue
 from typing import Any, Callable, Optional
 import json
+from unidecode import unidecode
 
 from config import Config
 from midi_enums import MidiConnectState
@@ -26,6 +27,7 @@ class EngineCallback(Enum):
     MODE_CHANGED = 4
     USER_BANKS_READ = 5
     FACTORY_BANKS_READ = 6
+    PROGRAM_NAME_CHANGED = 7
 
 
 class FunctionCode(IntEnum):
@@ -135,9 +137,9 @@ class Engine:
 
         self._set_communication_state(False)
     
-    def _send_cb(self, gui_callback: EngineCallback, arg=None):
+    def _send_cb(self, engine_callback: EngineCallback, arg=None):
         for cb in self._cbs:
-            cb(gui_callback, arg)
+            cb(engine_callback, arg)
     
     def start_communication(self):
         self._send_count = 0
@@ -550,6 +552,7 @@ class Engine:
     
     @in_midi_thread()
     def set_program_name(self, new_name: str):
+        new_name = unidecode(new_name)
         if len(new_name) > 16:
             new_name = new_name[:16]
         
@@ -564,6 +567,7 @@ class Engine:
                 i, str_as_ints[i], 0)
 
         self.current_program.program_name = new_name
+        self._send_cb(EngineCallback.PROGRAM_NAME_CHANGED, new_name)
     
     @in_midi_thread()
     def set_mode(self, vox_mode: VoxMode):

@@ -1,16 +1,44 @@
-from typing import Callable, Optional
+import logging
+from pathlib import PosixPath
+from sys import excepthook
+from typing import Callable, Iterator, Optional
 import json
 from app_infos import APP_NAME
-from effects import AmpParam, CompParam, DummyParam, EffParam, EffectOnOff, Pedal1Type, ReverbParam, VoxIndex, VoxMode
+from effects import AmpModel, AmpParam, ChorusParam, CompParam, DelayParam, DistortionParam, DummyParam, EffParam, EffectOnOff, FlangerParam, OverdriveParam, Pedal1Type, Pedal2Type, PhaserParam, ReverbParam, ReverbType, TremoloParam, VoxIndex, VoxMode
 
-from liblo import Message, Server, make_method, Address
+from liblo import Message, Server, Address
 
 from engine import Engine, EngineCallback
 from vox_program import VoxProgram
 
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.DEBUG)
+
 
 def osci_method():
     pass
+
+
+def pedal1_params() -> Iterator[EffParam]:
+    for comp_param in CompParam:
+        yield comp_param
+    for chorus_param in ChorusParam:
+        yield chorus_param
+    for overdrive_param in OverdriveParam:
+        yield overdrive_param
+    for distortion_param in DistortionParam:
+        yield distortion_param
+
+
+def pedal2_params() -> Iterator[EffParam]:
+    for flanger_param in FlangerParam:
+        yield flanger_param
+    for phaser_param in PhaserParam:
+        yield phaser_param
+    for tremolo_param in TremoloParam:
+        yield tremolo_param
+    for delay_param in DelayParam:
+        yield delay_param
 
 
 PFX = f'/{APP_NAME.lower()}/'
@@ -30,6 +58,34 @@ class OscUdpServer(Server):
         
         self._add_m('current/program_name', 's', self._set_program_name)
         
+        ipaths = set[str]()
+        
+        ipaths.add('current/nr_sens')
+
+        for eff in ('pedal1', 'pedal2', 'reverb'):
+            ipaths.add(f'current/{eff}/active')
+
+        for amp_param in AmpParam:
+            ipaths.add(f'current/amp/{amp_param.name.lower()}')
+        ipaths.add('current/amp/presence')
+
+        for pedal1_param in pedal1_params():
+            ipaths.add(f'current/pedal1/{pedal1_param.name.lower()}')
+
+        for pedal2_param in pedal1_params():
+            ipaths.add(f'current/pedal2/{pedal2_param.name.lower()}')
+
+        for reverb_param in ReverbParam:
+            ipaths.add(f'current/reverb/{reverb_param.name.lower()}')
+        
+        for ipath in ipaths:
+            self._add_m(ipath, 'i', self._set_current_param_int)
+            
+        spaths = [f'current/{p}/type'
+                  for p in ('amp', 'pedal1', 'pedal2', 'reverb')]
+        for spath in spaths:
+            self._add_m(spath, 's', self._set_current_param_str)
+        
         self._clients = set[Address]()
 
     def json_short(self) -> str:
@@ -39,6 +95,10 @@ class OscUdpServer(Server):
             separators=(',', ':'))
 
     def engine_callback(self, cb: EngineCallback, arg):
+        if cb is EngineCallback.COMMUNICATION_STATE:
+            return
+        
+        print('osc engine callback', cb.name, arg)
         PFXREG = PFX + 'reg/'
         msg = None
         
@@ -67,7 +127,7 @@ class OscUdpServer(Server):
 
             elif vox_index is VoxIndex.EFFECT_MODEL:
                 param = EffectOnOff(param_index)
-                path = PCUR + param.name.lower()
+                path = PCUR + param.name.lower() + '/type'
 
                 if param is EffectOnOff.AMP:
                     msg = Message(path, program.amp_model.name)
@@ -84,7 +144,7 @@ class OscUdpServer(Server):
             elif vox_index is VoxIndex.AMP:
                 amp_param = AmpParam(param_index)
                 msg = Message(
-                    f'{PCUR}amp/{amp_param.name.lower()}/',
+                    f'{PCUR}amp/{amp_param.name.lower()}',
                     program.amp_params[amp_param])
             
             elif vox_index is VoxIndex.EFFECT_STATUS:
@@ -105,7 +165,7 @@ class OscUdpServer(Server):
                     value = program.pedal2_values[param_index]
                 else:
                     param = ReverbParam(param_index)
-                    value = program.pedal2_values[param_index]
+                    value = program.reverb_values[param_index]
                 
                 msg = Message(
                     f'{PCUR}{vox_index.name.lower()}/{param.name.lower()}',
@@ -116,6 +176,109 @@ class OscUdpServer(Server):
         
         for reg in self._clients:
             self.send(reg, msg)
+
+    def _set_current_param_int(
+            self, path: str, args: list[int], types: str, src_addr: Address):
+        # here path startswith '/oscitronix/current/'
+        _logger.debug(f'_set_current_param_int {path}, {args[0]}')
+        assert path.startswith('/oscitronix/current/')
+
+        vox_index: Optional[VoxIndex] = None
+        param: Optional[EffParam] = None
+        value = args[0]
+
+        start_cut = len(PFX) + len('current/')
+        pathcur = path[start_cut:]
+
+        if pathcur == 'nr_sens':
+            vox_index = VoxIndex.NR_SENS
+            param = DummyParam.DUMMY
+
+        else:
+            try:
+                vox_index_str, param_name = pathcur.split('/')
+                vox_index = VoxIndex[vox_index_str.upper()]
+            except:
+                _logger.debug(f'incorrect OSC path: {path}')
+                return
+
+        if (vox_index in (VoxIndex.PEDAL1, VoxIndex.PEDAL2, VoxIndex.REVERB)
+                and param_name == 'active'):
+            param = EffectOnOff[vox_index.name]
+            vox_index = VoxIndex.EFFECT_STATUS
+        
+        elif vox_index is VoxIndex.AMP:
+            if param_name == 'presence':
+                param_name = 'tone'
+
+            try:
+                param = AmpParam[param_name.upper()]
+            except:
+                _logger.debug(f'incorrect OSC path: {path}')
+                return
+            
+        elif vox_index is VoxIndex.PEDAL1:
+            try:
+                param = self.engine.current_program.pedal1_type.param_type()[
+                    param_name.upper()]
+            except:
+                _logger.debug(f'incorrect OSC path: {path}')
+                return
+            
+        elif vox_index is VoxIndex.PEDAL2:
+            try:
+                param = self.engine.current_program.pedal2_type.param_type()[
+                    param_name.upper()]
+            except:
+                _logger.debug(f'incorrect OSC path: {path}')
+                return
+        
+        elif vox_index is VoxIndex.REVERB:
+            try:
+                param = ReverbParam[param_name.upper()]
+            except:
+                _logger.debug(f'incorrect OSC path: {path}')
+                return
+        
+        if param is None:
+            _logger.debug(f'incorrect OSC path: {path}')
+            return
+
+        self.engine.set_param_value(vox_index, param, value)
+
+    def _set_current_param_str(
+            self, path: str, args: list[str], types: str, src_addr: Address):
+        _logger.debug(f'_set_current_param_str {path}, {args[0]}')
+        assert path.startswith('/oscitronix/current/')
+        
+        start_cut = len(PFX) + len('current/')
+        pathcur = path[start_cut:]
+        
+        vox_index: Optional[VoxIndex] = None
+        param: Optional[EffParam] = None
+        value_str = args[0].upper().replace(' ', '_')
+        value = 0
+        
+        if pathcur.endswith('/type'):
+            vox_index = VoxIndex.EFFECT_MODEL
+            pedal = pathcur.rpartition('/')[0]
+            try:
+                param = EffectOnOff[pedal.upper()]
+                if param is EffectOnOff.AMP:
+                    value = AmpModel[value_str].value
+                elif param is EffectOnOff.PEDAL1:
+                    value = Pedal1Type[value_str].value
+                elif param is EffectOnOff.PEDAL2:
+                    value = Pedal2Type[value_str].value
+                elif param is EffectOnOff.REVERB:
+                    value = ReverbType[value_str].value
+            except:
+                _logger.debug(f'Invalid OSC path: path')
+            
+        if vox_index is None or param is None:
+            return
+                
+        self.engine.set_param_value(vox_index, param, value)
 
     def set_engine(self, engine: Engine):
         self.engine = engine
@@ -145,6 +308,5 @@ class OscUdpServer(Server):
 
     def _set_program_name(
             self, path: str, args: list[str], types: str, src_addr: Address):
-        program_name = args[0]
-        # self.engine.current_program.program_name
+        self.engine.set_program_name(args[0])
     
