@@ -1,22 +1,24 @@
 import logging
-from pathlib import PosixPath
-from sys import excepthook
 from typing import Callable, Iterator, Optional
 import json
-from app_infos import APP_NAME
-from effects import AmpModel, AmpParam, ChorusParam, CompParam, DelayParam, DistortionParam, DummyParam, EffParam, EffectOnOff, FlangerParam, OverdriveParam, Pedal1Type, Pedal2Type, PhaserParam, ReverbParam, ReverbType, TremoloParam, VoxIndex, VoxMode
 
 from liblo import Message, Server, Address
 
 from engine import CommunicationState, Engine, EngineCallback
 from vox_program import VoxProgram
+from app_infos import APP_NAME
+from effects import (
+    AmpModel, AmpParam, ChorusParam, CompParam, DelayParam,
+    DistortionParam, DummyParam, EffParam, EffectOnOff,
+    FlangerParam, OverdriveParam, Pedal1Type, Pedal2Type,
+    PhaserParam, ReverbParam, ReverbType, TremoloParam,
+    VoxIndex, VoxMode)
+
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-
-def osci_method():
-    pass
+PFX = f'/{APP_NAME.lower()}/'
 
 
 def pedal1_params() -> Iterator[EffParam]:
@@ -29,7 +31,6 @@ def pedal1_params() -> Iterator[EffParam]:
     for distortion_param in DistortionParam:
         yield distortion_param
 
-
 def pedal2_params() -> Iterator[EffParam]:
     for flanger_param in FlangerParam:
         yield flanger_param
@@ -39,9 +40,6 @@ def pedal2_params() -> Iterator[EffParam]:
         yield tremolo_param
     for delay_param in DelayParam:
         yield delay_param
-
-
-PFX = f'/{APP_NAME.lower()}/'
 
 
 class OscUdpServer(Server):
