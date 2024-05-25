@@ -12,9 +12,9 @@ from effects import BankName, EffectOnOff
 import xdg
 from app_infos import APP_NAME
 from vox_program import VoxProgram
-from engine import CommunicationState, Engine
+from engine import Engine
 
-import ui.full_amp_import
+import frontend.ui.full_amp_import as ui_amp_import
 
 
 _logger = logging.getLogger(__name__)
@@ -31,7 +31,7 @@ class FullAmpConf:
 class FullAmpImportDialog(QDialog):
     def __init__(self, parent, engine: Engine):
         super().__init__(parent)
-        self.ui = ui.full_amp_import.Ui_DialogFullAmpImport()
+        self.ui = ui_amp_import.Ui_DialogFullAmpImport()
         self.ui.setupUi(self)
         
         self.engine = engine

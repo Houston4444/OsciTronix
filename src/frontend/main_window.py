@@ -8,7 +8,6 @@ from qtpy.QtWidgets import (
     QMessageBox, QAction)
 from qtpy.QtCore import QTimer, Slot, Signal, QSettings
 
-from amp_import_dialog import FullAmpImportDialog
 from app_infos import APP_NAME
 from config import NsmMode
 import xdg
@@ -19,10 +18,11 @@ from effects import (
     ReverbParam, ReverbType, VoxIndex, VoxMode)
 from engine import (CommunicationState, FunctionCode, EngineCallback,
                     VoxProgram, Engine)
-from progress import ParamProgressBar
-from about_dialog import AboutDialog
+from frontend.progress import ParamProgressBar
+from frontend.amp_import_dialog import FullAmpImportDialog
+from frontend.about_dialog import AboutDialog
 
-from ui.main_win import Ui_MainWindow
+from frontend.ui.main_win import Ui_MainWindow
 
 
 _translate = QApplication.translate

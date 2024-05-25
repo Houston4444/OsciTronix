@@ -12,7 +12,7 @@ import xdg
 import midi_client
 import nsm_osci
 from engine import Engine
-from main_window import MainWindow
+from frontend.main_window import MainWindow
 
 _logger = logging.getLogger(__name__)
 

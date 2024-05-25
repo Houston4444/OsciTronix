@@ -15,7 +15,7 @@ from engine import CommunicationState, Engine
 from osc import OscUdpServer
 
 if TYPE_CHECKING:
-    from main_window import MainWindow
+    from frontend.main_window import MainWindow
 
 _logger = logging.getLogger(__name__)
 

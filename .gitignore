@@ -1,4 +1,6 @@
 src/__pycache__/*
+src/frontend/__pycache__/*
+src/frontend/ui/__pycache__/*
 src/ui/*
 
 src/resources_rc.py

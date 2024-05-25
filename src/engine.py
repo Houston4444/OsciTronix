@@ -21,7 +21,8 @@ _logger = logging.getLogger(__name__)
 
 
 class CommunicationState(Enum):
-    # No message received since at least 100ms
+    # No message received since at least 100ms, 
+    # despite the fact we were waiting a response
     LOSED = 0
 
     # No message sent since last message received
@@ -31,6 +32,7 @@ class CommunicationState(Enum):
     # for an answer for less than 100ms
     YES_BUT_CHECKING = 2
     
+    # Same as YES_BUT_CHECKING, but previous state was LOSED
     NO_BUT_CHECKING = 3
     
     def is_ok(self) -> bool:

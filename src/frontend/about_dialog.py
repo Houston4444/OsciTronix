@@ -3,7 +3,7 @@ from qtpy.QtWidgets import QDialog
 
 from app_infos import VERSION
 
-from ui.about_oscitronix import Ui_DialogAboutOscitronix
+from frontend.ui.about_oscitronix import Ui_DialogAboutOscitronix
 
 
 class AboutDialog(QDialog):

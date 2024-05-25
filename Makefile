@@ -31,15 +31,15 @@ src/resources_rc.py: resources/resources.qrc
 
 UI: oscitronix
 
-oscitronix: src/ui/main_win.py \
-			src/ui/about_oscitronix.py \
-			src/ui/full_amp_import.py
+oscitronix: src/frontend/ui/main_win.py \
+			src/frontend/ui/about_oscitronix.py \
+			src/frontend/ui/full_amp_import.py
 
-src/ui/%.py: resources/ui/%.ui
+src/frontend/ui/%.py: resources/ui/%.ui
 	$(PYUIC) $< |sed "s/from PyQt$(QT_VERSION) import/from qtpy import/" > $@
 
 clean:
-	rm -f *~ src/*~ src/*.pyc src/ui/*.py src/ui_*.py src/resources_rc.py resources/locale/*.qm
+	rm -f *~ src/*~ src/*.pyc src/ui/*.py src/fronted/ui/*.py src/ui_*.py src/resources_rc.py resources/locale/*.qm
 
 install: uninstall pure_install
 
