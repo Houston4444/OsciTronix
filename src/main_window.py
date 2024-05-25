@@ -6,11 +6,11 @@ from qtpy.QtWidgets import (
     QApplication, QMainWindow, QFileDialog,
     QCheckBox, QComboBox, QGroupBox, QMenu,
     QMessageBox, QAction)
-from qtpy.QtCore import QTimer, Slot, Signal
+from qtpy.QtCore import QTimer, Slot, Signal, QSettings
+
 from amp_import_dialog import FullAmpImportDialog
 from app_infos import APP_NAME
 from config import NsmMode
-
 import xdg
 from midi_enums import MidiConnectState
 from effects import (
@@ -244,6 +244,10 @@ class MainWindow(QMainWindow):
         self.nsm_hide.connect(self.hide)
         self.apply_under_nsm.connect(self._under_nsm)
         self.config_changed.connect(self._config_changed)
+        
+        geom = QSettings().value('MainWindow/geometry')
+        if geom:
+            self.restoreGeometry(geom)
 
     def set_nsm_visible_callback(self, nsm_cb: Callable[[bool], None]):
         self._nsm_visible_cb = nsm_cb
@@ -726,6 +730,8 @@ class MainWindow(QMainWindow):
             self._nsm_visible_cb(True)
             
     def hideEvent(self, event):
+        QSettings().setValue('MainWindow/geometry', self.saveGeometry())
+        
         super().hideEvent(event)
         if self._nsm_visible_cb is not None:
             self._nsm_visible_cb(False)

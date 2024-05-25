@@ -5,7 +5,7 @@ import threading
 
 from qtpy.QtWidgets import QApplication, QStyleFactory
 from qtpy.QtGui import QIcon
-from qtpy.QtCore import QTimer
+from qtpy.QtCore import QTimer, QSettings
 from app_infos import APP_NAME, CONFIG_FILE
 
 import xdg
@@ -49,9 +49,14 @@ if __name__ == '__main__':
 
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon.fromTheme(APP_NAME.lower()))
+    app.setApplicationName(APP_NAME)
+    app.setOrganizationName(APP_NAME)
+    app.setDesktopFileName(APP_NAME.lower())
     
     # force Fusion style because of param widgets
     app.setStyle(QStyleFactory.create('Fusion'))
+    
+    settings = QSettings()
 
     engine = Engine()
     main_win = MainWindow(engine)
