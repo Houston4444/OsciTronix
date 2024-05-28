@@ -33,7 +33,8 @@ UI: oscitronix
 
 oscitronix: src/frontend/ui/main_win.py \
 			src/frontend/ui/about_oscitronix.py \
-			src/frontend/ui/full_amp_import.py
+			src/frontend/ui/full_amp_import.py \
+			src/frontend/ui/local_program.py
 
 src/frontend/ui/%.py: resources/ui/%.ui
 	$(PYUIC) $< |sed "s/from PyQt$(QT_VERSION) import/from qtpy import/" > $@

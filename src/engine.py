@@ -7,7 +7,9 @@ import json
 import time
 
 from unidecode import unidecode
+from app_infos import APP_NAME
 
+import xdg
 from config import Config
 from midi_enums import MidiConnectState
 from effects import (
@@ -55,6 +57,7 @@ class EngineCallback(Enum):
     USER_BANKS_READ = 5
     FACTORY_BANKS_READ = 6
     PROGRAM_NAME_CHANGED = 7
+    LOCAL_PROGRAMS_CHANGED = 8
 
 
 class FunctionCode(IntEnum):
@@ -94,10 +97,14 @@ def in_midi_thread():
 class Engine:
     def __init__(self):
         self.config = Config()
+        self.project_path = xdg.xdg_data_home() / APP_NAME
+        
         self.current_program = VoxProgram()
         self.programs = [VoxProgram() for i in range(8)]
         self.factory_programs = [VoxProgram() for i in range(60)]
-        
+        self.local_programs = dict[str, VoxProgram]()
+        self.current_local_pg_name = ''
+
         # There are 4 user ampfxs in the amp,
         # even if physically, only 3 exists
         self.user_ampfxs = [VoxProgram() for i in range(4)]
@@ -214,13 +221,13 @@ class Engine:
                 f' with header ({header_str})')
             return
 
-        function_code = shargs.pop(0)
+        function_code_int = shargs.pop(0)
 
         try:
-            function_code = FunctionCode(function_code)
+            function_code = FunctionCode(function_code_int)
         except:
             _logger.critical(
-                f'Received Unknown function code {hex(function_code)}')
+                f'Received Unknown function code {hex(function_code_int)}')
             return
         
         _logger.debug(f'message received from device {function_code.name}')
@@ -674,6 +681,77 @@ class Engine:
         self.user_ampfxs[ampfx_num] = self.current_program.copy()
         
     # file managing
+
+    @in_midi_thread()
+    def set_project_path(self, project_path: Path):
+        self.project_path = project_path
+        if not self.project_path.exists():
+            return
+        
+        for path in self.project_path.iterdir():
+            if len(path.name) > 21:
+                # do not accept too long file name
+                # 16 chrs + '.json'
+                continue
+            
+            if not str(path).endswith('.json'):
+                continue
+            
+            try:
+                with open(path, 'r') as f:
+                    program = VoxProgram.from_json_dict(json.load(f))
+            except:
+                _logger.warning(
+                    f'Failed to load {path.name} in local programs')
+                continue
+            
+            program_name = unidecode(path.name.rpartition('.')[0])
+            program.program_name = program_name
+            self.local_programs[program_name] = program
+        
+        self._send_cb(EngineCallback.LOCAL_PROGRAMS_CHANGED, None)
+
+    @in_midi_thread()
+    def save_to_local_program(self, program_name: str):
+        try:
+            self.project_path.mkdir(exist_ok=True, parents=True)
+        except:
+            _logger.warning(
+                f'Failed to create {self.project_path} dir, '
+                'impossible to save program')
+            return
+        
+        program_path = self.project_path / f'{program_name}.json'
+        try:
+            with open(program_path, 'w') as f:
+                json.dump(self.current_program.to_json_dict(), f)
+        except:
+            _logger.warning(
+                f'Failed to save {program_name} in {program_path}')
+            return
+        
+        print('makkos', str(program_path))
+        
+        self.local_programs[program_name] = self.current_program.copy()
+        self._send_cb(EngineCallback.LOCAL_PROGRAMS_CHANGED, None)
+    
+    @in_midi_thread()
+    def load_local_program(self, program_name: str):
+        local_pg = self.local_programs.get(program_name)
+        if local_pg is None:
+            _logger.critical(
+                f'program {program_name} does not exists in local programs')
+            return
+        
+        print('allliions', program_name)
+        self.current_local_pg_name = program_name
+        self._send_vox(
+            FunctionCode.CURRENT_PROGRAM_DATA_DUMP,
+            *local_pg.data_write())
+        self.current_program = local_pg.copy()
+        self._send_cb(EngineCallback.CURRENT_CHANGED, self.current_program)
+        self._send_cb(EngineCallback.LOCAL_PROGRAMS_CHANGED, program_name)
+    
     def save_current_program_to_disk(self, filepath: Path):
         try:
             with open(filepath, 'w') as f:
@@ -693,12 +771,14 @@ class Engine:
         
         self.load_program(program)
     
+    # 
+    
     @in_midi_thread()
     def load_program(self, program: VoxProgram):
         self._send_vox(
             FunctionCode.CURRENT_PROGRAM_DATA_DUMP,
             *program.data_write())
-        self.current_program = program
+        self.current_program = program.copy()
         self._send_cb(EngineCallback.CURRENT_CHANGED, self.current_program)
     
     @in_midi_thread()

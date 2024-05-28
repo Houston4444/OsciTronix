@@ -6,7 +6,7 @@ import threading
 from qtpy.QtWidgets import QApplication, QStyleFactory
 from qtpy.QtGui import QIcon
 from qtpy.QtCore import QTimer, QSettings
-from app_infos import APP_NAME, CONFIG_FILE
+from app_infos import APP_NAME, CONFIG_FILE, LOCAL_PROGRAMS_DIRNAME
 
 import xdg
 import midi_client
@@ -84,6 +84,8 @@ if __name__ == '__main__':
         nsm_thread.start()
     else:
         engine.config.load_from_file(config_path)
+        engine.set_project_path(
+            xdg.xdg_data_home() / APP_NAME / LOCAL_PROGRAMS_DIRNAME)
 
         main_win.show()
 

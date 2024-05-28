@@ -10,6 +10,7 @@ from qtpy.QtCore import QTimer, Slot, Signal, QSettings
 
 from app_infos import APP_NAME
 from config import NsmMode
+from frontend.local_program_dialog import LocalProgramDialog
 import xdg
 from midi_enums import MidiConnectState
 from effects import (
@@ -34,6 +35,7 @@ class MainWindow(QMainWindow):
     nsm_hide = Signal()
     apply_under_nsm = Signal()
     config_changed = Signal()
+    local_programs_changed = Signal()
     
     def __init__(self, engine: Engine):
         super().__init__()
@@ -109,6 +111,7 @@ class MainWindow(QMainWindow):
 
             self.ui.comboBoxMode.addItem(mode_name, vox_mode)
 
+        self.ui.toolButtonSave.clicked.connect(self._save_to_local_program)
         self.ui.comboBoxMode.activated.connect(self._change_mode)
         self.ui.comboBoxBanksAndPresets.activated.connect(
             self._change_program_number)
@@ -200,6 +203,8 @@ class MainWindow(QMainWindow):
         
         self.ui.toolButtonRefresh.clicked.connect(self._refresh_all)
         
+        self.ui.comboBoxLocalPrograms.activated.connect(
+            self._load_local_program)
         self.ui.actionAutoConnectMidi.triggered.connect(
             self._auto_connect_device_change)
         self.ui.actionNsmFree.triggered.connect(
@@ -244,6 +249,7 @@ class MainWindow(QMainWindow):
         self.nsm_hide.connect(self.hide)
         self.apply_under_nsm.connect(self._under_nsm)
         self.config_changed.connect(self._config_changed)
+        self.local_programs_changed.connect(self._local_programs_changed)
         
         geom = QSettings().value('MainWindow/geometry')
         if geom:
@@ -267,6 +273,39 @@ class MainWindow(QMainWindow):
             self.engine.config.nsm_mode is NsmMode.FREE)
         self.ui.actionLoadSavedProgram.setChecked(
             self.engine.config.nsm_mode is NsmMode.LOAD_SAVED_PROGRAM)
+    
+    @Slot()
+    def _local_programs_changed(self):
+        self.ui.comboBoxLocalPrograms.clear()
+
+        i, index = 0, 0
+        for pname in self.engine.local_programs.keys():
+            self.ui.comboBoxLocalPrograms.addItem(str(pname))
+            if str(pname) == self.engine.current_local_pg_name:
+                index = i
+            i += 1
+
+        if self.engine.current_local_pg_name:
+            self.ui.comboBoxLocalPrograms.setCurrentIndex(index)
+        else:
+            self.ui.comboBoxLocalPrograms.setCurrentIndex(-1)
+    
+    @Slot(int)
+    def _load_local_program(self, index: int):
+        self.engine.load_local_program(
+            self.ui.comboBoxLocalPrograms.currentText())
+    
+    @Slot()
+    def _save_to_local_program(self):
+        dialog = LocalProgramDialog(self)
+        dialog.set_program_list(set(self.engine.local_programs.keys()))
+        dialog.set_default_program_name(
+            self.engine.current_program.program_name)
+        
+        if not dialog.exec():
+            return
+
+        self.engine.save_to_local_program(dialog.get_program_name())
     
     def set_communication_state(self, comm_state: CommunicationState):
         if comm_state.is_ok():
@@ -483,6 +522,9 @@ class MainWindow(QMainWindow):
             
             if cursor_pos != -1:
                 self.ui.lineEditProgramName.setCursorPosition(cursor_pos)
+                
+        elif cb is EngineCallback.LOCAL_PROGRAMS_CHANGED:
+            self._local_programs_changed()
     
     @Slot(float)
     def _noise_gate_changed(self, value: float):

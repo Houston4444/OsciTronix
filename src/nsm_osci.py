@@ -10,9 +10,9 @@ from liblo import Address
 
 import midi_client
 from nsm_client import NsmServer, NsmCallback, Err
-from app_infos import APP_NAME, CONFIG_FILE, CURRENT_PROGRAM_FILE
-from engine import CommunicationState, Engine
-from osc import OscUdpServer
+from app_infos import (APP_NAME, CONFIG_FILE, CURRENT_PROGRAM_FILE,
+                       LOCAL_PROGRAMS_DIRNAME)
+from engine import Engine
 
 if TYPE_CHECKING:
     from frontend.main_window import MainWindow
@@ -106,6 +106,8 @@ class NsmObject:
         config_path = self.project_path / CONFIG_FILE
         program_path = self.project_path / CURRENT_PROGRAM_FILE
 
+        self.engine.set_project_path(
+            self.project_path / LOCAL_PROGRAMS_DIRNAME)
         self.engine.config.load_from_file(config_path)
 
         if self.main_win is not None:
