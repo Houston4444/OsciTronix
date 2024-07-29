@@ -11,7 +11,9 @@ from midi_enums import MidiConnectState
 _logger = logging.getLogger(__name__)
 
 VALVETRONIX_CLIENT_NAME = 'Valvetronix X'
-VALVETRONIX_PORT_NAME = 'Valvetronix X MIDI 1'
+VALVETRONIX_PORT_NAMES = (
+    'Valvetronix X MIDI 1',
+    'Valvetronix X Valvetronix X _ C')
 
 
 class MidiClient:
@@ -87,7 +89,7 @@ class MidiClient:
                 continue
             
             for port_name, port_id, connection_list in port_list:
-                if port_name != VALVETRONIX_PORT_NAME:
+                if port_name not in VALVETRONIX_PORT_NAMES:
                     continue
                 
                 port_info = self._seq.get_port_info(port_id, client_id)
@@ -175,7 +177,7 @@ class MidiClient:
                 
                 if (client_outed
                         or client_info['name'] != VALVETRONIX_CLIENT_NAME
-                        or port_info['name'] != VALVETRONIX_PORT_NAME
+                        or port_info['name'] not in VALVETRONIX_PORT_NAMES
                         or port_info['type'] & alsaseq.SEQ_PORT_TYPE_APPLICATION):
                     continue
 
