@@ -31,9 +31,6 @@ def open_file(project_path: str, session_name: str,
 
 def save_file():
     nsm_object.save_file()
-    # fla = nsm_object.engine.current_program.to_json_dict()
-    # stra = json.dumps(fla, separators=(',', ':'))
-    # print(stra, len(stra))
     return (Err.OK, 'Done')
 
 def hide_optional_gui():

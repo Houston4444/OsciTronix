@@ -730,8 +730,6 @@ class Engine:
                 f'Failed to save {program_name} in {program_path}')
             return
         
-        print('makkos', str(program_path))
-        
         self.local_programs[program_name] = self.current_program.copy()
         self._send_cb(EngineCallback.LOCAL_PROGRAMS_CHANGED, None)
     
@@ -769,8 +767,6 @@ class Engine:
             return
         
         self.load_program(program)
-    
-    # 
     
     @in_midi_thread()
     def load_program(self, program: VoxProgram):
