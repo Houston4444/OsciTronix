@@ -3,49 +3,50 @@ PREFIX = /usr/local
 DESTDIR = 
 
 LINK = ln -s
-PYUIC ?= pyuic5
-PYRCC ?= pyrcc5
-PYLUPDATE ?= pylupdate5
 LRELEASE ?= lrelease
 QT_VERSION ?= 5
 
-# Detect X11 rules dir
-ifeq "$(wildcard /etc/X11/Xsession.d/ )" ""
-	X11_RC_DIR = $(DESTDIR)/etc/X11/xinit/xinitrc.d/
+ifeq ($(QT_VERSION), 6)
+	QT_API ?= PyQt6
+	PYUIC ?= pyuic6
+	PYLUPDATE ?= pylupdate6
 else
-	X11_RC_DIR = $(DESTDIR)/etc/X11/Xsession.d/
+    QT_API ?= PyQt5
+	PYUIC ?= pyuic5
+	PYLUPDATE ?= pylupdate5
 endif
-
 
 # ----------------------------------------------------------
 # Internationalization
 
 I18N_LANGUAGES :=
 
-all: RES UI
+all: QT_MESSAGE RES UI
+
+QT_MESSAGE:
+	$(info compiling for Qt$(QT_VERSION) using $(QT_API))
 
 RES: src/resources_rc.py
 
 src/resources_rc.py: resources/resources.qrc
-	$(PYRCC) $< -o $@
+	rcc -g python $< |sed 's/ PySide. / qtpy /' > $@
 
-UI: oscitronix
-
-oscitronix: src/frontend/ui/main_win.py \
-			src/frontend/ui/about_oscitronix.py \
-			src/frontend/ui/full_amp_import.py \
-			src/frontend/ui/local_program.py
+UI: src/frontend/ui/main_win.py \
+	src/frontend/ui/about_oscitronix.py \
+	src/frontend/ui/full_amp_import.py \
+	src/frontend/ui/local_program.py
 
 src/frontend/ui/%.py: resources/ui/%.ui
-	$(PYUIC) $< |sed "s/from PyQt$(QT_VERSION) import/from qtpy import/" > $@
+	$(PYUIC) $< > $@
 
 clean:
-	rm -f *~ src/*~ src/*.pyc src/ui/*.py src/fronted/ui/*.py src/ui_*.py src/resources_rc.py resources/locale/*.qm
+	rm -f *~ src/*~ src/*.pyc src/ui/*.py src/frontend/ui/*.py \
+		  resources/locale/*.qm src/resources_rc.py
 
 install: uninstall pure_install
 
 uninstall:
-	echo "uninstall"
+	echo uninstall
 
 pure_install:
 	install -d $(DESTDIR)$(PREFIX)/bin/
@@ -88,3 +89,7 @@ pure_install:
 	# modify PREFIX in main bash scripts
 	sed -i "s?X-PREFIX-X?$(PREFIX)?" \
 		$(DESTDIR)$(PREFIX)/bin/oscitronix
+	sed -i "s?X-QT_API-X?$(QT_API)?" \
+		$(DESTDIR)$(PREFIX)/bin/oscitronix
+	
+	

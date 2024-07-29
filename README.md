@@ -37,6 +37,12 @@ As usual, simply run
 * pyliblo
 * pyalsa
 
+in debian Bookworm you can install all required dependencies with
+`apt install `
+
+or for PyQt6
+`apt install python3-pyqt6-qtsvg`
+
 The executable is
 
 `oscitronix`
