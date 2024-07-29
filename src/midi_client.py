@@ -1,6 +1,5 @@
 import logging
 import time
-from enum import Enum
 
 from pyalsa import alsaseq
 from app_infos import APP_NAME
@@ -14,9 +13,6 @@ _logger = logging.getLogger(__name__)
 VALVETRONIX_CLIENT_NAME = 'Valvetronix X'
 VALVETRONIX_PORT_NAME = 'Valvetronix X MIDI 1'
 
-
-
- 
 
 class MidiClient:
     def __init__(self):

@@ -743,7 +743,6 @@ class Engine:
                 f'program {program_name} does not exists in local programs')
             return
         
-        print('allliions', program_name)
         self.current_local_pg_name = program_name
         self._send_vox(
             FunctionCode.CURRENT_PROGRAM_DATA_DUMP,

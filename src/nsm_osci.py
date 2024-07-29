@@ -17,6 +17,7 @@ from engine import Engine
 if TYPE_CHECKING:
     from frontend.main_window import MainWindow
 
+
 _logger = logging.getLogger(__name__)
 
 
@@ -30,9 +31,9 @@ def open_file(project_path: str, session_name: str,
 
 def save_file():
     nsm_object.save_file()
-    fla = nsm_object.engine.current_program.to_json_dict()
-    stra = json.dumps(fla, separators=(',', ':'))
-    print(stra, len(stra))
+    # fla = nsm_object.engine.current_program.to_json_dict()
+    # stra = json.dumps(fla, separators=(',', ':'))
+    # print(stra, len(stra))
     return (Err.OK, 'Done')
 
 def hide_optional_gui():
@@ -78,7 +79,6 @@ class NsmObject:
         nsm_server.announce(
             APP_NAME, ':optional-gui:switch:', sys.argv[0])
         
-        print('pafkpafe', nsm_server.port)
         self.nsm_server = nsm_server
     
     def set_main_win(self, main_win: 'MainWindow'):

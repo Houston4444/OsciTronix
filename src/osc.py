@@ -48,6 +48,8 @@ class OscUdpServer(Server):
             Server.__init__(self, port)
         else:
             Server.__init__(self)
+            
+        self.terminate = False
         self.engine: Optional[Engine] = None
 
         self._add_m('register', '', self._register)
@@ -73,7 +75,7 @@ class OscUdpServer(Server):
         for pedal1_param in pedal1_params():
             ipaths.add(f'current/pedal1/{pedal1_param.name.lower()}')
 
-        for pedal2_param in pedal1_params():
+        for pedal2_param in pedal2_params():
             ipaths.add(f'current/pedal2/{pedal2_param.name.lower()}')
 
         for reverb_param in ReverbParam:
@@ -333,10 +335,16 @@ class OscUdpServer(Server):
 
     def _set_param_value(
             self, path: str, args: list[int], types: str, src_addr: Address):
-        print('sett param value', args)
         self.engine.set_param_value(*args)
 
     def _set_program_name(
             self, path: str, args: list[str], types: str, src_addr: Address):
         self.engine.set_program_name(args[0])
+        
+    def run_loop(self):
+        while not self.terminate:
+            self.recv(50)
+    
+    def stop_loop(self):
+        self.terminate = True
     

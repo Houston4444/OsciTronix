@@ -3,11 +3,11 @@ PREFIX = /usr/local
 DESTDIR = 
 
 LINK = ln -s
-PYUIC ?= pyuic6
+PYUIC ?= pyuic5
 PYRCC ?= pyrcc5
 PYLUPDATE ?= pylupdate5
 LRELEASE ?= lrelease
-QT_VERSION ?= 6
+QT_VERSION ?= 5
 
 # Detect X11 rules dir
 ifeq "$(wildcard /etc/X11/Xsession.d/ )" ""

@@ -11,6 +11,7 @@ from app_infos import APP_NAME, CONFIG_FILE, LOCAL_PROGRAMS_DIRNAME
 import xdg
 import midi_client
 import nsm_osci
+import osc
 from engine import Engine
 from frontend.main_window import MainWindow
 
@@ -86,13 +87,21 @@ if __name__ == '__main__':
         engine.config.load_from_file(config_path)
         engine.set_project_path(
             xdg.xdg_data_home() / APP_NAME / LOCAL_PROGRAMS_DIRNAME)
+        osc_server = osc.OscUdpServer(osc_port)
+        osc_server.set_engine(engine)
+        osc_thread = threading.Thread(target=osc_server.run_loop)
+        osc_thread.start()
 
         main_win.show()
 
     app.exec()
 
     midi_client.stop_loop()
-    nsm_osci.stop_loop()
+    if nsm_osci.is_under_nsm():
+        nsm_osci.stop_loop()
+    else:
+        osc_server.stop_loop()
+    
     
     if not nsm_osci.is_under_nsm():
         engine.config.save_in_file(config_path)

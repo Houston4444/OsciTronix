@@ -1,7 +1,7 @@
 src/__pycache__/*
 src/frontend/__pycache__/*
 src/frontend/ui/__pycache__/*
-src/ui/*
+src/frontend/ui/*
 
 src/resources_rc.py
 vox_orig.jpg

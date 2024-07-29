@@ -89,6 +89,14 @@ for example: To set volume to 64/100, send `/oscitronix/current/amp/volume 64`.
 * low_damp
 * high_damp
 
+### Local Program
+
+Local programs are saved in the computer, but you can not change their location with oscitronix.
+If Oscitronix is started under NSM, they are stored in the `local_programs` dir in the NSM project dir, else they should be stored in `~/.local/share/Oscitronix/local_programs`.
+
+You can simply change the current program to a local program with this message:
+`/oscitronix/load_local_program s` where argument is the program name.
+
 ## Register
 
 ### How to
