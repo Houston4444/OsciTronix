@@ -1,22 +1,41 @@
+#!/usr/bin/env python3
+
 import logging
 import signal
 import sys
 import threading
+from ctypes import cdll, byref, create_string_buffer
 
 from qtpy.QtWidgets import QApplication, QStyleFactory
 from qtpy.QtGui import QIcon
 from qtpy.QtCore import QTimer, QSettings
-from app_infos import APP_NAME, CONFIG_FILE, LOCAL_PROGRAMS_DIRNAME
 
 import xdg
 import midi_client
 import nsm_osci
 import osc
+from app_infos import APP_NAME, CONFIG_FILE, LOCAL_PROGRAMS_DIRNAME
 from engine import Engine
 from frontend.main_window import MainWindow
 
 _logger = logging.getLogger(__name__)
 
+
+def set_proc_name(new_name: str):
+    # use the app name instead of 'python' in process list. 
+    # solution was found here: 
+    # https://stackoverflow.com/questions/564695/is-there-a-way-to-change-effective-process-name-in-python
+    try:
+        libc = cdll.LoadLibrary('libc.so.6')
+        buff = create_string_buffer(len(new_name)+1)
+        buff.value = new_name.encode()
+        libc.prctl(15, byref(buff), 0, 0, 0)
+
+    except BaseException as e:
+        _logger.info(
+            f'impossible to set process name to {new_name}, '
+            'it should not be strong.')
+        _logger.info(str(e))
 
 def signal_handler(sig, frame):
     QApplication.quit()
@@ -44,8 +63,9 @@ def read_args(*args: tuple[str]) -> int:
 
     return osc_port
 
-
-if __name__ == '__main__':
+def main():
+    set_proc_name(APP_NAME.lower())
+    
     osc_port = read_args(*sys.argv[1:])
 
     app = QApplication(sys.argv)
@@ -101,8 +121,10 @@ if __name__ == '__main__':
         nsm_osci.stop_loop()
     else:
         osc_server.stop_loop()
-    
-    
+
     if not nsm_osci.is_under_nsm():
         engine.config.save_in_file(config_path)
 
+
+if __name__ == '__main__':
+    main()

@@ -3,4 +3,4 @@
 INSTALL_PREFIX="X-PREFIX-X"
 QT_API=X-QT_API-X
 export QT_API
-exec python3 "$INSTALL_PREFIX/share/OsciTronix/src/oscitronix.py" "$@"
+exec "$INSTALL_PREFIX/share/OsciTronix/src/oscitronix.py" "$@"

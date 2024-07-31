@@ -7,7 +7,10 @@ LRELEASE ?= lrelease
 QT_VERSION ?= 5
 
 # if you set QT_VERSION environment variable to 6 at the make command
-#  it will choose the other commands QT_API, pyuic6, pylupdate6.
+# it will choose the other commands QT_API, pyuic6, pylupdate6.
+# You will can run oscitronix directly in source without install
+# typing: QT_API=PyQt6 python3 src/oscitronix.py
+
 ifeq ($(QT_VERSION), 6)
 	QT_API ?= PyQt6
 	PYUIC ?= pyuic6
@@ -52,6 +55,8 @@ UI: src/frontend/ui/main_win.py \
 
 src/frontend/ui/%.py: resources/ui/%.ui
 	$(PYUIC) $< > $@
+	[ ${QT_API} = PyQt6 ] && echo 'import resources_rc' >> $@
+
 
 clean:
 	rm -f *~ src/*~ src/*.pyc src/ui/*.py src/frontend/ui/*.py \
@@ -94,7 +99,7 @@ pure_install:
 		$(DESTDIR)$(PREFIX)/share/icons/hicolor/256x256/apps/
 
 	# Install bin
-	install -m 755 data/bin/oscitronix \
+	install -m 755 data/bin/starter.py \
 		$(DESTDIR)$(PREFIX)/bin/oscitronix
 
 	# Copy source code
@@ -105,5 +110,5 @@ pure_install:
 		$(DESTDIR)$(PREFIX)/bin/oscitronix
 	sed -i "s?X-QT_API-X?$(QT_API_INST)?" \
 		$(DESTDIR)$(PREFIX)/bin/oscitronix
-	
+
 	

@@ -4,7 +4,6 @@ OsciTronix is a controller for VTX guitar amps by VOX (VT20X, VT40X and VT100X),
 
 It is written in python with the Qt framework.
 
-Unfortunately, for the moment, it is only compatible with python3.11, because pyalsa is currently broken for python3.12.
 
 ## Features
 
@@ -29,6 +28,12 @@ As usual, simply run
 
 `sudo make install` 
 
+If you prefer to use Oscitronix with Qt6, instead run
+
+`QT_VERSION=6 make`
+
+`sudo make install`
+
 ### Runtime dependencies
 
 * unidecode
@@ -38,10 +43,8 @@ As usual, simply run
 * pyalsa
 
 in debian Bookworm you can install all required dependencies with
-`apt install `
+`apt install python3-unidecode python3-qtpy python3-liblo python3-pyalsa`
 
-or for PyQt6
-`apt install python3-pyqt6-qtsvg`
 
 The executable is
 
