@@ -6,25 +6,39 @@ LINK = ln -s
 LRELEASE ?= lrelease
 QT_VERSION ?= 5
 
+# if you set QT_VERSION environment variable to 6 at the make command
+#  it will choose the other commands QT_API, pyuic6, pylupdate6.
 ifeq ($(QT_VERSION), 6)
 	QT_API ?= PyQt6
 	PYUIC ?= pyuic6
 	PYLUPDATE ?= pylupdate6
+	ifeq (, $(shell which $(LRELEASE)))
+		LRELEASE := lrelease-qt6
+	endif
 else
     QT_API ?= PyQt5
 	PYUIC ?= pyuic5
 	PYLUPDATE ?= pylupdate5
+	ifeq (, $(shell which $(LRELEASE)))
+		LRELEASE := lrelease-qt5
+	endif
 endif
+
+# neeeded for make install
+QT_API_FILE := qt_api.txt
+QT_API_INST := $(file < $(QT_API_FILE))
+QT_API_INST ?= PyQt5
 
 # ----------------------------------------------------------
 # Internationalization
 
 I18N_LANGUAGES :=
 
-all: QT_MESSAGE RES UI
+all: QT_PREPARE RES UI
 
-QT_MESSAGE:
+QT_PREPARE:
 	$(info compiling for Qt$(QT_VERSION) using $(QT_API))
+	$(file > $(QT_API_FILE),$(QT_API))
 
 RES: src/resources_rc.py
 
@@ -89,7 +103,7 @@ pure_install:
 	# modify PREFIX in main bash scripts
 	sed -i "s?X-PREFIX-X?$(PREFIX)?" \
 		$(DESTDIR)$(PREFIX)/bin/oscitronix
-	sed -i "s?X-QT_API-X?$(QT_API)?" \
+	sed -i "s?X-QT_API-X?$(QT_API_INST)?" \
 		$(DESTDIR)$(PREFIX)/bin/oscitronix
 	
 	
