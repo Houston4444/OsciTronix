@@ -1,6 +1,0 @@
-#!/bin/bash
-
-INSTALL_PREFIX="X-PREFIX-X"
-QT_API=X-QT_API-X
-export QT_API
-exec "$INSTALL_PREFIX/share/OsciTronix/src/oscitronix.py" "$@"

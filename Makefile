@@ -6,6 +6,9 @@ LINK = ln -s
 LRELEASE ?= lrelease
 QT_VERSION ?= 5
 
+APP_NAME := OsciTronix
+APP_NAME_LC := oscitronix
+
 # if you set QT_VERSION environment variable to 6 at the make command
 # it will choose the other commands QT_API, pyuic6, pylupdate6.
 # You will can run oscitronix directly in source without install
@@ -28,87 +31,99 @@ else
 endif
 
 # neeeded for make install
-QT_API_FILE := qt_api.txt
-QT_API_INST := $(file < $(QT_API_FILE))
+BUILD_CFG_FILE := build_config
+QT_API_INST := $(shell grep ^QT_API= $(BUILD_CFG_FILE) 2>/dev/null| cut -d'=' -f2)
 QT_API_INST ?= PyQt5
+
+ICON_SIZES := 16 24 32 48 64 96 128 256
+
 
 # ----------------------------------------------------------
 # Internationalization
 
 I18N_LANGUAGES :=
 
-all: QT_PREPARE RES UI
+all: QT_PREPARE RES UI LOCALE
 
 QT_PREPARE:
 	$(info compiling for Qt$(QT_VERSION) using $(QT_API))
-	$(file > $(QT_API_FILE),$(QT_API))
+	$(file > $(BUILD_CFG_FILE),QT_API=$(QT_API))
+
+    ifeq ($(QT_API), $(QT_API_INST))
+    else
+		rm -f *~ src/*~ src/*.pyc src/frontend/ui/*.py \
+		    resources/locale/*.qm src/resources_rc.py
+    endif
 
 RES: src/resources_rc.py
 
 src/resources_rc.py: resources/resources.qrc
 	rcc -g python $< |sed 's/ PySide. / qtpy /' > $@
 
-UI: src/frontend/ui/main_win.py \
-	src/frontend/ui/about_oscitronix.py \
-	src/frontend/ui/full_amp_import.py \
-	src/frontend/ui/local_program.py
+# auto list *.py targets from UI files
+UI: $(shell \
+	ls resources/ui/*.ui| sed 's|\.ui$$|.py|'| sed 's|^resources/|src/frontend/|')
 
 src/frontend/ui/%.py: resources/ui/%.ui
+ifeq ($(PYUIC), pyuic6)
 	$(PYUIC) $< > $@
-	[ ${QT_API} = PyQt6 ] && echo 'import resources_rc' >> $@
+	echo 'import resources_rc' >> $@
+else
+	$(PYUIC) $< > $@
+endif
 
+LOCALE: locale/$(APP_NAME_LC)_en.qm \
+		locale/$(APP_NAME_LC)_fr.qm
+
+locale/%.qm: locale/%.ts
+	$(LRELEASE) $< -qm $@
 
 clean:
 	rm -f *~ src/*~ src/*.pyc src/ui/*.py src/frontend/ui/*.py \
 		  resources/locale/*.qm src/resources_rc.py
 
-install: uninstall pure_install
-
 uninstall:
-	echo uninstall
+	# remove icons
+	for sz in $(ICON_SIZES);do \
+		rm -f $(DESTDIR)$(PREFIX)/share/icons/hicolor/$${sz}x$${sz}/apps/$(APP_NAME_LC).png \
+	;done
 
-pure_install:
+	# remove source code
+	rm -f -R $(DESTDIR)$(PREFIX)/share/$(APP_NAME)
+
+	# remove bin
+	rm -f $(DESTDIR)$(PREFIX)/bin/$(APP_NAME_LC)
+
+	# remove desktop file
+	rm -f $(DESTDIR)$(PREFIX)/share/applications/$(APP_NAME_LC).desktop
+
+install:
 	install -d $(DESTDIR)$(PREFIX)/bin/
-	install -d $(DESTDIR)$(PREFIX)/share/OsciTronix/
-
-	install -d $(DESTDIR)$(PREFIX)/share/icons/hicolor/16x16/apps/
-	install -d $(DESTDIR)$(PREFIX)/share/icons/hicolor/24x24/apps/
-	install -d $(DESTDIR)$(PREFIX)/share/icons/hicolor/32x32/apps/
-	install -d $(DESTDIR)$(PREFIX)/share/icons/hicolor/48x48/apps/
-	install -d $(DESTDIR)$(PREFIX)/share/icons/hicolor/64x64/apps/
-	install -d $(DESTDIR)$(PREFIX)/share/icons/hicolor/96x96/apps/
-	install -d $(DESTDIR)$(PREFIX)/share/icons/hicolor/128x128/apps/
-	install -d $(DESTDIR)$(PREFIX)/share/icons/hicolor/256x256/apps/
+	install -d $(DESTDIR)$(PREFIX)/share/$(APP_NAME)/
 
 	# Install icons
-	install -m 644 resources/main_icon/16x16/oscitronix.png   \
-		$(DESTDIR)$(PREFIX)/share/icons/hicolor/16x16/apps/
-	install -m 644 resources/main_icon/24x24/oscitronix.png   \
-		$(DESTDIR)$(PREFIX)/share/icons/hicolor/24x24/apps/
-	install -m 644 resources/main_icon/32x32/oscitronix.png   \
-		$(DESTDIR)$(PREFIX)/share/icons/hicolor/32x32/apps/
-	install -m 644 resources/main_icon/48x48/oscitronix.png   \
-		$(DESTDIR)$(PREFIX)/share/icons/hicolor/48x48/apps/
-	install -m 644 resources/main_icon/64x64/oscitronix.png   \
-		$(DESTDIR)$(PREFIX)/share/icons/hicolor/64x64/apps/
-	install -m 644 resources/main_icon/96x96/oscitronix.png   \
-		$(DESTDIR)$(PREFIX)/share/icons/hicolor/96x96/apps/
-	install -m 644 resources/main_icon/128x128/oscitronix.png \
-		$(DESTDIR)$(PREFIX)/share/icons/hicolor/128x128/apps/
-	install -m 644 resources/main_icon/256x256/oscitronix.png \
-		$(DESTDIR)$(PREFIX)/share/icons/hicolor/256x256/apps/
-
-	# Install bin
-	install -m 755 data/bin/starter.py \
-		$(DESTDIR)$(PREFIX)/bin/oscitronix
+	for sz in $(ICON_SIZES);do \
+		install -d $(DESTDIR)$(PREFIX)/share/icons/hicolor/$${sz}x$${sz}/apps/ ;\
+		install -m 644 resources/main_icon/$${sz}x$${sz}/$(APP_NAME_LC).png \
+			$(DESTDIR)$(PREFIX)/share/icons/hicolor/$${sz}x$${sz}/apps/ ;\
+	done
 
 	# Copy source code
-	cp -r src $(DESTDIR)$(PREFIX)/share/OsciTronix/
+	cp -r src $(DESTDIR)$(PREFIX)/share/$(APP_NAME)/
 
-	# modify PREFIX in main bash scripts
+	#compile source code
+	python3 -m compileall $(DESTDIR)$(PREFIX)/share/$(APP_NAME)/src/
+
+	# Install launcher
+	install -m 755 data/bin/starter.py \
+		$(DESTDIR)$(PREFIX)/bin/$(APP_NAME_LC)
+
+	# modify PREFIX and QT_API in launcher
 	sed -i "s?X-PREFIX-X?$(PREFIX)?" \
-		$(DESTDIR)$(PREFIX)/bin/oscitronix
+		$(DESTDIR)$(PREFIX)/bin/$(APP_NAME_LC)
 	sed -i "s?X-QT_API-X?$(QT_API_INST)?" \
-		$(DESTDIR)$(PREFIX)/bin/oscitronix
+		$(DESTDIR)$(PREFIX)/bin/$(APP_NAME_LC)
 
-	
+	# install desktop file
+	install -m 644 data/share/applications/$(APP_NAME_LC).desktop \
+		$(DESTDIR)$(PREFIX)/share/applications/

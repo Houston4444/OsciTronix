@@ -4,4 +4,6 @@ src/frontend/ui/__pycache__/*
 src/frontend/ui/*
 
 src/resources_rc.py
-qt_api.txt
+
+locale/*.qm
+build_config

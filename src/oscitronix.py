@@ -5,10 +5,11 @@ import signal
 import sys
 import threading
 from ctypes import cdll, byref, create_string_buffer
+from pathlib import Path
 
 from qtpy.QtWidgets import QApplication, QStyleFactory
 from qtpy.QtGui import QIcon
-from qtpy.QtCore import QTimer, QSettings
+from qtpy.QtCore import QTimer, QSettings, QLocale, QTranslator, QLibraryInfo
 
 import xdg
 import midi_client
@@ -76,6 +77,20 @@ def main():
     
     # force Fusion style because of param widgets
     app.setStyle(QStyleFactory.create('Fusion'))
+    
+    ### Translation process
+    locale = QLocale.system().name()
+    locale_path = Path(__file__).parent.parent / 'locale'
+
+    app_translator = QTranslator()
+    if app_translator.load(QLocale(), APP_NAME.lower(),
+                           '_', str(locale_path)):
+        app.installTranslator(app_translator)
+
+    sys_translator = QTranslator()
+    path_sys_translations = QLibraryInfo.location(QLibraryInfo.TranslationsPath)
+    if sys_translator.load(QLocale(), 'qt', '_', path_sys_translations):
+        app.installTranslator(sys_translator)
     
     settings = QSettings()
 
