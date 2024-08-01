@@ -98,8 +98,10 @@ uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/share/applications/$(APP_NAME_LC).desktop
 
 install:
+	# install needed directories
 	install -d $(DESTDIR)$(PREFIX)/bin/
-	install -d $(DESTDIR)$(PREFIX)/share/$(APP_NAME)/
+	install -d $(DESTDIR)$(PREFIX)/share/$(APP_NAME)/locale/
+
 
 	# Install icons
 	for sz in $(ICON_SIZES);do \
@@ -127,3 +129,6 @@ install:
 	# install desktop file
 	install -m 644 data/share/applications/$(APP_NAME_LC).desktop \
 		$(DESTDIR)$(PREFIX)/share/applications/
+
+	# install translations
+	install -m 644 locale/*.qm $(DESTDIR)$(PREFIX)/share/$(APP_NAME)/locale/
