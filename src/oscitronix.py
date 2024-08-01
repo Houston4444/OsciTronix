@@ -6,6 +6,7 @@ import sys
 import threading
 from ctypes import cdll, byref, create_string_buffer
 from pathlib import Path
+import time
 
 from qtpy.QtWidgets import QApplication, QStyleFactory
 from qtpy.QtGui import QIcon
@@ -21,6 +22,13 @@ from frontend.main_window import MainWindow
 
 
 _logger = logging.getLogger()
+
+class MainObject:
+    osc_server: osc.OscUdpServer = None
+    osc_thread: threading.Thread = None
+
+
+main_object = MainObject()
 
 
 def set_proc_name(new_name: str):
@@ -40,6 +48,9 @@ def set_proc_name(new_name: str):
         _logger.info(str(e))
 
 def signal_handler(sig, frame):
+    if main_object.osc_server is not None:
+        main_object.osc_server.stop_loop()
+    nsm_osci.stop_loop()
     QApplication.quit()
 
 def read_args(*args: str) -> tuple[int, int]:
@@ -135,18 +146,24 @@ def main():
         engine.config.load_from_file(config_path)
         engine.set_project_path(
             xdg.xdg_data_home() / APP_NAME / LOCAL_PROGRAMS_DIRNAME)
+
         osc_server = osc.OscUdpServer(osc_port)
         osc_server.set_engine(engine)
         osc_thread = threading.Thread(target=osc_server.run_loop)
         osc_thread.start()
+        main_object.osc_server = osc_server
+        main_object.osc_thread = osc_thread
 
         main_win.show()
 
     app.exec()
 
     midi_client.stop_loop()
+    midi_thread.join()
+
     if nsm_osci.is_under_nsm():
         nsm_osci.stop_loop()
+        nsm_thread.join()
     else:
         osc_server.stop_loop()
 
