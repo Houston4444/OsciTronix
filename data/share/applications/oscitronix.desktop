@@ -1,10 +1,11 @@
 [Desktop Entry]
 Name=OsciTronix
 GenericName=OsciTronix
-Comment=Controller for VTX series guitar amps
-Comment[fr]=Contrôleur pour les amplis guitare de la série VTX
+Comment=Controller for VOX VTX series guitar amps
+Comment[fr]=Contrôleur pour les amplis guitare VOX de la série VTX
 Exec=oscitronix
 Icon=oscitronix
 Terminal=false
 Type=Application
 Categories=AudioVideo;Audio;Qt;
+X-NSM-Capable=true
