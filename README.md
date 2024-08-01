@@ -10,7 +10,7 @@ It is written in python with the Qt framework.
 OsciTronix is an alternative to ToneRoom (the official VOX controller), with a less attractive GUI, and with very few devices supported. Ok, so, what is the interest ?
 
 * It does not needs Wine
-* full OSC control
+* full OSC control (see [OSC.md](./OSC.md))
 * Any control in one click
 * Faster startup
 * NSM support
@@ -20,7 +20,11 @@ OsciTronix is an alternative to ToneRoom (the official VOX controller), with a l
 
 ### Build dependencies
 
-`pyqt6-dev-tools` or `pyqt5-dev-tools`
+* `pyqt6-dev-tools` or `pyqt5-dev-tools`
+* `qt-chooser`
+
+in debian Bookworm you can install all build and runtime dependencies as root with
+`apt install pyqt5-dev-tools qt-chooser python3-unidecode python3-qtpy python3-liblo python3-pyalsa`
 
 As usual, simply run
 
@@ -42,10 +46,10 @@ If you prefer to use Oscitronix with Qt6, instead run
 * pyliblo
 * pyalsa
 
-in debian Bookworm you can install all required dependencies with
-`apt install python3-unidecode python3-qtpy python3-liblo python3-pyalsa`
-
-
 The executable is
 
 `oscitronix`
+
+### Tips
+you can run directly the program without install. In the source code folder, simply type:
+`./src/oscitronix.py` or `QT_API=PyQt6 ./src/oscitronix.py` if you have build it with Qt6.
