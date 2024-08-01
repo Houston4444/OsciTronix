@@ -19,11 +19,12 @@ from app_infos import APP_NAME, CONFIG_FILE, LOCAL_PROGRAMS_DIRNAME
 from engine import Engine
 from frontend.main_window import MainWindow
 
-_logger = logging.getLogger(__name__)
+
+_logger = logging.getLogger()
 
 
 def set_proc_name(new_name: str):
-    # use the app name instead of 'python' in process list. 
+    # use the app name instead of 'python' in processes list. 
     # solution was found here: 
     # https://stackoverflow.com/questions/564695/is-there-a-way-to-change-effective-process-name-in-python
     try:
@@ -41,33 +42,46 @@ def set_proc_name(new_name: str):
 def signal_handler(sig, frame):
     QApplication.quit()
 
-def read_args(*args: tuple[str]) -> int:
+def read_args(*args: str) -> tuple[int, int]:
     reading = ''
     osc_port = 0
+    logging_level = logging.WARNING
     
     for arg in args:
         if reading == 'osc_port':
             try:
                 osc_port = int(arg)
             except:
-                sys.stderr.write(f'Invalid osc port argument : {arg}\n')
+                sys.stderr.write(f'Invalid osc port : {arg}\n')
                 sys.exit(1)
-            
+        
+        elif reading == 'log':
+            try:
+                assert arg.upper() in (
+                    'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL')
+                logging_level = logging.__dict__[arg.upper()]
+            except:
+                sys.stderr.write(f'Invalid log level : {arg}\n')
+        
         if arg == '--osc-port':
             reading = 'osc_port'
+        elif arg == '--log':
+            reading = 'log'
         elif arg == '--help':
             sys.stdout.write(
                 f'{APP_NAME.lower()} help\n'
-                '    --osc-port  PORT  set port number for OSC\n'
-                '    --help            print this help\n')
+                '    --osc-port  PORT   set port number for OSC\n'
+                '    --log       LEVEL  log level can be '
+                        'DEBUG, INFO, WARNING, ERROR, CRITICAL\n'
+                '    --help             print this help\n')
             sys.exit(0)
 
-    return osc_port
+    return osc_port, logging_level
 
 def main():
+    osc_port, logging_level = read_args(*sys.argv[1:])
+    logging.basicConfig(level=logging_level)
     set_proc_name(APP_NAME.lower())
-    
-    osc_port = read_args(*sys.argv[1:])
 
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon.fromTheme(APP_NAME.lower()))
@@ -79,7 +93,6 @@ def main():
     app.setStyle(QStyleFactory.create('Fusion'))
     
     ### Translation process
-    locale = QLocale.system().name()
     locale_path = Path(__file__).parent.parent / 'locale'
 
     app_translator = QTranslator()
