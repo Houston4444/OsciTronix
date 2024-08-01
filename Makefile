@@ -82,21 +82,6 @@ clean:
 	rm -f *~ src/*~ src/*.pyc src/ui/*.py src/frontend/ui/*.py \
 		  resources/locale/*.qm src/resources_rc.py
 
-uninstall:
-	# remove icons
-	for sz in $(ICON_SIZES);do \
-		rm -f $(DESTDIR)$(PREFIX)/share/icons/hicolor/$${sz}x$${sz}/apps/$(APP_NAME_LC).png \
-	;done
-
-	# remove source code
-	rm -f -R $(DESTDIR)$(PREFIX)/share/$(APP_NAME)
-
-	# remove bin
-	rm -f $(DESTDIR)$(PREFIX)/bin/$(APP_NAME_LC)
-
-	# remove desktop file
-	rm -f $(DESTDIR)$(PREFIX)/share/applications/$(APP_NAME_LC).desktop
-
 install:
 	# install needed directories
 	install -d $(DESTDIR)$(PREFIX)/bin/
@@ -132,3 +117,18 @@ install:
 
 	# install translations
 	install -m 644 locale/*.qm $(DESTDIR)$(PREFIX)/share/$(APP_NAME)/locale/
+
+uninstall:
+	# remove icons
+	for sz in $(ICON_SIZES);do \
+		rm -f $(DESTDIR)$(PREFIX)/share/icons/hicolor/$${sz}x$${sz}/apps/$(APP_NAME_LC).png \
+	;done
+
+	# remove source code
+	rm -f -R $(DESTDIR)$(PREFIX)/share/$(APP_NAME)
+
+	# remove bin
+	rm -f $(DESTDIR)$(PREFIX)/bin/$(APP_NAME_LC)
+
+	# remove desktop file
+	rm -f $(DESTDIR)$(PREFIX)/share/applications/$(APP_NAME_LC).desktop
