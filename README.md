@@ -53,4 +53,4 @@ The executable is
 
 ### Tips
 you can run directly the program without install. In the source code folder, simply type:
-`./src/oscitronix.py` or `QT_API=PyQt6 ./src/oscitronix.py` if you have build it with Qt6.
+`./src/oscitronix.py` or `QT_API=PyQt6 ./src/oscitronix.py` if you have built it with Qt6.
