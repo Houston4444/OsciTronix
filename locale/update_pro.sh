@@ -16,13 +16,22 @@ for file in *.ui;do
 done
 
 
-cd "$code_root/src/$dir"
+cd "$code_root/src"
 
 for file in *.py;do
-    [[ "$file" =~ ^ui_ ]] && continue
-    
+    echo "$file"
     if cat "$file"|grep -q _translate;then
-        contents+="SOURCES += ../src/$dir/${file}
+        contents+="SOURCES += ../src/${file}
+"
+    fi
+done
+
+cd "$code_root/src/frontend"
+
+for file in *.py;do
+    echo "$file"
+    if cat "$file"|grep -q _translate;then
+        contents+="SOURCES += ../src/frontend/${file}
 "
     fi
 done
