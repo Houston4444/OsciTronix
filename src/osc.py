@@ -55,6 +55,7 @@ class OscUdpServer(Server):
         self._add_m('register', '', self._register)
         self._add_m('unregister', '', self._unregister)
         self._add_m('load_local_program', 's', self._load_local_program)
+        self._add_m('save_to_local_program', 's', self._save_to_local_program)
         self._add_m('current/set_param_value', 'iii', self._set_param_value)
         self._add_m('current/program_name', 's', self._set_program_name)
 
@@ -332,6 +333,10 @@ class OscUdpServer(Server):
     def _load_local_program(
             self, path: str, args: list[str], types: str, src_addr: Address):
         self.engine.load_local_program(args[0])
+
+    def _save_to_local_program(
+            self, path: str, args: list[str], types: str, src_addr: Address):
+        self.engine.save_to_local_program(args[0])
 
     def _set_param_value(
             self, path: str, args: list[int], types: str, src_addr: Address):
