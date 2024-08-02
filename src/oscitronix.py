@@ -93,6 +93,7 @@ def main():
     osc_port, logging_level = read_args(*sys.argv[1:])
     logging.basicConfig(level=logging_level)
     set_proc_name(APP_NAME.lower())
+    set_proc_name(45)
 
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon.fromTheme(APP_NAME.lower()))
