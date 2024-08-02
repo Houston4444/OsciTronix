@@ -6,7 +6,6 @@ import sys
 import threading
 from ctypes import cdll, byref, create_string_buffer
 from pathlib import Path
-import time
 
 from qtpy.QtWidgets import QApplication, QStyleFactory
 from qtpy.QtGui import QIcon
@@ -45,9 +44,6 @@ def set_proc_name(new_name: str):
         _logger.info(str(e))
 
 def signal_handler(sig, frame):
-    # if main_object.osc_server is not None:
-    #     main_object.osc_server.stop_loop()
-    # nsm_osci.stop_loop()
     QApplication.quit()
 
 def read_args(*args: str) -> tuple[int, int]:

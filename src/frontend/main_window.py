@@ -6,11 +6,14 @@ from qtpy.QtWidgets import (
     QApplication, QMainWindow, QFileDialog,
     QCheckBox, QComboBox, QGroupBox, QMenu,
     QMessageBox, QAction)
+from qtpy.QtGui import QIcon, QPixmap
 from qtpy.QtCore import QTimer, Slot, Signal, QSettings
 
 from app_infos import APP_NAME
 from config import NsmMode
+from frontend.bank_icons import BankIcon
 from frontend.local_program_dialog import LocalProgramDialog
+from frontend.upload_menu import UploadMenu
 import xdg
 from midi_enums import MidiConnectState
 from effects import (
@@ -41,6 +44,8 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+
+        self.bank_icon = BankIcon()
 
         self.engine = engine
         self.engine.add_callback(self.engine_callback)
@@ -117,38 +122,8 @@ class MainWindow(QMainWindow):
             self._change_program_number)
         self.ui.lineEditProgramName.textEdited.connect(
             self._set_program_name)
-        
-        self.upload_menu = QMenu()
-        banks_menu = QMenu(
-            _translate('main_win',
-                       '>> User Bank'),
-            self.upload_menu)
-        presets_menu = QMenu(
-            _translate('main_win',
-                       '>> User AmpFX'),
-            self.upload_menu)
-        
-        for i in range(4):
-            act = banks_menu.addAction(f'A{i+1}')
-            act.setData(i)
-            act.triggered.connect(self._upload_to_user_program)
 
-        banks_menu.addSeparator()
-
-        for i in range(4):
-            act = banks_menu.addAction(f'B{i+1}')
-            act.setData(i+4)
-            act.triggered.connect(self._upload_to_user_program)
-
-        i = 0
-        for letter in ('A', 'B', 'C'):
-            act = presets_menu.addAction(f'USER {letter}')
-            act.setData(i)
-            act.triggered.connect(self._upload_to_user_ampfx)
-            i += 1
-
-        self.upload_menu.addMenu(banks_menu)
-        self.upload_menu.addMenu(presets_menu)
+        self.upload_menu = UploadMenu(self)
         self.ui.toolButtonUpload.setMenu(self.upload_menu)
 
         self.ui.progressBarNoiseGate.valueChanged.connect(
@@ -341,6 +316,7 @@ class MainWindow(QMainWindow):
         if vox_mode is VoxMode.MANUAL:
             self.ui.comboBoxBanksAndPresets.setEnabled(False)
             self.ui.labelBankPreset.setText('')
+            self.upload_menu.build()
             return
 
         self.ui.comboBoxBanksAndPresets.setEnabled(True)
@@ -350,12 +326,28 @@ class MainWindow(QMainWindow):
                 _translate('main_win', 'Bank'))
 
             for bank_name in BankName:
-                self.ui.comboBoxBanksAndPresets.addItem(
-                    bank_name.name, bank_name.value)
+                if bank_name.value <= 3:
+                    icon = self.bank_icon.green
+                    if self.engine.prog_num == bank_name.value:
+                        icon = self.bank_icon.green_sel
+                    
+                    self.ui.comboBoxBanksAndPresets.addItem(
+                        icon, bank_name.name, bank_name.value)
+                else:
+                    icon = self.bank_icon.red
+                    if self.engine.prog_num == bank_name.value:
+                        icon = self.bank_icon.red_sel
+                    self.ui.comboBoxBanksAndPresets.addItem(
+                        icon, bank_name.name, bank_name.value)
+
                 self.ui.comboBoxBanksAndPresets.setCurrentIndex(
                     self.engine.prog_num)
+                
+            
             self.ui.comboBoxBanksAndPresets.setCurrentIndex(
                 self.engine.prog_num)
+            
+            self.upload_menu.build(self.engine.prog_num)
             return
         
         # vox_mode is VoxMode.PRESET
@@ -368,6 +360,8 @@ class MainWindow(QMainWindow):
                 program.program_name, i)
         self.ui.comboBoxBanksAndPresets.setCurrentIndex(
             self.engine.prog_num)
+        
+        self.upload_menu.build()
 
     def engine_callback(self, *args):
         self.callback_sig.emit(*args)
@@ -733,12 +727,12 @@ class MainWindow(QMainWindow):
         dialog.exec()
     
     @Slot()
-    def _upload_to_user_program(self):
+    def upload_to_user_program(self):
         bank_num: int = self.sender().data()
         self.engine.upload_current_to_user_program(bank_num)
             
     @Slot()
-    def _upload_to_user_ampfx(self):
+    def upload_to_user_ampfx(self):
         user_num: int = self.sender().data()
         self.engine.upload_current_to_user_ampfx(user_num)
 

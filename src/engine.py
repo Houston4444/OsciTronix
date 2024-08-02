@@ -650,6 +650,7 @@ class Engine:
             FunctionCode.MODE_CHANGE, VoxMode.USER.value, bank_num)
         self.current_program = self.programs[bank_num].copy()
         self.prog_num = bank_num
+        self._send_cb(EngineCallback.MODE_CHANGED, VoxMode.USER)
         self._send_cb(EngineCallback.CURRENT_CHANGED, self.current_program)
 
     @in_midi_thread()

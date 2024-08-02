@@ -2,5 +2,9 @@
     <qresource prefix="/">
         <file>main_icon/128x128/oscitronix.png</file>
         <file>transparent.png</file>
+        <file>green.png</file>
+        <file>red.png</file> 
+        <file>green_sel.png</file>
+        <file>red_sel.png</file>
     </qresource>
 </RCC>
