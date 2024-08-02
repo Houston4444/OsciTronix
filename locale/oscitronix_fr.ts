@@ -120,147 +120,277 @@
     <message>
         <location filename="../resources/ui/main_win.ui" line="14"/>
         <source>OsciTronix</source>
-        <translation type="obsolete">OsciTronix</translation>
+        <translation>OsciTronix</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="39"/>
         <source>Local programs</source>
-        <translation type="obsolete">Programmes locaux</translation>
+        <translation>Programmes locaux</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="1051"/>
         <source>Amp</source>
-        <translation type="obsolete">Ampli</translation>
+        <translation>Ampli</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="409"/>
         <source>Communication failure</source>
-        <translation type="obsolete">Échec de communication</translation>
+        <translation>Échec de communication</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="419"/>
         <source>Absent device</source>
-        <translation type="obsolete">Appareil absent</translation>
+        <translation>Appareil absent</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="458"/>
         <source>Mode</source>
-        <translation type="obsolete">Mode</translation>
+        <translation>Mode</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="471"/>
         <source>Preset</source>
-        <translation type="obsolete">Preset</translation>
+        <translation>Preset</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="492"/>
         <source>Save current program in the amp</source>
-        <translation type="obsolete">Sauvegarder le programme en cours dans l&apos;ampli</translation>
+        <translation>Sauvegarder le programme en cours dans l&apos;ampli</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="737"/>
         <source>Pedal 1</source>
-        <translation type="obsolete">Pédale 1</translation>
+        <translation>Pédale 1</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="886"/>
         <source>Pedal 2</source>
-        <translation type="obsolete">Pédale 2</translation>
+        <translation>Pédale 2</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="1031"/>
         <source>File</source>
-        <translation type="obsolete">Fichier</translation>
+        <translation>Fichier</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="1044"/>
         <source>About</source>
-        <translation type="obsolete">À propos</translation>
+        <translation>À propos</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="1058"/>
         <source>Options</source>
-        <translation type="obsolete">Options</translation>
+        <translation>Options</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="1062"/>
         <source>NSM Mode</source>
-        <translation type="obsolete">Mode NSM</translation>
+        <translation>Mode NSM</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="1081"/>
         <source>Save current program</source>
-        <translation type="obsolete">Sauvegarder le programme en cours</translation>
+        <translation>Sauvegarder le programme en cours</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="1090"/>
         <source>Save complete amp</source>
-        <translation type="obsolete">Sauvegarder l&apos;ampli complet</translation>
+        <translation>Sauvegarder l&apos;ampli complet</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="1099"/>
         <source>Load program</source>
-        <translation type="obsolete">Charger un programme</translation>
+        <translation>Charger un programme</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="1108"/>
         <source>Load complete amp</source>
-        <translation type="obsolete">Charger un ampli complet</translation>
+        <translation>Charger un ampli complet</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="1117"/>
         <source>About Qt</source>
-        <translation type="obsolete">À propos de Qt</translation>
+        <translation>À propos de Qt</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="1126"/>
         <source>About OsciTronix</source>
-        <translation type="obsolete">À propos d&apos;OsciTronix</translation>
+        <translation>À propos d&apos;OsciTronix</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="1135"/>
         <source>Quit</source>
-        <translation type="obsolete">Quitter</translation>
+        <translation>Quitter</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="1144"/>
         <source>Save current program to user bank</source>
-        <translation type="obsolete">Sauvegarder le programme en cours vers une banque utilisateur</translation>
+        <translation>Sauvegarder le programme en cours vers une banque utilisateur</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="1153"/>
         <source>Save current program to user ampfx</source>
-        <translation type="obsolete">Sauvegarder le programme en cours vers un AmpFx utilisateur</translation>
+        <translation>Sauvegarder le programme en cours vers un AmpFx utilisateur</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="1162"/>
         <source>Save an 8 programs setup</source>
-        <translation type="obsolete">Sauvegarder un setup de 8 programmes</translation>
+        <translation>Sauvegarder un setup de 8 programmes</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="1171"/>
         <source>Load an 8 programs setup</source>
-        <translation type="obsolete">Charger un setup de de 8 programmes</translation>
+        <translation>Charger un setup de de 8 programmes</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="1180"/>
         <source>Hide</source>
-        <translation type="obsolete">Cacher</translation>
+        <translation>Cacher</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="1191"/>
         <source>Auto connect MIDI</source>
-        <translation type="obsolete">Connecter automatiquement au MIDI</translation>
+        <translation>Connecter automatiquement au MIDI</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="1199"/>
         <source>Free</source>
-        <translation type="obsolete">Libre</translation>
+        <translation>Libre</translation>
     </message>
     <message>
         <location filename="../resources/ui/main_win.ui" line="1210"/>
         <source>Load saved program</source>
-        <translation type="obsolete">Charger un programme sauvegardé</translation>
+        <translation>Charger un programme sauvegardé</translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="495"/>
+        <source>...</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="108"/>
+        <source>Bass</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="124"/>
+        <source>Resonance</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="134"/>
+        <source>Gain</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="144"/>
+        <source>Tone</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="167"/>
+        <source>Treble</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="188"/>
+        <source>Middle</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="198"/>
+        <source>Volume</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="217"/>
+        <source>Low Cut</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="224"/>
+        <source>Mid Boost</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="231"/>
+        <source>Bright Cap</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="270"/>
+        <source>Class</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="300"/>
+        <source>Bias Shift</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="551"/>
+        <source>Noise Gate</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="599"/>
+        <source>Reverb</source>
+        <translation>Reverb</translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="615"/>
+        <source>Time</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="639"/>
+        <source>Pre Delay</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="652"/>
+        <source>Mix</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="676"/>
+        <source>Low Damp</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="686"/>
+        <source>High Damp</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="980"/>
+        <source>Param0</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="953"/>
+        <source>Param3</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="990"/>
+        <source>Param4</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="943"/>
+        <source>Param5</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="919"/>
+        <source>Param2</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../resources/ui/main_win.ui" line="895"/>
+        <source>Param1</source>
+        <translation></translation>
     </message>
 </context>
 <context>

@@ -1,0 +1,1225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>520</width>
+    <height>864</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>OsciTronix</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_8">
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_11">
+        <property name="text">
+         <string>Local programs</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="comboBoxLocalPrograms">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="toolButtonSave">
+        <property name="text">
+         <string>...</string>
+        </property>
+        <property name="icon">
+         <iconset theme="document-save-as">
+          <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="Line" name="line_4">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <widget class="QGroupBox" name="groupBox_3">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QGroupBox {
+    background-color:#20808080;
+    border: 2px solid gray;
+    border-radius: 5px;
+    margin-top: 1.5ex; /* leave space at the top for the title */
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center; /* position at the top center */
+    padding: 0 3px;
+	border:2px solid gray;
+    border-radius:5px;
+}</string>
+        </property>
+        <property name="title">
+         <string>Amp</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="1" column="0">
+          <layout class="QGridLayout" name="gridLayout">
+           <item row="6" column="0">
+            <widget class="QLabel" name="label_4">
+             <property name="text">
+              <string>Bass</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="0">
+            <widget class="QLabel" name="label_7">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Resonance</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>Gain</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="0">
+            <widget class="QLabel" name="labelPresenceTone">
+             <property name="text">
+              <string>Tone</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1" colspan="6">
+            <widget class="ParamProgressBar" name="progressBarGain">
+             <property name="value">
+              <number>24</number>
+             </property>
+             <property name="textDirection">
+              <enum>QProgressBar::TopToBottom</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0" colspan="7">
+            <widget class="QComboBox" name="comboBoxAmpModel"/>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>Treble</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1" colspan="6">
+            <widget class="ParamProgressBar" name="progressBarTreble">
+             <property name="styleSheet">
+              <string notr="true">
+QProgressBar::chunck {background-color: #888888;}</string>
+             </property>
+             <property name="value">
+              <number>24</number>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_3">
+             <property name="text">
+              <string>Middle</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="12" column="0">
+            <widget class="QLabel" name="label_5">
+             <property name="text">
+              <string>Volume</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1" colspan="6">
+            <widget class="ParamProgressBar" name="progressBarMiddle">
+             <property name="value">
+              <number>24</number>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0" colspan="7">
+            <layout class="QHBoxLayout" name="horizontalLayout">
+             <item>
+              <widget class="QCheckBox" name="checkBoxLowCut">
+               <property name="text">
+                <string>Low Cut</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="checkBoxMidBoost">
+               <property name="text">
+                <string>Mid Boost</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="checkBoxBrightCap">
+               <property name="text">
+                <string>Bright Cap</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="6" column="1" colspan="6">
+            <widget class="ParamProgressBar" name="progressBarBass">
+             <property name="value">
+              <number>24</number>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="1" colspan="6">
+            <widget class="ParamProgressBar" name="progressBarResonance">
+             <property name="value">
+              <number>24</number>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="1" colspan="6">
+            <widget class="ParamProgressBar" name="progressBarTone">
+             <property name="value">
+              <number>24</number>
+             </property>
+            </widget>
+           </item>
+           <item row="12" column="1" colspan="6">
+            <widget class="ParamProgressBar" name="progressBarVolume">
+             <property name="value">
+              <number>24</number>
+             </property>
+            </widget>
+           </item>
+           <item row="14" column="0" colspan="7">
+            <layout class="QHBoxLayout" name="horizontalLayout_2">
+             <item>
+              <widget class="QLabel" name="label_9">
+               <property name="text">
+                <string>Class</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="ParamProgressBar" name="progressBarClassAAB">
+               <property name="value">
+                <number>24</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_8">
+               <property name="text">
+                <string>Bias Shift</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="ParamProgressBar" name="progressBarBiasShift">
+               <property name="value">
+                <number>24</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="2" column="3">
+            <widget class="Line" name="line_3">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="3">
+            <widget class="Line" name="line_2">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="13" column="3">
+            <widget class="Line" name="line">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <spacer name="verticalSpacer_7">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="10" column="2">
+            <spacer name="verticalSpacer_8">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="13" column="2">
+            <spacer name="verticalSpacer_9">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+         <item row="0" column="0">
+          <spacer name="verticalSpacer_6">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>10</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_5">
+            <item>
+             <widget class="QLabel" name="labelConnected">
+              <property name="styleSheet">
+               <string notr="true">QLabel{color:red}</string>
+              </property>
+              <property name="text">
+               <string>Communication failure</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="labelMidiConnectState">
+              <property name="text">
+               <string>Absent device</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QToolButton" name="toolButtonRefresh">
+            <property name="text">
+             <string>...</string>
+            </property>
+            <property name="icon">
+             <iconset theme="view-refresh">
+              <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox_2">
+          <property name="title">
+           <string/>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_4">
+           <item>
+            <layout class="QGridLayout" name="gridLayout_6">
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_10">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Mode</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QComboBox" name="comboBoxMode"/>
+             </item>
+             <item row="1" column="1">
+              <widget class="QComboBox" name="comboBoxBanksAndPresets"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="labelBankPreset">
+               <property name="text">
+                <string>Preset</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_7">
+             <item>
+              <widget class="QLineEdit" name="lineEditProgramName">
+               <property name="maxLength">
+                <number>16</number>
+               </property>
+               <property name="readOnly">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QToolButton" name="toolButtonUpload">
+               <property name="toolTip">
+                <string>Save current program in the amp</string>
+               </property>
+               <property name="text">
+                <string>...</string>
+               </property>
+               <property name="icon">
+                <iconset theme="cloud-upload">
+                 <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+               </property>
+               <property name="popupMode">
+                <enum>QToolButton::InstantPopup</enum>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox">
+          <property name="styleSheet">
+           <string notr="true">QGroupBox {
+    background-color:#20808080;
+    border: 2px solid gray;
+    border-radius: 5px;
+    margin-top: 1.5ex; /* leave space at the top for the title */
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center; /* position at the top center */
+    padding: 0 3px;
+	border:2px solid gray;
+    border-radius:5px;
+}</string>
+          </property>
+          <property name="title">
+           <string/>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_3">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_4">
+             <item>
+              <widget class="QLabel" name="label_6">
+               <property name="text">
+                <string>Noise Gate</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="ParamProgressBar" name="progressBarNoiseGate">
+               <property name="value">
+                <number>24</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBoxReverb">
+          <property name="styleSheet">
+           <string notr="true">QGroupBox {
+    background-color:#20808080;
+    border: 2px solid gray;
+    border-radius: 5px;
+    margin-top: 1.5ex; /* leave space at the top for the title */
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center; /* position at the top center */
+    padding: 0 3px;
+	border:2px solid gray;
+    border-radius:5px;
+}</string>
+          </property>
+          <property name="title">
+           <string>Reverb</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_5">
+           <item row="6" column="1">
+            <widget class="ParamProgressBar" name="progressBarReverbLowDamp">
+             <property name="value">
+              <number>24</number>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_20">
+             <property name="text">
+              <string>Time</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="ParamProgressBar" name="progressBarReverbPreDelay">
+             <property name="value">
+              <number>24</number>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="1">
+            <widget class="ParamProgressBar" name="progressBarReverbHighDump">
+             <property name="value">
+              <number>24</number>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_21">
+             <property name="text">
+              <string>Pre Delay</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" colspan="2">
+            <widget class="QComboBox" name="comboBoxReverb"/>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_19">
+             <property name="text">
+              <string>Mix</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="ParamProgressBar" name="progressBarReverbMix">
+             <property name="value">
+              <number>24</number>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="ParamProgressBar" name="progressBarReverbTime">
+             <property name="value">
+              <number>24</number>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0">
+            <widget class="QLabel" name="label_22">
+             <property name="text">
+              <string>Low Damp</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="0">
+            <widget class="QLabel" name="label_23">
+             <property name="text">
+              <string>High Damp</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <spacer name="verticalSpacer_5">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>10</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_5">
+      <item>
+       <widget class="QGroupBox" name="groupBoxPedal1">
+        <property name="styleSheet">
+         <string notr="true">QGroupBox {
+    background-color:#20808080;
+    border: 2px solid gray;
+    border-radius: 5px;
+    margin-top: 1.5ex; /* leave space at the top for the title */
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center; /* position at the top center */
+    padding: 0 3px;
+	border:2px solid gray;
+    border-radius:5px;
+}</string>
+        </property>
+        <property name="title">
+         <string>Pedal 1</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_2">
+         <item row="3" column="2">
+          <widget class="ParamProgressBar" name="progressBarPedal1Param1">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="labelPedal1Param0">
+           <property name="text">
+            <string>Param0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="2">
+          <widget class="ParamProgressBar" name="progressBarPedal1Param5">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="2">
+          <widget class="ParamProgressBar" name="progressBarPedal1Param4">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="labelPedal1Param3">
+           <property name="text">
+            <string>Param3</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0" colspan="3">
+          <widget class="QComboBox" name="comboBoxPedal1"/>
+         </item>
+         <item row="5" column="2">
+          <widget class="ParamProgressBar" name="progressBarPedal1Param3">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="QLabel" name="labelPedal1Param4">
+           <property name="text">
+            <string>Param4</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="2">
+          <widget class="ParamProgressBar" name="progressBarPedal1Param2">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="0">
+          <widget class="QLabel" name="labelPedal1Param5">
+           <property name="text">
+            <string>Param5</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="labelPedal1Param2">
+           <property name="text">
+            <string>Param2</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="labelPedal1Param1">
+           <property name="text">
+            <string>Param1</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="ParamProgressBar" name="progressBarPedal1Param0">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <spacer name="verticalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>10</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="groupBoxPedal2">
+        <property name="styleSheet">
+         <string notr="true">QGroupBox {
+    background-color:#20808080;
+    border: 2px solid gray;
+    border-radius: 5px;
+    margin-top: 1.5ex; /* leave space at the top for the title */
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center; /* position at the top center */
+    padding: 0 3px;
+	border:2px solid gray;
+    border-radius:5px;
+}</string>
+        </property>
+        <property name="title">
+         <string>Pedal 2</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="3" column="0">
+          <widget class="QLabel" name="labelPedal2Param1">
+           <property name="text">
+            <string>Param1</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="1">
+          <widget class="ParamProgressBar" name="progressBarPedal2Param4">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="1">
+          <widget class="ParamProgressBar" name="progressBarPedal2Param5">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="labelPedal2Param2">
+           <property name="text">
+            <string>Param2</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="ParamProgressBar" name="progressBarPedal2Param2">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="ParamProgressBar" name="progressBarPedal2Param3">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="0">
+          <widget class="QLabel" name="labelPedal2Param5">
+           <property name="text">
+            <string>Param5</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="labelPedal2Param3">
+           <property name="text">
+            <string>Param3</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="ParamProgressBar" name="progressBarPedal2Param1">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="ParamProgressBar" name="progressBarPedal2Param0">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0" colspan="3">
+          <widget class="QComboBox" name="comboBoxPedal2"/>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="labelPedal2Param0">
+           <property name="text">
+            <string>Param0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="QLabel" name="labelPedal2Param4">
+           <property name="text">
+            <string>Param4</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <spacer name="verticalSpacer_4">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>10</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>520</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionSaveCurrentProgram"/>
+    <addaction name="actionSaveCompleteAmp"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoadProgram"/>
+    <addaction name="actionLoadCompleteAmp"/>
+    <addaction name="separator"/>
+    <addaction name="actionQuit"/>
+    <addaction name="actionHide"/>
+   </widget>
+   <widget class="QMenu" name="menuAbout">
+    <property name="title">
+     <string>About</string>
+    </property>
+    <addaction name="actionAboutQt"/>
+    <addaction name="actionAboutOsciTronix"/>
+   </widget>
+   <widget class="QMenu" name="menuAmp">
+    <property name="title">
+     <string>Amp</string>
+    </property>
+    <addaction name="actionSaveCurrentProgramToUserBank"/>
+    <addaction name="actionSaveCurrentProgramToUserAmpfx"/>
+   </widget>
+   <widget class="QMenu" name="menuOptions">
+    <property name="title">
+     <string>Options</string>
+    </property>
+    <widget class="QMenu" name="menuNsmMode">
+     <property name="title">
+      <string>NSM Mode</string>
+     </property>
+     <addaction name="actionNsmFree"/>
+     <addaction name="actionLoadSavedProgram"/>
+    </widget>
+    <addaction name="actionAutoConnectMidi"/>
+    <addaction name="menuNsmMode"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuAmp"/>
+   <addaction name="menuOptions"/>
+   <addaction name="menuAbout"/>
+  </widget>
+  <action name="actionSaveCurrentProgram">
+   <property name="icon">
+    <iconset theme="document-save">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Save current program</string>
+   </property>
+  </action>
+  <action name="actionSaveCompleteAmp">
+   <property name="icon">
+    <iconset theme="document-save">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Save complete amp</string>
+   </property>
+  </action>
+  <action name="actionLoadProgram">
+   <property name="icon">
+    <iconset theme="document-open">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Load program</string>
+   </property>
+  </action>
+  <action name="actionLoadCompleteAmp">
+   <property name="icon">
+    <iconset theme="document-open">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Load complete amp</string>
+   </property>
+  </action>
+  <action name="actionAboutQt">
+   <property name="icon">
+    <iconset theme="qtlogo">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>About Qt</string>
+   </property>
+  </action>
+  <action name="actionAboutOsciTronix">
+   <property name="icon">
+    <iconset theme="oscitronix">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>About OsciTronix</string>
+   </property>
+  </action>
+  <action name="actionQuit">
+   <property name="icon">
+    <iconset theme="application-exit">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Quit</string>
+   </property>
+  </action>
+  <action name="actionSaveCurrentProgramToUserBank">
+   <property name="icon">
+    <iconset theme="cloud-upload">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Save current program to user bank</string>
+   </property>
+  </action>
+  <action name="actionSaveCurrentProgramToUserAmpfx">
+   <property name="icon">
+    <iconset theme="cloud-upload">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Save current program to user ampfx</string>
+   </property>
+  </action>
+  <action name="actionSave8ProgramsSetup">
+   <property name="icon">
+    <iconset theme="document-save">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Save an 8 programs setup</string>
+   </property>
+  </action>
+  <action name="actionLoad8ProgramsSetup">
+   <property name="icon">
+    <iconset theme="document-open">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Load an 8 programs setup</string>
+   </property>
+  </action>
+  <action name="actionHide">
+   <property name="icon">
+    <iconset theme="hide_table_row">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Hide</string>
+   </property>
+  </action>
+  <action name="actionAutoConnectMidi">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Auto connect MIDI</string>
+   </property>
+  </action>
+  <action name="actionNsmFree">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Free</string>
+   </property>
+  </action>
+  <action name="actionLoadSavedProgram">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Load saved program</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ParamProgressBar</class>
+   <extends>QProgressBar</extends>
+   <header location="global">frontend/progress</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../resources.qrc"/>
+ </resources>
+ <connections/>
+</ui>

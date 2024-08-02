@@ -1,6 +1,7 @@
 FORMS += ../resources/ui/about_oscitronix.ui
 FORMS += ../resources/ui/full_amp_import.ui
 FORMS += ../resources/ui/local_program.ui
+FORMS += ../resources/ui/main_win.ui
 SOURCES += ../src/frontend/amp_import_dialog.py
 SOURCES += ../src/frontend/main_window.py
 SOURCES += ../src/frontend/upload_menu.py
