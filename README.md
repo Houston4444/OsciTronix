@@ -4,7 +4,7 @@ OsciTronix is a controller for VTX guitar amps by VOX (VT20X, VT40X and VT100X),
 
 It is written in python with the Qt framework.
 
-![Screenshot](https://raw.githubusercontent.com/Houston4444/mentatronix/master/resources/screenshots/oscitronix.png)
+![Screenshot](https://raw.githubusercontent.com/Houston4444/OsciTronix/master/resources/screenshots/oscitronix.png)
 
 ## Features
 
