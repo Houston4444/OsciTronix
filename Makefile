@@ -54,6 +54,7 @@ QT_PREPARE:
 		rm -f *~ src/*~ src/*.pyc src/frontend/ui/*.py \
 		    resources/locale/*.qm src/resources_rc.py
     endif
+	install -d src/frontend/ui
 
 RES: src/resources_rc.py
 
