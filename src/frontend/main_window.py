@@ -45,6 +45,12 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        # prevent pedal 1 and pedal 2 groups to be resized
+        # when effect change, this cause annoying groups and window resizes.
+        pedal2_height = self.ui.groupBoxPedal2.minimumSizeHint().height()
+        self.ui.groupBoxPedal2.setMinimumHeight(pedal2_height)
+        self.ui.groupBoxPedal1.setMinimumHeight(pedal2_height)
+
         self.bank_icon = BankIcon()
 
         self.engine = engine
